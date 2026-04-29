@@ -719,7 +719,7 @@ export interface QuestionResponse {
   /**
    * Reference to uploaded document when answer requires file upload
    */
-  response_doc_id: number | null;
+  response_doc_id: string | null;
   response_text: string | null;
   updated_at: Generated<Timestamp>;
   updated_by: string | null;

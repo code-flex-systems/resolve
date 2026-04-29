@@ -143,6 +143,25 @@ async function hoursBeforeEndOf(
 	return new Date(boundary.getTime() - hours * 60 * 60 * 1000);
 }
 
+/**
+ * Compute YYYY-MM-DD for (CURRENT_DATE - N days) using Postgres so the date
+ * matches what the function under test will produce.
+ */
+async function pgDateMinusDays(db: Kysely<DB>, days: number): Promise<string> {
+	const result = await sql<{ d: Date }>`
+		SELECT (CURRENT_DATE - ${sql.lit(days)} * interval '1 day')::date AS d
+	`.execute(db);
+	return result.rows[0].d.toISOString().split('T')[0];
+}
+
+/** Build a timestamp at noon (server tz) for a given YYYY-MM-DD date. */
+async function pgNoonOn(db: Kysely<DB>, dateStr: string): Promise<Date> {
+	const result = await sql<{ ts: Date }>`
+		SELECT (${dateStr}::date + interval '12 hours')::timestamptz AS ts
+	`.execute(db);
+	return result.rows[0].ts;
+}
+
 describe('workflowAnalyticsRefreshQueries integration tests', () => {
 	let db: Kysely<DB>;
 
@@ -437,7 +456,13 @@ describe('workflowAnalyticsRefreshQueries integration tests', () => {
 			expect(Number(rows[0].claims_count)).toBe(1);
 		});
 
-		it('excludes inactive and soft-deleted desk locations', async () => {
+		it('reports zero SLA breaches for inactive and soft-deleted desks (excluded from SLA lookup)', async () => {
+			// NOTE: The function inserts snapshot rows for ALL desks with active claims,
+			// regardless of desk active/deleted status. Active/non-deleted filtering only
+			// applies to the SLA lookup (location_sla CTE), so inactive/deleted desks
+			// always have claims_breaching_sla = 0 even when their claims would otherwise
+			// breach the SLA. This test pins down that behavior so a future change is
+			// surfaced explicitly.
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
@@ -448,33 +473,46 @@ describe('workflowAnalyticsRefreshQueries integration tests', () => {
 				role: 'Admin',
 			});
 
-			// Active desk (control - should appear)
-			const activeDesk = await createTestDeskLocation(db, {
-				client_id: client.id,
-				desk_location_type_id: deskType.id,
-				is_active: true,
-			});
-			// Inactive desk
-			const inactiveDesk = await createTestDeskLocation(db, {
-				client_id: client.id,
-				desk_location_type_id: deskType.id,
-				is_active: false,
-			});
-			// Deleted desk
-			const deletedDesk = await createTestDeskLocation(db, {
-				client_id: client.id,
-				desk_location_type_id: deskType.id,
-				is_active: true,
-			});
-			await db
-				.updateTable('desk_location')
-				.set({ deleted_at: new Date() })
-				.where('id', '=', deletedDesk.id)
-				.execute();
+			// All 3 desks get a workflow + 5h SLA.
+			const setupDesk = async (
+				name: string,
+				isActive: boolean,
+				deletedAt: Date | null
+			) => {
+				const desk = await createTestDeskLocation(db, {
+					client_id: client.id,
+					desk_location_type_id: deskType.id,
+					is_active: isActive,
+					name,
+				});
+				if (deletedAt) {
+					await db
+						.updateTable('desk_location')
+						.set({ deleted_at: deletedAt })
+						.where('id', '=', desk.id)
+						.execute();
+				}
+				const wf = await createWorkflowDefinition(db, {
+					client_id: client.id,
+					created_by: user.id,
+					desk_location_id: desk.id,
+				});
+				await createWorkflowThreshold(db, {
+					client_id: client.id,
+					workflow_definition_id: wf.id,
+					threshold_type: WorkflowThresholdType.LOCATION_AGE,
+					threshold_value: 5,
+				});
+				return desk;
+			};
+
+			const activeDesk = await setupDesk('Active Desk', true, null);
+			const inactiveDesk = await setupDesk('Inactive Desk', false, null);
+			const deletedDesk = await setupDesk('Deleted Desk', true, new Date());
 
 			const snapshotDate = '2026-04-15';
 
-			// One claim at each desk
+			// One claim at each desk, in stage 50h (would breach 5h SLA if SLA applied)
 			for (const desk of [activeDesk, inactiveDesk, deletedDesk]) {
 				const claim = await createTestClaim(db, {
 					client_id: client.id,
@@ -486,21 +524,26 @@ describe('workflowAnalyticsRefreshQueries integration tests', () => {
 					client_id: client.id,
 					claim_id: claim.id,
 					desk_location_id: desk.id,
-					entered_at: await hoursBeforeEndOf(db, snapshotDate, 10),
+					entered_at: await hoursBeforeEndOf(db, snapshotDate, 50),
 				});
 			}
 
 			await refreshDailyWorkflowSnapshot(ctx, snapshotDate);
 
 			const rows = await readSnapshots(db, client.id, snapshotDate);
-			// Only active desk has SLA lookup, but inactive/deleted desks may still
-			// have rows from claim_stage_times. The location_sla CTE filters them out
-			// of SLA matching (NULL sla_hours), but the snapshot insert is grouped by
-			// desk_location_id from claim_stage_times. Verify the active desk row exists
-			// and that it's the only one with a non-null SLA-aware breach count semantics.
+			// Snapshot rows are produced for all 3 desks
+			expect(rows).toHaveLength(3);
+
 			const activeRow = rows.find((r) => r.desk_location_id === activeDesk.id);
-			expect(activeRow).toBeDefined();
-			expect(Number(activeRow!.claims_count)).toBe(1);
+			const inactiveRow = rows.find((r) => r.desk_location_id === inactiveDesk.id);
+			const deletedRow = rows.find((r) => r.desk_location_id === deletedDesk.id);
+
+			// Active desk: SLA lookup hits → 50h > 5h → 1 breach
+			expect(Number(activeRow!.claims_breaching_sla)).toBe(1);
+			// Inactive desk: SLA lookup excludes → 0 breaches reported despite 50h in stage
+			expect(Number(inactiveRow!.claims_breaching_sla)).toBe(0);
+			// Deleted desk: SLA lookup excludes → 0 breaches reported despite 50h in stage
+			expect(Number(deletedRow!.claims_breaching_sla)).toBe(0);
 		});
 
 		it('uses snapshot boundary (end of day) instead of NOW for time-in-stage', async () => {
@@ -714,6 +757,227 @@ describe('workflowAnalyticsRefreshQueries integration tests', () => {
 			expect(Number(aRows[0].claims_count)).toBe(1);
 			expect(bRows).toHaveLength(0);
 		});
+
+		it('produces one snapshot row per desk with correctly partitioned aggregates', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
+			const desk1 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: 'Desk 1',
+			});
+			const desk2 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: 'Desk 2',
+			});
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'Admin',
+			});
+
+			const snapshotDate = '2026-04-15';
+
+			// Desk 1: 2 claims (10h, 20h) — avg = 15
+			for (const hours of [10, 20]) {
+				const claim = await createTestClaim(db, {
+					client_id: client.id,
+					created_by: user.id,
+					desk_location_id: desk1.id,
+					recovery_status: RecoveryStatus.PENDING,
+				});
+				await createClaimTransition(db, {
+					client_id: client.id,
+					claim_id: claim.id,
+					desk_location_id: desk1.id,
+					entered_at: await hoursBeforeEndOf(db, snapshotDate, hours),
+				});
+			}
+
+			// Desk 2: 3 claims (40h, 60h, 80h) — avg = 60
+			for (const hours of [40, 60, 80]) {
+				const claim = await createTestClaim(db, {
+					client_id: client.id,
+					created_by: user.id,
+					desk_location_id: desk2.id,
+					recovery_status: RecoveryStatus.PENDING,
+				});
+				await createClaimTransition(db, {
+					client_id: client.id,
+					claim_id: claim.id,
+					desk_location_id: desk2.id,
+					entered_at: await hoursBeforeEndOf(db, snapshotDate, hours),
+				});
+			}
+
+			await refreshDailyWorkflowSnapshot(ctx, snapshotDate);
+
+			const rows = await readSnapshots(db, client.id, snapshotDate);
+			expect(rows).toHaveLength(2);
+
+			const desk1Row = rows.find((r) => r.desk_location_id === desk1.id);
+			const desk2Row = rows.find((r) => r.desk_location_id === desk2.id);
+
+			expect(Number(desk1Row!.claims_count)).toBe(2);
+			expect(Number(desk1Row!.avg_hours_in_stage)).toBe(15);
+
+			expect(Number(desk2Row!.claims_count)).toBe(3);
+			expect(Number(desk2Row!.avg_hours_in_stage)).toBe(60);
+		});
+
+		it('ignores SLA from inactive workflow definitions', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
+			const desk = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'Admin',
+			});
+
+			// Inactive workflow with 5h SLA — should be ignored
+			const inactiveWf = await createWorkflowDefinition(db, {
+				client_id: client.id,
+				created_by: user.id,
+				desk_location_id: desk.id,
+				is_active: false,
+			});
+			await createWorkflowThreshold(db, {
+				client_id: client.id,
+				workflow_definition_id: inactiveWf.id,
+				threshold_type: WorkflowThresholdType.LOCATION_AGE,
+				threshold_value: 5,
+			});
+
+			const snapshotDate = '2026-04-15';
+			const claim = await createTestClaim(db, {
+				client_id: client.id,
+				created_by: user.id,
+				desk_location_id: desk.id,
+				recovery_status: RecoveryStatus.PENDING,
+			});
+			await createClaimTransition(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				desk_location_id: desk.id,
+				entered_at: await hoursBeforeEndOf(db, snapshotDate, 50),
+			});
+
+			await refreshDailyWorkflowSnapshot(ctx, snapshotDate);
+
+			const rows = await readSnapshots(db, client.id, snapshotDate);
+			expect(rows).toHaveLength(1);
+			// Workflow inactive → SLA not applied → 0 breaches reported
+			expect(Number(rows[0].claims_breaching_sla)).toBe(0);
+		});
+
+		it('ignores SLA from soft-deleted workflow definitions', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
+			const desk = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'Admin',
+			});
+
+			const deletedWf = await createWorkflowDefinition(db, {
+				client_id: client.id,
+				created_by: user.id,
+				desk_location_id: desk.id,
+				deleted_at: new Date(),
+			});
+			await createWorkflowThreshold(db, {
+				client_id: client.id,
+				workflow_definition_id: deletedWf.id,
+				threshold_type: WorkflowThresholdType.LOCATION_AGE,
+				threshold_value: 5,
+			});
+
+			const snapshotDate = '2026-04-15';
+			const claim = await createTestClaim(db, {
+				client_id: client.id,
+				created_by: user.id,
+				desk_location_id: desk.id,
+				recovery_status: RecoveryStatus.PENDING,
+			});
+			await createClaimTransition(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				desk_location_id: desk.id,
+				entered_at: await hoursBeforeEndOf(db, snapshotDate, 50),
+			});
+
+			await refreshDailyWorkflowSnapshot(ctx, snapshotDate);
+
+			const rows = await readSnapshots(db, client.id, snapshotDate);
+			expect(rows).toHaveLength(1);
+			expect(Number(rows[0].claims_breaching_sla)).toBe(0);
+		});
+
+		it('ignores inactive thresholds, falling back to no SLA when no other threshold exists', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
+			const desk = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'Admin',
+			});
+
+			// Active workflow but only an inactive threshold
+			const wf = await createWorkflowDefinition(db, {
+				client_id: client.id,
+				created_by: user.id,
+				desk_location_id: desk.id,
+			});
+			await createWorkflowThreshold(db, {
+				client_id: client.id,
+				workflow_definition_id: wf.id,
+				threshold_type: WorkflowThresholdType.LOCATION_AGE,
+				threshold_value: 5,
+				is_active: false,
+			});
+
+			const snapshotDate = '2026-04-15';
+			const claim = await createTestClaim(db, {
+				client_id: client.id,
+				created_by: user.id,
+				desk_location_id: desk.id,
+				recovery_status: RecoveryStatus.PENDING,
+			});
+			await createClaimTransition(db, {
+				client_id: client.id,
+				claim_id: claim.id,
+				desk_location_id: desk.id,
+				entered_at: await hoursBeforeEndOf(db, snapshotDate, 50),
+			});
+
+			await refreshDailyWorkflowSnapshot(ctx, snapshotDate);
+
+			const rows = await readSnapshots(db, client.id, snapshotDate);
+			expect(rows).toHaveLength(1);
+			// Threshold inactive → SLA hours null → 0 breaches
+			expect(Number(rows[0].claims_breaching_sla)).toBe(0);
+		});
 	});
 
 	// ============================================================================
@@ -815,53 +1079,67 @@ describe('workflowAnalyticsRefreshQueries integration tests', () => {
 			expect(missing).toContain(threeDaysAgoStr);
 		});
 
-		it('enforces tenant isolation', async () => {
+		it('enforces tenant isolation - each client computes range from its own claims', async () => {
 			const clientA = await createTestClient(db);
 			const clientB = await createTestClient(db);
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
 
-			// Client A has claims, client B doesn't
-			const yesterday = new Date();
-			yesterday.setUTCDate(yesterday.getUTCDate() - 1);
-			yesterday.setUTCHours(0, 0, 0, 0);
+			// Use Postgres-derived dates so they match what the function will compute
+			const yesterdayStr = await pgDateMinusDays(db, 1);
+			const fiveDaysAgoStr = await pgDateMinusDays(db, 5);
+			const yesterdayTs = await pgNoonOn(db, yesterdayStr);
+			const fiveDaysAgoTs = await pgNoonOn(db, fiveDaysAgoStr);
+
+			// Client A's earliest claim is exactly yesterday (range = 1 day).
 			await db
 				.insertInto('claim')
 				.values({
 					client_id: clientA.id,
-					claim_number: `CLM-${Date.now()}`,
+					claim_number: `CLM-A-${Date.now()}`,
 					insured: 'A Insured',
 					created_by: userA.id,
-					created_at: yesterday,
+					created_at: yesterdayTs,
 				})
 				.execute();
 
-			const ctxB = createTestContext(db, {
-				id: userB.id,
-				client_id: clientB.id,
-				email: userB.email,
-				role: 'Admin',
-			});
-			const missing = await getMissingSnapshotDates(ctxB);
+			// Client B's earliest claim is 5 days ago (range = 5 days, NOT 30-day fallback).
+			await db
+				.insertInto('claim')
+				.values({
+					client_id: clientB.id,
+					claim_number: `CLM-B-${Date.now()}`,
+					insured: 'B Insured',
+					created_by: userB.id,
+					created_at: fiveDaysAgoTs,
+				})
+				.execute();
 
-			// Client B has no claims so its earliest date defaults to (CURRENT_DATE - 30).
-			// Client A's claims should NOT influence client B's missing-date calculation.
-			// We verify this indirectly: clientB's missing dates are determined by its
-			// own data, not clientA's. The simplest check is that the function returns
-			// without including client A's claim dates as a side effect.
-			// (The function uses MIN(created_at) FROM claim WHERE client_id = clientB,
-			// which is null → falls back to CURRENT_DATE - 30.)
-			expect(Array.isArray(missing)).toBe(true);
-			// Run for client A and confirm they have a different (longer) missing list
 			const ctxA = createTestContext(db, {
 				id: userA.id,
 				client_id: clientA.id,
 				email: userA.email,
 				role: 'Admin',
 			});
+			const ctxB = createTestContext(db, {
+				id: userB.id,
+				client_id: clientB.id,
+				email: userB.email,
+				role: 'Admin',
+			});
+
 			const missingA = await getMissingSnapshotDates(ctxA);
-			// Client A's range starts from yesterday; client B's starts 30 days ago
-			expect(missingA.length).toBeLessThanOrEqual(missing.length);
+			const missingB = await getMissingSnapshotDates(ctxB);
+
+			// Client A range = yesterday only (1 day). Proves client A's range
+			// is computed from its OWN claim, not influenced by client B's earlier claim.
+			expect(missingA).toEqual([yesterdayStr]);
+
+			// Client B range = 5 days ago through yesterday (5 days). Proves client B's
+			// range is computed from its OWN earliest claim, not from client A.
+			expect(missingB).toHaveLength(5);
+			expect(missingB[0]).toBe(fiveDaysAgoStr);
+			expect(missingB[missingB.length - 1]).toBe(yesterdayStr);
 		});
 	});
 
@@ -885,10 +1163,9 @@ describe('workflowAnalyticsRefreshQueries integration tests', () => {
 				role: 'Admin',
 			});
 
-			// Claim 2 days ago, still in pending status
-			const twoDaysAgo = new Date();
-			twoDaysAgo.setUTCDate(twoDaysAgo.getUTCDate() - 2);
-			twoDaysAgo.setUTCHours(0, 0, 0, 0);
+			// Use Postgres-derived dates so the range matches what backfill computes
+			const twoDaysAgoStr = await pgDateMinusDays(db, 2);
+			const twoDaysAgoTs = await pgNoonOn(db, twoDaysAgoStr);
 			const claim = await db
 				.insertInto('claim')
 				.values({
@@ -896,7 +1173,7 @@ describe('workflowAnalyticsRefreshQueries integration tests', () => {
 					claim_number: `CLM-${Date.now()}`,
 					insured: 'Test Insured',
 					created_by: user.id,
-					created_at: twoDaysAgo,
+					created_at: twoDaysAgoTs,
 					desk_location_id: desk.id,
 					recovery_status: RecoveryStatus.PENDING,
 				})
@@ -906,14 +1183,15 @@ describe('workflowAnalyticsRefreshQueries integration tests', () => {
 				client_id: client.id,
 				claim_id: claim.id,
 				desk_location_id: desk.id,
-				entered_at: twoDaysAgo,
+				entered_at: twoDaysAgoTs,
 			});
 
 			const result = await backfillWorkflowSnapshots(ctx);
 
-			// Should have processed at least 2 days (2-days-ago and yesterday)
-			expect(result.datesProcessed).toBeGreaterThanOrEqual(2);
-			expect(result.totalRowsAffected).toBeGreaterThanOrEqual(2);
+			// Earliest claim is 2 days ago, so range covers 2 days ago + yesterday = 2 dates,
+			// each producing 1 snapshot row (one desk with one claim) = 2 rows total.
+			expect(result.datesProcessed).toBe(2);
+			expect(result.totalRowsAffected).toBe(2);
 
 			// After backfill, no dates should be missing
 			const missing = await getMissingSnapshotDates(ctx);
@@ -977,6 +1255,91 @@ describe('workflowAnalyticsRefreshQueries integration tests', () => {
 			expect(Number(secondSnapshotCount.rows[0].count)).toBe(
 				Number(firstSnapshotCount.rows[0].count)
 			);
+		});
+
+		it('enforces tenant isolation - only writes snapshots for the calling client', async () => {
+			const clientA = await createTestClient(db);
+			const clientB = await createTestClient(db);
+			const userA = await createTestUser(db, { client_id: clientA.id });
+			const userB = await createTestUser(db, { client_id: clientB.id });
+
+			const deskTypeA = await createTestDeskLocationType(db, { client_id: clientA.id });
+			const deskA = await createTestDeskLocation(db, {
+				client_id: clientA.id,
+				desk_location_type_id: deskTypeA.id,
+			});
+			const deskTypeB = await createTestDeskLocationType(db, { client_id: clientB.id });
+			const deskB = await createTestDeskLocation(db, {
+				client_id: clientB.id,
+				desk_location_type_id: deskTypeB.id,
+			});
+
+			// Both clients have a claim from yesterday
+			const yesterday = new Date();
+			yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+			yesterday.setUTCHours(0, 0, 0, 0);
+
+			const claimA = await db
+				.insertInto('claim')
+				.values({
+					client_id: clientA.id,
+					claim_number: `CLM-A-${Date.now()}`,
+					insured: 'A',
+					created_by: userA.id,
+					created_at: yesterday,
+					desk_location_id: deskA.id,
+					recovery_status: RecoveryStatus.PENDING,
+				})
+				.returningAll()
+				.executeTakeFirstOrThrow();
+			await createClaimTransition(db, {
+				client_id: clientA.id,
+				claim_id: claimA.id,
+				desk_location_id: deskA.id,
+				entered_at: yesterday,
+			});
+
+			const claimB = await db
+				.insertInto('claim')
+				.values({
+					client_id: clientB.id,
+					claim_number: `CLM-B-${Date.now()}`,
+					insured: 'B',
+					created_by: userB.id,
+					created_at: yesterday,
+					desk_location_id: deskB.id,
+					recovery_status: RecoveryStatus.PENDING,
+				})
+				.returningAll()
+				.executeTakeFirstOrThrow();
+			await createClaimTransition(db, {
+				client_id: clientB.id,
+				claim_id: claimB.id,
+				desk_location_id: deskB.id,
+				entered_at: yesterday,
+			});
+
+			// Run backfill only for client A
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'Admin',
+			});
+			await backfillWorkflowSnapshots(ctxA);
+
+			// Client A has snapshot rows; client B does not
+			const aRows = await sql<{ count: string }>`
+				SELECT COUNT(*) AS count FROM analytics.daily_workflow_stage_snapshot
+				WHERE client_id = ${clientA.id}
+			`.execute(db);
+			const bRows = await sql<{ count: string }>`
+				SELECT COUNT(*) AS count FROM analytics.daily_workflow_stage_snapshot
+				WHERE client_id = ${clientB.id}
+			`.execute(db);
+
+			expect(Number(aRows.rows[0].count)).toBeGreaterThan(0);
+			expect(Number(bRows.rows[0].count)).toBe(0);
 		});
 	});
 });

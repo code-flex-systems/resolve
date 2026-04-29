@@ -24,6 +24,7 @@ export async function getCoverages(ctx: ProtectedContext, claimId: string) {
 		.where('claim_id', '=', claimId)
 		.where('client_id', '=', ctx.session.user.client_id)
 		.where('deleted_at', 'is', null)
+		.orderBy('created_at', 'asc')
 		.orderBy('id', 'asc')
 		.execute();
 }
@@ -42,6 +43,7 @@ export async function getCoveragesByClaimParty(ctx: ProtectedContext, claimParty
 		.where('claim_party_id', '=', claimPartyId)
 		.where('client_id', '=', ctx.session.user.client_id)
 		.where('deleted_at', 'is', null)
+		.orderBy('created_at', 'asc')
 		.orderBy('id', 'asc')
 		.execute();
 }

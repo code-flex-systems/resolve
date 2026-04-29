@@ -109,12 +109,12 @@ describe('claimController integration tests', () => {
 
 				const updated = await claimController.updateClaim(ctx, {
 					claimId: claim.id,
-					recovery_status: 'active',
+					recovery_status: 'in_progress',
 					substatus: 'under_review',
 				});
 
 				expect(updated).toBeDefined();
-				expect(updated!.recovery_status).toBe('active');
+				expect(updated!.recovery_status).toBe('in_progress');
 				expect(updated!.substatus).toBe('under_review');
 			});
 		});

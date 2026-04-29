@@ -658,14 +658,30 @@ describe('claimQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const feed = await createTestFeed(db, { client_id: client.id, created_by: user.id, status: 'Online' });
 
-			// Create claims - 3 unassigned, 1 assigned
-			const claim1 = await createTestClaim(db, { client_id: client.id, feed_id: feed.id, insured: 'First' });
-			const claim2 = await createTestClaim(db, { client_id: client.id, feed_id: feed.id, insured: 'Second' });
-			const claim3 = await createTestClaim(db, { client_id: client.id, feed_id: feed.id, insured: 'Third' });
+			// Create claims with explicit created_at spacing to avoid UUID-tiebreak nondeterminism
+			const claim1 = await createTestClaim(db, {
+				client_id: client.id,
+				feed_id: feed.id,
+				insured: 'First',
+				created_at: new Date('2024-01-01T00:00:00Z'),
+			});
+			await createTestClaim(db, {
+				client_id: client.id,
+				feed_id: feed.id,
+				insured: 'Second',
+				created_at: new Date('2024-01-02T00:00:00Z'),
+			});
+			await createTestClaim(db, {
+				client_id: client.id,
+				feed_id: feed.id,
+				insured: 'Third',
+				created_at: new Date('2024-01-03T00:00:00Z'),
+			});
 			const assignedClaim = await createTestClaim(db, {
 				client_id: client.id,
 				feed_id: feed.id,
 				insured: 'Assigned',
+				created_at: new Date('2024-01-04T00:00:00Z'),
 			});
 
 			// Assign one claim
@@ -698,9 +714,25 @@ describe('claimQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const feed = await createTestFeed(db, { client_id: client.id, created_by: user.id, status: 'Online' });
 
-			const claim1 = await createTestClaim(db, { client_id: client.id, feed_id: feed.id, insured: 'First' });
-			const claim2 = await createTestClaim(db, { client_id: client.id, feed_id: feed.id, insured: 'Second' });
-			const claim3 = await createTestClaim(db, { client_id: client.id, feed_id: feed.id, insured: 'Third' });
+			// Explicit created_at spacing to avoid UUID-tiebreak nondeterminism
+			const claim1 = await createTestClaim(db, {
+				client_id: client.id,
+				feed_id: feed.id,
+				insured: 'First',
+				created_at: new Date('2024-01-01T00:00:00Z'),
+			});
+			const claim2 = await createTestClaim(db, {
+				client_id: client.id,
+				feed_id: feed.id,
+				insured: 'Second',
+				created_at: new Date('2024-01-02T00:00:00Z'),
+			});
+			const claim3 = await createTestClaim(db, {
+				client_id: client.id,
+				feed_id: feed.id,
+				insured: 'Third',
+				created_at: new Date('2024-01-03T00:00:00Z'),
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -755,8 +787,19 @@ describe('claimQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const feed = await createTestFeed(db, { client_id: client.id, created_by: user.id, status: 'Online' });
 
-			await createTestClaim(db, { client_id: client.id, feed_id: feed.id, insured: 'First' });
-			const claim2 = await createTestClaim(db, { client_id: client.id, feed_id: feed.id, insured: 'Second' });
+			// Explicit created_at spacing to avoid UUID-tiebreak nondeterminism
+			await createTestClaim(db, {
+				client_id: client.id,
+				feed_id: feed.id,
+				insured: 'First',
+				created_at: new Date('2024-01-01T00:00:00Z'),
+			});
+			const claim2 = await createTestClaim(db, {
+				client_id: client.id,
+				feed_id: feed.id,
+				insured: 'Second',
+				created_at: new Date('2024-01-02T00:00:00Z'),
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 

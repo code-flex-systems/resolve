@@ -4,6 +4,7 @@
 
 import { Kysely } from 'kysely';
 import type { DB } from '@/api/database/types';
+import { ClaimStatus } from '@/config/enums';
 
 /**
  * Create a test checklist
@@ -49,7 +50,7 @@ export async function createTestChecklistClaim(
 		claim_id: overrides.claim_id,
 		created_by: overrides.created_by,
 		assignee: overrides.assignee ?? null,
-		status: overrides.status || 'in_progress',
+		status: overrides.status || ClaimStatus.IN_PROGRESS,
 	};
 
 	return db.insertInto('checklist_claim').values(data).returningAll().executeTakeFirstOrThrow();

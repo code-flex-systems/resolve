@@ -214,9 +214,25 @@ describe('claimQueries.getClaims', () => {
 
 			await getClaims(mockAdminContext, {});
 
-			// Admin should get selectAll('claim')
-			expect(mockChain.selectAll).toHaveBeenCalledWith('claim');
-			expect(mockChain.select).toHaveBeenCalledWith(['feeds.name as feed_name']);
+			// Admin should get the full set of claim display columns plus the joined feed name
+			expect(mockChain.select).toHaveBeenCalledWith([
+				'claim.id',
+				'claim.claim_number',
+				'claim.client',
+				'claim.client_adjuster',
+				'claim.insured',
+				'claim.claim_amount',
+				'claim.total_incurred',
+				'claim.date_of_loss',
+				'claim.loss_city',
+				'claim.loss_state',
+				'claim.line_of_business',
+				'claim.recovery_status',
+				'claim.substatus',
+				'claim.expected_recovery',
+				'claim.actual_recovery',
+				'feeds.name as feed_name',
+			]);
 		});
 
 		it('should return only limited columns for contributor', async () => {
@@ -240,8 +256,12 @@ describe('claimQueries.getClaims', () => {
 			expect(mockChain.select).toHaveBeenCalledWith([
 				'claim.id',
 				'claim.claim_number',
+				'claim.client',
 				'claim.insured',
+				'claim.claim_amount',
 				'claim.date_of_loss',
+				'claim.recovery_status',
+				'claim.substatus',
 				'feeds.name as feed_name',
 			]);
 

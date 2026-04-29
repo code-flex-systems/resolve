@@ -415,18 +415,22 @@ export async function bulkCancelTasks(
 		const trxCtx = { ...ctx, db: trx };
 		const result = await taskQueries.bulkCancelTasks(trxCtx, { ids, cancellationReason });
 
-		// Log admin action for bulk cancel
-		await logAdminAction(trxCtx, {
-			entityId: 0, // Bulk action, no single entity
-			entityName: EntityName.TASK,
-			action: AdminAction.DELETE,
-			value: {
-				action: 'bulk_cancel',
-				taskIds: ids,
-				cancelledCount: result.cancelledCount,
-				cancellationReason,
-			},
-		});
+		// Log admin action for each cancelled task (bulk action spans multiple claims/tasks)
+		if (ids.length > 0) {
+			await Promise.all(
+				ids.map((taskId) =>
+					logAdminAction(trxCtx, {
+						entityId: taskId,
+						entityName: EntityName.TASK,
+						action: AdminAction.DELETE,
+						value: {
+							action: 'bulk_cancel',
+							cancellationReason,
+						},
+					})
+				)
+			);
+		}
 
 		return result;
 	});

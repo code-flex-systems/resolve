@@ -54,7 +54,7 @@ describe('pageQueries integration', () => {
 
 			const result = await createPage(ctx, checklist.id, {
 				title: 'Test Page',
-				parentId: -1,
+				parentId: null,
 				position: 0,
 			});
 
@@ -76,7 +76,7 @@ describe('pageQueries integration', () => {
 			// The page will be created with client2's client_id
 			const result = await createPage(ctx2, checklist.id, {
 				title: 'Test Page',
-				parentId: -1,
+				parentId: null,
 				position: 0,
 			});
 
@@ -103,7 +103,7 @@ describe('pageQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			const result = await copyPageTemplate(ctx, checklist.id, page.id, { parentId: -1, position: 0 });
+			const result = await copyPageTemplate(ctx, checklist.id, page.id, { parentId: null, position: 0 });
 
 			expect(result.id).not.toBe(page.id);
 			expect(result.title).toBe('Original');
@@ -135,7 +135,7 @@ describe('pageQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			await expect(
-				copyPageTemplate(ctx, checklist.id, 999999, { parentId: -1, position: 0 })
+				copyPageTemplate(ctx, checklist.id, '00000000-0000-0000-0000-000000000000', { parentId: null, position: 0 })
 			).rejects.toThrow('Page template does not exist');
 		});
 
@@ -150,7 +150,7 @@ describe('pageQueries integration', () => {
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
 			await expect(
-				copyPageTemplate(ctx2, checklist.id, page.id, { parentId: -1, position: 0 })
+				copyPageTemplate(ctx2, checklist.id, page.id, { parentId: null, position: 0 })
 			).rejects.toThrow();
 		});
 
@@ -247,7 +247,7 @@ describe('pageQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Copy the page template - this should use the bulk INSERT with VALUES mapping
-			const result = await copyPageTemplate(ctx, checklist.id, sourcePage.id, { parentId: -1, position: 0 });
+			const result = await copyPageTemplate(ctx, checklist.id, sourcePage.id, { parentId: null, position: 0 });
 
 			// Verify all questions were copied
 			const copiedQuestions = await db
@@ -316,7 +316,7 @@ describe('pageQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(getPage(ctx, 999999)).rejects.toThrow();
+			await expect(getPage(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow();
 		});
 
 		it('should enforce tenant isolation', async () => {
@@ -429,7 +429,7 @@ describe('pageQueries integration', () => {
 			const result = await createPageInstance(ctx, {
 				checklistId: checklist.id,
 				pageId: page.id,
-				parentId: -1,
+				parentId: null,
 				position: 0,
 			});
 
@@ -451,7 +451,7 @@ describe('pageQueries integration', () => {
 			const inst1 = await createPageInstance(ctx, {
 				checklistId: checklist.id,
 				pageId: page1.id,
-				parentId: -1,
+				parentId: null,
 				position: 0,
 			});
 
@@ -459,7 +459,7 @@ describe('pageQueries integration', () => {
 			await createPageInstance(ctx, {
 				checklistId: checklist.id,
 				pageId: page2.id,
-				parentId: -1,
+				parentId: null,
 				position: 0,
 			});
 
@@ -509,7 +509,7 @@ describe('pageQueries integration', () => {
 			const newInstance = await createPageInstance(ctx, {
 				checklistId: checklist.id,
 				pageId: sourcePage.id,
-				parentId: -1,
+				parentId: null,
 				position: 0,
 			});
 
@@ -554,7 +554,7 @@ describe('pageQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			const result = await getPageInstanceForDeletion(ctx, 999999);
+			const result = await getPageInstanceForDeletion(ctx, '00000000-0000-0000-0000-000000000000');
 
 			expect(result).toBeUndefined();
 		});
@@ -808,7 +808,7 @@ describe('pageQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(getPageInstance(ctx, 999999)).rejects.toThrow();
+			await expect(getPageInstance(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow();
 		});
 
 		it('should enforce tenant isolation', async () => {
@@ -863,7 +863,7 @@ describe('pageQueries integration', () => {
 			expect(result[1].title).toBe('Page 2');
 		});
 
-		it('should filter by parentId = -1 (root pages)', async () => {
+		it('should filter by parentId = null (root pages)', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
@@ -887,7 +887,7 @@ describe('pageQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			const result = await getPageInstances(ctx, checklist.id, -1);
+			const result = await getPageInstances(ctx, checklist.id, null);
 
 			expect(result.length).toBe(1);
 			expect(result[0].title).toBe('Root');
@@ -1039,7 +1039,7 @@ describe('pageQueries integration', () => {
 			expect(result[0].status).toBe(PageInstanceStatus.COMPLETE);
 		});
 
-		it('should filter by parentId = -1 (root pages)', async () => {
+		it('should filter by parentId = null (root pages)', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
@@ -1064,7 +1064,7 @@ describe('pageQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			const result = await getPageInstancesForClaim(ctx, checklist.id, claim.id, -1);
+			const result = await getPageInstancesForClaim(ctx, checklist.id, claim.id, null);
 
 			expect(result.length).toBe(1);
 			expect(result[0].title).toBe('Root');

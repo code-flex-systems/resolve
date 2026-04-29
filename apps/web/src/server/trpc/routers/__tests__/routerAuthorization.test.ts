@@ -224,11 +224,11 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 				const mockDeleteComment = await import('@/api/controllers/commentController');
 				vi.mocked(mockDeleteComment.deleteComment).mockResolvedValue({
-					id: 1,
-					checklist_id: 1,
-					claim_id: 100,
-					instance_id: 50,
-					question_id: 10,
+					id: '00000000-0000-0000-0000-000000000001',
+					checklist_id: '00000000-0000-0000-0000-000000000001',
+					claim_id: '00000000-0000-0000-0000-000000000100',
+					instance_id: '00000000-0000-0000-0000-000000000050',
+					question_id: '00000000-0000-0000-0000-000000000010',
 					body: 'Test comment',
 					client_id: 'client-abc',
 					created_by: 'other-user',
@@ -237,7 +237,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				});
 
 				const caller = createCaller(commentRouter, adminCtx);
-				await expect(caller.deleteComment({ id: 1 })).resolves.toBeDefined();
+				await expect(caller.deleteComment({ id: '00000000-0000-0000-0000-000000000001' })).resolves.toBeDefined();
 			});
 
 			it('should allow user to delete their own comment', async () => {
@@ -248,11 +248,11 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 				const mockGetComment = await import('@/api/controllers/commentController');
 				vi.mocked(mockGetComment.getComment).mockResolvedValue({
-					id: 1,
-					checklist_id: 1,
-					claim_id: 100,
-					instance_id: 50,
-					question_id: 10,
+					id: '00000000-0000-0000-0000-000000000001',
+					checklist_id: '00000000-0000-0000-0000-000000000001',
+					claim_id: '00000000-0000-0000-0000-000000000100',
+					instance_id: '00000000-0000-0000-0000-000000000050',
+					question_id: '00000000-0000-0000-0000-000000000010',
 					body: 'Test comment',
 					client_id: 'client-abc',
 					created_by: 'user-123', // Same as session user
@@ -265,11 +265,11 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 				const mockDeleteComment = await import('@/api/controllers/commentController');
 				vi.mocked(mockDeleteComment.deleteComment).mockResolvedValue({
-					id: 1,
-					checklist_id: 1,
-					claim_id: 100,
-					instance_id: 50,
-					question_id: 10,
+					id: '00000000-0000-0000-0000-000000000001',
+					checklist_id: '00000000-0000-0000-0000-000000000001',
+					claim_id: '00000000-0000-0000-0000-000000000100',
+					instance_id: '00000000-0000-0000-0000-000000000050',
+					question_id: '00000000-0000-0000-0000-000000000010',
 					body: 'Test comment',
 					client_id: 'client-abc',
 					created_by: 'user-123',
@@ -278,7 +278,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				});
 
 				const caller = createCaller(commentRouter, userCtx);
-				await expect(caller.deleteComment({ id: 1 })).resolves.toBeDefined();
+				await expect(caller.deleteComment({ id: '00000000-0000-0000-0000-000000000001' })).resolves.toBeDefined();
 			});
 
 			it('should reject contributor deleting others comments', async () => {
@@ -289,11 +289,11 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 				const mockGetComment = await import('@/api/controllers/commentController');
 				vi.mocked(mockGetComment.getComment).mockResolvedValue({
-					id: 1,
-					checklist_id: 1,
-					claim_id: 100,
-					instance_id: 50,
-					question_id: 10,
+					id: '00000000-0000-0000-0000-000000000001',
+					checklist_id: '00000000-0000-0000-0000-000000000001',
+					claim_id: '00000000-0000-0000-0000-000000000100',
+					instance_id: '00000000-0000-0000-0000-000000000050',
+					question_id: '00000000-0000-0000-0000-000000000010',
 					body: 'Test comment',
 					client_id: 'client-abc',
 					created_by: 'other-user', // Different from session user
@@ -305,7 +305,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				});
 
 				const caller = createCaller(commentRouter, userCtx);
-				await expect(caller.deleteComment({ id: 1 })).rejects.toThrow('FORBIDDEN: You can only delete your own comments');
+				await expect(caller.deleteComment({ id: '00000000-0000-0000-0000-000000000001' })).rejects.toThrow('FORBIDDEN: You can only delete your own comments');
 			});
 		});
 
@@ -320,7 +320,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				vi.mocked(mockEvaluateResponses.evaluateResponses).mockResolvedValue(PageInstanceStatus.IN_PROGRESS);
 
 				const caller = createCaller(responseRouter, adminCtx);
-				await expect(caller.evaluateResponses({ checklistId: 1, claimId: 100, instanceId: 50 })).resolves.toBeDefined();
+				await expect(caller.evaluateResponses({ checklistId: '00000000-0000-0000-0000-000000000001', claimId: '00000000-0000-0000-0000-000000000100', instanceId: '00000000-0000-0000-0000-000000000050' })).resolves.toBeDefined();
 			});
 
 			it('should allow owner to evaluate their claim', async () => {
@@ -343,7 +343,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				vi.mocked(mockEvaluateResponses.evaluateResponses).mockResolvedValue(PageInstanceStatus.IN_PROGRESS);
 
 				const caller = createCaller(responseRouter, userCtx);
-				await expect(caller.evaluateResponses({ checklistId: 1, claimId: 100, instanceId: 50 })).resolves.toBeDefined();
+				await expect(caller.evaluateResponses({ checklistId: '00000000-0000-0000-0000-000000000001', claimId: '00000000-0000-0000-0000-000000000100', instanceId: '00000000-0000-0000-0000-000000000050' })).resolves.toBeDefined();
 			});
 
 			it('should allow assignee to evaluate their claim', async () => {
@@ -366,7 +366,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				vi.mocked(mockEvaluateResponses.evaluateResponses).mockResolvedValue(PageInstanceStatus.IN_PROGRESS);
 
 				const caller = createCaller(responseRouter, userCtx);
-				await expect(caller.evaluateResponses({ checklistId: 1, claimId: 100, instanceId: 50 })).resolves.toBeDefined();
+				await expect(caller.evaluateResponses({ checklistId: '00000000-0000-0000-0000-000000000001', claimId: '00000000-0000-0000-0000-000000000100', instanceId: '00000000-0000-0000-0000-000000000050' })).resolves.toBeDefined();
 			});
 
 			it('should reject contributor evaluating unrelated claim', async () => {
@@ -386,7 +386,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				vi.spyOn(db, 'selectFrom').mockReturnValue({ select: mockSelect } as any);
 
 				const caller = createCaller(responseRouter, userCtx);
-				await expect(caller.evaluateResponses({ checklistId: 1, claimId: 100, instanceId: 50 })).rejects.toThrow(TRPCError);
+				await expect(caller.evaluateResponses({ checklistId: '00000000-0000-0000-0000-000000000001', claimId: '00000000-0000-0000-0000-000000000100', instanceId: '00000000-0000-0000-0000-000000000050' })).rejects.toThrow(TRPCError);
 			});
 		});
 	});
@@ -490,7 +490,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				const caller = createCaller(responseRouter, adminCtx);
 				await expect(
 					caller.getResponsesForAnswer({
-						answerId: 1,
+						answerId: '00000000-0000-0000-0000-000000000001',
 						filters: {
 							range: ['2025-01-01', '2025-12-31'],
 						},
@@ -507,7 +507,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				};
 
 				const caller = createCaller(responseRouter, contributorCtx);
-				await expect(caller.getResponsesForAnswer({ answerId: 1 })).rejects.toThrow(TRPCError);
+				await expect(caller.getResponsesForAnswer({ answerId: '00000000-0000-0000-0000-000000000001' })).rejects.toThrow(TRPCError);
 			});
 		});
 
@@ -606,11 +606,11 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 				const mockGetComment = await import('@/api/controllers/commentController');
 				vi.mocked(mockGetComment.getComment).mockResolvedValue({
-					id: 1,
-					checklist_id: 1,
-					claim_id: 100,
-					instance_id: 50,
-					question_id: 10,
+					id: '00000000-0000-0000-0000-000000000001',
+					checklist_id: '00000000-0000-0000-0000-000000000001',
+					claim_id: '00000000-0000-0000-0000-000000000100',
+					instance_id: '00000000-0000-0000-0000-000000000050',
+					question_id: '00000000-0000-0000-0000-000000000010',
 					body: 'Test comment',
 					client_id: 'client-abc',
 					created_by: 'other-user',
@@ -622,7 +622,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				});
 
 				const caller = createCaller(commentRouter, adminCtx);
-				await expect(caller.getComment({ id: 1 })).resolves.toBeDefined();
+				await expect(caller.getComment({ id: '00000000-0000-0000-0000-000000000001' })).resolves.toBeDefined();
 			});
 
 			it('should allow contributor with ownership to get comment', async () => {
@@ -633,11 +633,11 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 				const mockGetComment = await import('@/api/controllers/commentController');
 				vi.mocked(mockGetComment.getComment).mockResolvedValue({
-					id: 1,
-					checklist_id: 1,
-					claim_id: 100,
-					instance_id: 50,
-					question_id: 10,
+					id: '00000000-0000-0000-0000-000000000001',
+					checklist_id: '00000000-0000-0000-0000-000000000001',
+					claim_id: '00000000-0000-0000-0000-000000000100',
+					instance_id: '00000000-0000-0000-0000-000000000050',
+					question_id: '00000000-0000-0000-0000-000000000010',
 					body: 'Test comment',
 					client_id: 'client-abc',
 					created_by: 'other-user',
@@ -659,7 +659,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				vi.spyOn(db, 'selectFrom').mockReturnValue({ select: mockSelect } as any);
 
 				const caller = createCaller(commentRouter, userCtx);
-				await expect(caller.getComment({ id: 1 })).resolves.toBeDefined();
+				await expect(caller.getComment({ id: '00000000-0000-0000-0000-000000000001' })).resolves.toBeDefined();
 			});
 
 			it('should reject contributor without ownership', async () => {
@@ -670,11 +670,11 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 				const mockGetComment = await import('@/api/controllers/commentController');
 				vi.mocked(mockGetComment.getComment).mockResolvedValue({
-					id: 1,
-					checklist_id: 1,
-					claim_id: 100,
-					instance_id: 50,
-					question_id: 10,
+					id: '00000000-0000-0000-0000-000000000001',
+					checklist_id: '00000000-0000-0000-0000-000000000001',
+					claim_id: '00000000-0000-0000-0000-000000000100',
+					instance_id: '00000000-0000-0000-0000-000000000050',
+					question_id: '00000000-0000-0000-0000-000000000010',
 					body: 'Test comment',
 					client_id: 'client-abc',
 					created_by: 'other-user',
@@ -696,7 +696,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				vi.spyOn(db, 'selectFrom').mockReturnValue({ select: mockSelect } as any);
 
 				const caller = createCaller(commentRouter, userCtx);
-				await expect(caller.getComment({ id: 1 })).rejects.toThrow(TRPCError);
+				await expect(caller.getComment({ id: '00000000-0000-0000-0000-000000000001' })).rejects.toThrow(TRPCError);
 			});
 		});
 	});
@@ -1090,7 +1090,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				});
 
 				const caller = createCaller(checklistRouter, adminCtx);
-				await expect(caller.getChecklistSummary({ checklistId: 1, claimId: 100 })).resolves.toBeDefined();
+				await expect(caller.getChecklistSummary({ checklistId: '00000000-0000-0000-0000-000000000001', claimId: '00000000-0000-0000-0000-000000000100' })).resolves.toBeDefined();
 			});
 
 			it('should allow contributor with ownership', async () => {
@@ -1118,7 +1118,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				});
 
 				const caller = createCaller(checklistRouter, userCtx);
-				await expect(caller.getChecklistSummary({ checklistId: 1, claimId: 100 })).resolves.toBeDefined();
+				await expect(caller.getChecklistSummary({ checklistId: '00000000-0000-0000-0000-000000000001', claimId: '00000000-0000-0000-0000-000000000100' })).resolves.toBeDefined();
 			});
 
 			it('should reject contributor without ownership', async () => {
@@ -1138,7 +1138,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				vi.spyOn(db, 'selectFrom').mockReturnValue({ select: mockSelect } as any);
 
 				const caller = createCaller(checklistRouter, userCtx);
-				await expect(caller.getChecklistSummary({ checklistId: 1, claimId: 100 })).rejects.toThrow(TRPCError);
+				await expect(caller.getChecklistSummary({ checklistId: '00000000-0000-0000-0000-000000000001', claimId: '00000000-0000-0000-0000-000000000100' })).rejects.toThrow(TRPCError);
 			});
 		});
 
@@ -1158,8 +1158,8 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				const caller = createCaller(checklistRouter, adminCtx);
 				await expect(
 					caller.getChecklistSummaryDetail({
-						checklistId: 1,
-						claimId: 100,
+						checklistId: '00000000-0000-0000-0000-000000000001',
+						claimId: '00000000-0000-0000-0000-000000000100',
 						segment: 'answered',
 						mode: 'count',
 					})
@@ -1191,8 +1191,8 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				const caller = createCaller(checklistRouter, userCtx);
 				await expect(
 					caller.getChecklistSummaryDetail({
-						checklistId: 1,
-						claimId: 100,
+						checklistId: '00000000-0000-0000-0000-000000000001',
+						claimId: '00000000-0000-0000-0000-000000000100',
 						segment: 'answered',
 						mode: 'count',
 					})
@@ -1218,8 +1218,8 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				const caller = createCaller(checklistRouter, userCtx);
 				await expect(
 					caller.getChecklistSummaryDetail({
-						checklistId: 1,
-						claimId: 100,
+						checklistId: '00000000-0000-0000-0000-000000000001',
+						claimId: '00000000-0000-0000-0000-000000000100',
 						segment: 'answered',
 						mode: 'count',
 					})
@@ -1239,7 +1239,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 				const caller = createCaller(responseRouter, adminCtx);
 				await expect(
-					caller.getResponsesForPageInstance({ checklistId: 1, claimId: 100, instanceId: 1 })
+					caller.getResponsesForPageInstance({ checklistId: '00000000-0000-0000-0000-000000000001', claimId: '00000000-0000-0000-0000-000000000100', instanceId: '00000000-0000-0000-0000-000000000001' })
 				).resolves.toEqual({});
 			});
 
@@ -1264,7 +1264,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 				const caller = createCaller(responseRouter, userCtx);
 				await expect(
-					caller.getResponsesForPageInstance({ checklistId: 1, claimId: 100, instanceId: 1 })
+					caller.getResponsesForPageInstance({ checklistId: '00000000-0000-0000-0000-000000000001', claimId: '00000000-0000-0000-0000-000000000100', instanceId: '00000000-0000-0000-0000-000000000001' })
 				).resolves.toEqual({});
 			});
 
@@ -1286,7 +1286,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 				const caller = createCaller(responseRouter, userCtx);
 				await expect(
-					caller.getResponsesForPageInstance({ checklistId: 1, claimId: 100, instanceId: 1 })
+					caller.getResponsesForPageInstance({ checklistId: '00000000-0000-0000-0000-000000000001', claimId: '00000000-0000-0000-0000-000000000100', instanceId: '00000000-0000-0000-0000-000000000001' })
 				).rejects.toThrow(TRPCError);
 			});
 		});
@@ -1330,8 +1330,8 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				await expect(
 					caller.getResponseAuditLogs({
 						filters: {
-							checklistId: 1,
-							claimId: 100,
+							checklistId: '00000000-0000-0000-0000-000000000001',
+							claimId: '00000000-0000-0000-0000-000000000100',
 						},
 						limit: 50,
 						offset: 0,
@@ -1381,8 +1381,8 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				await expect(
 					caller.getResponseAuditLogs({
 						filters: {
-							checklistId: 1,
-							claimId: 100,
+							checklistId: '00000000-0000-0000-0000-000000000001',
+							claimId: '00000000-0000-0000-0000-000000000100',
 						},
 						limit: 50,
 						offset: 0,
@@ -1410,8 +1410,8 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				await expect(
 					caller.getResponseAuditLogs({
 						filters: {
-							checklistId: 1,
-							claimId: 100,
+							checklistId: '00000000-0000-0000-0000-000000000001',
+							claimId: '00000000-0000-0000-0000-000000000100',
 						},
 						limit: 50,
 						offset: 0,
@@ -1433,9 +1433,9 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				const caller = createCaller(commentRouter, adminCtx);
 				await expect(
 					caller.getCommentsForPage({
-						checklistId: 1,
-						claimId: 100,
-						instanceId: 50,
+						checklistId: '00000000-0000-0000-0000-000000000001',
+						claimId: '00000000-0000-0000-0000-000000000100',
+						instanceId: '00000000-0000-0000-0000-000000000050',
 					})
 				).resolves.toBeDefined();
 			});
@@ -1462,9 +1462,9 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				const caller = createCaller(commentRouter, userCtx);
 				await expect(
 					caller.getCommentsForPage({
-						checklistId: 1,
-						claimId: 100,
-						instanceId: 50,
+						checklistId: '00000000-0000-0000-0000-000000000001',
+						claimId: '00000000-0000-0000-0000-000000000100',
+						instanceId: '00000000-0000-0000-0000-000000000050',
 					})
 				).resolves.toBeDefined();
 			});
@@ -1488,9 +1488,9 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				const caller = createCaller(commentRouter, userCtx);
 				await expect(
 					caller.getCommentsForPage({
-						checklistId: 1,
-						claimId: 100,
-						instanceId: 50,
+						checklistId: '00000000-0000-0000-0000-000000000001',
+						claimId: '00000000-0000-0000-0000-000000000100',
+						instanceId: '00000000-0000-0000-0000-000000000050',
 					})
 				).rejects.toThrow(TRPCError);
 			});
@@ -1513,8 +1513,8 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				await expect(
 					caller.getComments({
 						filters: {
-							claimId: 100,
-							checklistId: 1,
+							claimId: '00000000-0000-0000-0000-000000000100',
+							checklistId: '00000000-0000-0000-0000-000000000001',
 						},
 					})
 				).resolves.toBeDefined();
@@ -1546,8 +1546,8 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				await expect(
 					caller.getComments({
 						filters: {
-							claimId: 100,
-							checklistId: 1,
+							claimId: '00000000-0000-0000-0000-000000000100',
+							checklistId: '00000000-0000-0000-0000-000000000001',
 						},
 					})
 				).resolves.toBeDefined();
@@ -1573,8 +1573,8 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				await expect(
 					caller.getComments({
 						filters: {
-							claimId: 100,
-							checklistId: 1,
+							claimId: '00000000-0000-0000-0000-000000000100',
+							checklistId: '00000000-0000-0000-0000-000000000001',
 						},
 					})
 				).rejects.toThrow(TRPCError);
@@ -1607,10 +1607,10 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					caller.upsertQuestionResponses({
 						responses: [
 							{
-								checklist_id: 1,
-								claim_id: 100,
-								instance_id: 50,
-								question_id: 10,
+								checklist_id: '00000000-0000-0000-0000-000000000001',
+								claim_id: '00000000-0000-0000-0000-000000000100',
+								instance_id: '00000000-0000-0000-0000-000000000050',
+								question_id: '00000000-0000-0000-0000-000000000010',
 								response_text: 'Test response',
 							},
 						],
@@ -1646,10 +1646,10 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					caller.upsertQuestionResponses({
 						responses: [
 							{
-								checklist_id: 1,
-								claim_id: 100,
-								instance_id: 50,
-								question_id: 10,
+								checklist_id: '00000000-0000-0000-0000-000000000001',
+								claim_id: '00000000-0000-0000-0000-000000000100',
+								instance_id: '00000000-0000-0000-0000-000000000050',
+								question_id: '00000000-0000-0000-0000-000000000010',
 								response_text: 'Test response',
 							},
 						],
@@ -1677,10 +1677,10 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					caller.upsertQuestionResponses({
 						responses: [
 							{
-								checklist_id: 1,
-								claim_id: 100,
-								instance_id: 50,
-								question_id: 10,
+								checklist_id: '00000000-0000-0000-0000-000000000001',
+								claim_id: '00000000-0000-0000-0000-000000000100',
+								instance_id: '00000000-0000-0000-0000-000000000050',
+								question_id: '00000000-0000-0000-0000-000000000010',
 								response_text: 'Test response',
 							},
 						],
@@ -1708,10 +1708,10 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					caller.upsertQuestionResponses({
 						responses: [
 							{
-								checklist_id: 1,
-								claim_id: 100,
-								instance_id: 50,
-								question_id: 10,
+								checklist_id: '00000000-0000-0000-0000-000000000001',
+								claim_id: '00000000-0000-0000-0000-000000000100',
+								instance_id: '00000000-0000-0000-0000-000000000050',
+								question_id: '00000000-0000-0000-0000-000000000010',
 								response_text: 'Test response',
 							},
 						],
@@ -1735,11 +1735,11 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 				const mockCreateComment = await import('@/api/controllers/commentController');
 				vi.mocked(mockCreateComment.createComment).mockResolvedValue({
-					id: 1,
-					checklist_id: 1,
-					claim_id: 100,
-					instance_id: 50,
-					question_id: 10,
+					id: '00000000-0000-0000-0000-000000000001',
+					checklist_id: '00000000-0000-0000-0000-000000000001',
+					claim_id: '00000000-0000-0000-0000-000000000100',
+					instance_id: '00000000-0000-0000-0000-000000000050',
+					question_id: '00000000-0000-0000-0000-000000000010',
 					body: 'Test comment',
 					client_id: 'client-abc',
 					created_by: 'user-123',
@@ -1750,10 +1750,10 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				const caller = createCaller(commentRouter, adminCtx);
 				await expect(
 					caller.createComment({
-						checklistId: 1,
-						claimId: 100,
-						instanceId: 50,
-						questionId: 10,
+						checklistId: '00000000-0000-0000-0000-000000000001',
+						claimId: '00000000-0000-0000-0000-000000000100',
+						instanceId: '00000000-0000-0000-0000-000000000050',
+						questionId: '00000000-0000-0000-0000-000000000010',
 						body: 'Test comment',
 					})
 				).resolves.toBeDefined();
@@ -1777,11 +1777,11 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 				const mockCreateComment = await import('@/api/controllers/commentController');
 				vi.mocked(mockCreateComment.createComment).mockResolvedValue({
-					id: 1,
-					checklist_id: 1,
-					claim_id: 100,
-					instance_id: 50,
-					question_id: 10,
+					id: '00000000-0000-0000-0000-000000000001',
+					checklist_id: '00000000-0000-0000-0000-000000000001',
+					claim_id: '00000000-0000-0000-0000-000000000100',
+					instance_id: '00000000-0000-0000-0000-000000000050',
+					question_id: '00000000-0000-0000-0000-000000000010',
 					body: 'Test comment',
 					client_id: 'client-abc',
 					created_by: 'user-123',
@@ -1792,10 +1792,10 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				const caller = createCaller(commentRouter, userCtx);
 				await expect(
 					caller.createComment({
-						checklistId: 1,
-						claimId: 100,
-						instanceId: 50,
-						questionId: 10,
+						checklistId: '00000000-0000-0000-0000-000000000001',
+						claimId: '00000000-0000-0000-0000-000000000100',
+						instanceId: '00000000-0000-0000-0000-000000000050',
+						questionId: '00000000-0000-0000-0000-000000000010',
 						body: 'Test comment',
 					})
 				).resolves.toBeDefined();
@@ -1819,11 +1819,11 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 				const mockCreateComment = await import('@/api/controllers/commentController');
 				vi.mocked(mockCreateComment.createComment).mockResolvedValue({
-					id: 1,
-					checklist_id: 1,
-					claim_id: 100,
-					instance_id: 50,
-					question_id: 10,
+					id: '00000000-0000-0000-0000-000000000001',
+					checklist_id: '00000000-0000-0000-0000-000000000001',
+					claim_id: '00000000-0000-0000-0000-000000000100',
+					instance_id: '00000000-0000-0000-0000-000000000050',
+					question_id: '00000000-0000-0000-0000-000000000010',
 					body: 'Test comment',
 					client_id: 'client-abc',
 					created_by: 'user-123',
@@ -1834,10 +1834,10 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				const caller = createCaller(commentRouter, userCtx);
 				await expect(
 					caller.createComment({
-						checklistId: 1,
-						claimId: 100,
-						instanceId: 50,
-						questionId: 10,
+						checklistId: '00000000-0000-0000-0000-000000000001',
+						claimId: '00000000-0000-0000-0000-000000000100',
+						instanceId: '00000000-0000-0000-0000-000000000050',
+						questionId: '00000000-0000-0000-0000-000000000010',
 						body: 'Test comment',
 					})
 				).resolves.toBeDefined();
@@ -1862,10 +1862,10 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				const caller = createCaller(commentRouter, userCtx);
 				await expect(
 					caller.createComment({
-						checklistId: 1,
-						claimId: 100,
-						instanceId: 50,
-						questionId: 10,
+						checklistId: '00000000-0000-0000-0000-000000000001',
+						claimId: '00000000-0000-0000-0000-000000000100',
+						instanceId: '00000000-0000-0000-0000-000000000050',
+						questionId: '00000000-0000-0000-0000-000000000010',
 						body: 'Test comment',
 					})
 				).rejects.toThrow(TRPCError);
@@ -1888,8 +1888,8 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 					const mockCreateAnswer = await import('@/api/controllers/answerController');
 					vi.mocked(mockCreateAnswer.createAnswer).mockResolvedValue({
-						id: 1,
-						question_id: 1,
+						id: '00000000-0000-0000-0000-000000000001',
+						question_id: '00000000-0000-0000-0000-000000000001',
 						text: 'Test answer',
 						position: 1,
 						has_action: false,
@@ -1903,8 +1903,8 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(answerRouter, adminCtx);
 					await expect(
 						caller.createAnswer({
-							pageId: 1,
-							questionId: 1,
+							pageId: '00000000-0000-0000-0000-000000000001',
+							questionId: '00000000-0000-0000-0000-000000000001',
 							params: {
 								text: 'Test answer',
 								position: 1,
@@ -1922,8 +1922,8 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(answerRouter, contributorCtx);
 					await expect(
 						caller.createAnswer({
-							pageId: 1,
-							questionId: 1,
+							pageId: '00000000-0000-0000-0000-000000000001',
+							questionId: '00000000-0000-0000-0000-000000000001',
 							params: {
 								text: 'Test answer',
 								position: 1,
@@ -1942,8 +1942,8 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 					const mockCreateQuestion = await import('@/api/controllers/questionController');
 					vi.mocked(mockCreateQuestion.createQuestion).mockResolvedValue({
-						id: 1,
-						page_id: 1,
+						id: '00000000-0000-0000-0000-000000000001',
+						page_id: '00000000-0000-0000-0000-000000000001',
 						text: 'Test question',
 						position: 1,
 						type: 'TEXT',
@@ -1955,7 +1955,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(questionRouter, adminCtx);
 					await expect(
 						caller.createQuestion({
-							pageId: 1,
+							pageId: '00000000-0000-0000-0000-000000000001',
 							params: {
 								text: 'Test question',
 								position: 1,
@@ -1974,7 +1974,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(questionRouter, contributorCtx);
 					await expect(
 						caller.createQuestion({
-							pageId: 1,
+							pageId: '00000000-0000-0000-0000-000000000001',
 							params: {
 								text: 'Test question',
 								position: 1,
@@ -1996,7 +1996,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(questionRouter, adminCtx);
 					await expect(
 						caller.getQuestionStats({
-							pageId: 1,
+							pageId: '00000000-0000-0000-0000-000000000001',
 							filters: {
 								range: ['2025-01-01', '2025-12-31'],
 							},
@@ -2011,7 +2011,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					};
 
 					const caller = createCaller(questionRouter, contributorCtx);
-					await expect(caller.getQuestionStats({ pageId: 1 })).rejects.toThrow(TRPCError);
+					await expect(caller.getQuestionStats({ pageId: '00000000-0000-0000-0000-000000000001' })).rejects.toThrow(TRPCError);
 				});
 			});
 
@@ -2024,18 +2024,18 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 					const mockCreatePage = await import('@/api/controllers/pageController');
 					vi.mocked(mockCreatePage.createPage).mockResolvedValue({
-						id: 1,
+						id: '00000000-0000-0000-0000-000000000001',
 						title: 'Test Page',
-						instance_id: 1,
+						instance_id: '00000000-0000-0000-0000-000000000001',
 					});
 
 					const caller = createCaller(pageRouter, adminCtx);
 					await expect(
 						caller.createPage({
-							checklistId: 1,
+							checklistId: '00000000-0000-0000-0000-000000000001',
 							params: {
 								title: 'Test Page',
-								parentId: 0,
+								parentId: '00000000-0000-0000-0000-000000000000',
 								position: 1,
 							},
 						})
@@ -2051,7 +2051,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(pageRouter, contributorCtx);
 					await expect(
 						caller.createPage({
-							checklistId: 1,
+							checklistId: '00000000-0000-0000-0000-000000000001',
 							params: {
 								title: 'Test Page',
 								position: 1,
@@ -2068,9 +2068,9 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 					const mockCreatePageInstance = await import('@/api/controllers/pageController');
 					vi.mocked(mockCreatePageInstance.createPageInstance).mockResolvedValue({
-						id: 1,
-						page_id: 1,
-						checklist_id: 1,
+						id: '00000000-0000-0000-0000-000000000001',
+						page_id: '00000000-0000-0000-0000-000000000001',
+						checklist_id: '00000000-0000-0000-0000-000000000001',
 						parent_instance_id: null,
 						position: 1,
 						client_id: 'client-abc',
@@ -2083,10 +2083,10 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(pageRouter, adminCtx);
 					await expect(
 						caller.createPageInstance({
-							checklistId: 1,
-							pageId: 1,
+							checklistId: '00000000-0000-0000-0000-000000000001',
+							pageId: '00000000-0000-0000-0000-000000000001',
 							params: {
-								parentId: 1,
+								parentId: '00000000-0000-0000-0000-000000000001',
 								position: 1,
 							},
 						})
@@ -2102,10 +2102,10 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(pageRouter, contributorCtx);
 					await expect(
 						caller.createPageInstance({
-							checklistId: 1,
-							pageId: 1,
+							checklistId: '00000000-0000-0000-0000-000000000001',
+							pageId: '00000000-0000-0000-0000-000000000001',
 							params: {
-								parentId: 1,
+								parentId: '00000000-0000-0000-0000-000000000001',
 								position: 1,
 							},
 						})
@@ -2125,8 +2125,8 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 						const caller = createCaller(pageRouter, adminCtx);
 						await expect(
 							caller.getPageInstances({
-								checklistId: 1,
-								claimId: 100,
+								checklistId: '00000000-0000-0000-0000-000000000001',
+								claimId: '00000000-0000-0000-0000-000000000100',
 							})
 						).resolves.toEqual([]);
 					});
@@ -2143,8 +2143,8 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 						const caller = createCaller(pageRouter, superAdminCtx);
 						await expect(
 							caller.getPageInstances({
-								checklistId: 1,
-								claimId: 100,
+								checklistId: '00000000-0000-0000-0000-000000000001',
+								claimId: '00000000-0000-0000-0000-000000000100',
 							})
 						).resolves.toEqual([]);
 					});
@@ -2158,14 +2158,14 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 						const caller = createCaller(pageRouter, contributorCtx);
 						await expect(
 							caller.getPageInstances({
-								checklistId: 1,
-								claimId: 100,
+								checklistId: '00000000-0000-0000-0000-000000000001',
+								claimId: '00000000-0000-0000-0000-000000000100',
 							})
 						).rejects.toThrow(TRPCError);
 						await expect(
 							caller.getPageInstances({
-								checklistId: 1,
-								claimId: 100,
+								checklistId: '00000000-0000-0000-0000-000000000001',
+								claimId: '00000000-0000-0000-0000-000000000100',
 							})
 						).rejects.toThrow('User must have one of: Admin, Super Admin');
 					});
@@ -2182,9 +2182,9 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 						const caller = createCaller(pageRouter, contributorCtx);
 						await expect(
 							caller.getPageInstances({
-								checklistId: 1,
-								claimId: 100,
-								parentId: 5,
+								checklistId: '00000000-0000-0000-0000-000000000001',
+								claimId: '00000000-0000-0000-0000-000000000100',
+								parentId: '00000000-0000-0000-0000-000000000005',
 							})
 						).resolves.toEqual([]);
 					});
@@ -2201,9 +2201,9 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 						const caller = createCaller(pageRouter, adminCtx);
 						await expect(
 							caller.getPageInstances({
-								checklistId: 1,
-								claimId: 100,
-								parentId: 5,
+								checklistId: '00000000-0000-0000-0000-000000000001',
+								claimId: '00000000-0000-0000-0000-000000000100',
+								parentId: '00000000-0000-0000-0000-000000000005',
 							})
 						).resolves.toEqual([]);
 					});
@@ -2275,8 +2275,8 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(checklistRouter, adminCtx);
 					await expect(
 						caller.updateChecklistClaim({
-							checklistId: 1,
-							claimId: 100,
+							checklistId: '00000000-0000-0000-0000-000000000001',
+							claimId: '00000000-0000-0000-0000-000000000100',
 							assignee: 'other-user',
 						})
 					).resolves.toBeUndefined();
@@ -2303,8 +2303,8 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(checklistRouter, userCtx);
 					await expect(
 						caller.updateChecklistClaim({
-							checklistId: 1,
-							claimId: 100,
+							checklistId: '00000000-0000-0000-0000-000000000001',
+							claimId: '00000000-0000-0000-0000-000000000100',
 						})
 					).resolves.toBeUndefined();
 				});
@@ -2327,8 +2327,8 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(checklistRouter, userCtx);
 					await expect(
 						caller.updateChecklistClaim({
-							checklistId: 1,
-							claimId: 100,
+							checklistId: '00000000-0000-0000-0000-000000000001',
+							claimId: '00000000-0000-0000-0000-000000000100',
 						})
 					).rejects.toThrow(TRPCError);
 				});
@@ -2381,7 +2381,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(checklistRouter, contributorCtx);
 					await expect(
 						caller.getChecklistClaimStats({
-							checklistId: 1,
+							checklistId: '00000000-0000-0000-0000-000000000001',
 							users: ['user-123'],
 						})
 					).rejects.toThrow(TRPCError);
@@ -2506,8 +2506,8 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(claimRouter, adminCtx);
 					await expect(
 						caller.assignClaim({
-							checklistId: 1,
-							claimId: 100,
+							checklistId: '00000000-0000-0000-0000-000000000001',
+							claimId: '00000000-0000-0000-0000-000000000100',
 							assignee: 'user-456',
 						})
 					).resolves.toBeDefined();
@@ -2522,8 +2522,8 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(claimRouter, contributorCtx);
 					await expect(
 						caller.assignClaim({
-							checklistId: 1,
-							claimId: 100,
+							checklistId: '00000000-0000-0000-0000-000000000001',
+							claimId: '00000000-0000-0000-0000-000000000100',
 							assignee: 'user-456',
 						})
 					).rejects.toThrow(TRPCError);
@@ -2539,7 +2539,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					vi.mocked(mockGetNextClaimToAssign.getNextClaimToAssign).mockResolvedValue({ claim: null, total: 0 });
 
 					const caller = createCaller(claimRouter, adminCtx);
-					await expect(caller.getNextClaimToAssign({ feedId: 1 })).resolves.toEqual({ claim: null, total: 0 });
+					await expect(caller.getNextClaimToAssign({ feedId: '00000000-0000-0000-0000-000000000001' })).resolves.toEqual({ claim: null, total: 0 });
 				});
 
 				it('should reject contributor getting next claim to assign', async () => {
@@ -2549,7 +2549,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					};
 
 					const caller = createCaller(claimRouter, contributorCtx);
-					await expect(caller.getNextClaimToAssign({ feedId: 1 })).rejects.toThrow(TRPCError);
+					await expect(caller.getNextClaimToAssign({ feedId: '00000000-0000-0000-0000-000000000001' })).rejects.toThrow(TRPCError);
 				});
 			});
 
@@ -2567,7 +2567,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(claimRouter, adminCtx);
 					await expect(
 						caller.updateClaim({
-							claimId: 1,
+							claimId: '00000000-0000-0000-0000-000000000001',
 							claim_number: 'NEW-001',
 							recovery_status: 'in_progress',
 							substatus: 'under_review',
@@ -2589,7 +2589,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(claimRouter, contributorCtx);
 					await expect(
 						caller.updateClaim({
-							claimId: 1,
+							claimId: '00000000-0000-0000-0000-000000000001',
 							insured: 'Updated Insured',
 							client: 'Updated Client',
 							client_adjuster: 'Updated Adjuster',
@@ -2606,7 +2606,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(claimRouter, contributorCtx);
 					await expect(
 						caller.updateClaim({
-							claimId: 1,
+							claimId: '00000000-0000-0000-0000-000000000001',
 							claim_number: 'CHANGED-001',
 						})
 					).rejects.toThrow('Only admins can update claim_number, recovery_status, or substatus');
@@ -2621,7 +2621,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(claimRouter, contributorCtx);
 					await expect(
 						caller.updateClaim({
-							claimId: 1,
+							claimId: '00000000-0000-0000-0000-000000000001',
 							recovery_status: 'in_progress',
 						})
 					).rejects.toThrow('Only admins can update claim_number, recovery_status, or substatus');
@@ -2636,7 +2636,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(claimRouter, contributorCtx);
 					await expect(
 						caller.updateClaim({
-							claimId: 1,
+							claimId: '00000000-0000-0000-0000-000000000001',
 							substatus: 'under_review',
 						})
 					).rejects.toThrow('Only admins can update claim_number, recovery_status, or substatus');
@@ -2651,7 +2651,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(claimRouter, contributorCtx);
 					await expect(
 						caller.updateClaim({
-							claimId: 1,
+							claimId: '00000000-0000-0000-0000-000000000001',
 							insured: 'Updated Insured', // allowed
 							claim_number: 'CHANGED-001', // restricted
 						})
@@ -2717,7 +2717,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(partyRouter, contributorCtx);
 					await expect(
 						caller.updateParty({
-							id: 1,
+							id: '00000000-0000-0000-0000-000000000001',
 							params: { name: 'Updated Party' },
 						})
 					).resolves.toBeDefined();
@@ -2730,7 +2730,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					};
 
 					const caller = createCaller(partyRouter, contributorCtx);
-					await expect(caller.archiveParty({ id: 1 })).rejects.toThrow(TRPCError);
+					await expect(caller.archiveParty({ id: '00000000-0000-0000-0000-000000000001' })).rejects.toThrow(TRPCError);
 				});
 
 				it('should allow admin to archive party', async () => {
@@ -2744,7 +2744,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					vi.mocked(mockPartyController.archiveParty).mockResolvedValue({} as any);
 
 					const caller = createCaller(partyRouter, adminCtx);
-					await expect(caller.archiveParty({ id: 1 })).resolves.toBeDefined();
+					await expect(caller.archiveParty({ id: '00000000-0000-0000-0000-000000000001' })).resolves.toBeDefined();
 				});
 
 				it('should reject contributor restoring party', async () => {
@@ -2754,7 +2754,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					};
 
 					const caller = createCaller(partyRouter, contributorCtx);
-					await expect(caller.restoreParty({ id: 1 })).rejects.toThrow(TRPCError);
+					await expect(caller.restoreParty({ id: '00000000-0000-0000-0000-000000000001' })).rejects.toThrow(TRPCError);
 				});
 
 				it('should allow admin to restore party', async () => {
@@ -2768,7 +2768,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					vi.mocked(mockPartyController.restoreParty).mockResolvedValue({} as any);
 
 					const caller = createCaller(partyRouter, adminCtx);
-					await expect(caller.restoreParty({ id: 1 })).resolves.toBeDefined();
+					await expect(caller.restoreParty({ id: '00000000-0000-0000-0000-000000000001' })).resolves.toBeDefined();
 				});
 			});
 
@@ -2786,7 +2786,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(partyRouter, contributorCtx);
 					await expect(
 						caller.createPartyAddress({
-							party_id: 1,
+							party_id: '00000000-0000-0000-0000-000000000001',
 							name: 'Test Address',
 						})
 					).resolves.toBeDefined();
@@ -2805,7 +2805,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(partyRouter, contributorCtx);
 					await expect(
 						caller.updatePartyAddress({
-							id: 1,
+							id: '00000000-0000-0000-0000-000000000001',
 							params: { name: 'Updated Address' },
 						})
 					).resolves.toBeDefined();
@@ -2818,7 +2818,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					};
 
 					const caller = createCaller(partyRouter, contributorCtx);
-					await expect(caller.archivePartyAddress({ id: 1 })).rejects.toThrow(TRPCError);
+					await expect(caller.archivePartyAddress({ id: '00000000-0000-0000-0000-000000000001' })).rejects.toThrow(TRPCError);
 				});
 
 				it('should allow admin to archive party address', async () => {
@@ -2832,7 +2832,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					vi.mocked(mockPartyController.archivePartyAddress).mockResolvedValue({} as any);
 
 					const caller = createCaller(partyRouter, adminCtx);
-					await expect(caller.archivePartyAddress({ id: 1 })).resolves.toBeDefined();
+					await expect(caller.archivePartyAddress({ id: '00000000-0000-0000-0000-000000000001' })).resolves.toBeDefined();
 				});
 
 				it('should reject contributor restoring party address', async () => {
@@ -2842,7 +2842,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					};
 
 					const caller = createCaller(partyRouter, contributorCtx);
-					await expect(caller.restorePartyAddress({ id: 1 })).rejects.toThrow(TRPCError);
+					await expect(caller.restorePartyAddress({ id: '00000000-0000-0000-0000-000000000001' })).rejects.toThrow(TRPCError);
 				});
 			});
 
@@ -2860,7 +2860,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(partyRouter, contributorCtx);
 					await expect(
 						caller.createPartyRepresentative({
-							party_id: 1,
+							party_id: '00000000-0000-0000-0000-000000000001',
 							first_name: 'John',
 							last_name: 'Doe',
 							email: 'john@example.com',
@@ -2881,7 +2881,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(partyRouter, contributorCtx);
 					await expect(
 						caller.updatePartyRepresentative({
-							id: 1,
+							id: '00000000-0000-0000-0000-000000000001',
 							params: { first_name: 'Jane' },
 						})
 					).resolves.toBeDefined();
@@ -2894,7 +2894,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					};
 
 					const caller = createCaller(partyRouter, contributorCtx);
-					await expect(caller.archivePartyRepresentative({ id: 1 })).rejects.toThrow(TRPCError);
+					await expect(caller.archivePartyRepresentative({ id: '00000000-0000-0000-0000-000000000001' })).rejects.toThrow(TRPCError);
 				});
 
 				it('should allow admin to archive party representative', async () => {
@@ -2908,7 +2908,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					vi.mocked(mockPartyController.archivePartyRepresentative).mockResolvedValue({} as any);
 
 					const caller = createCaller(partyRouter, adminCtx);
-					await expect(caller.archivePartyRepresentative({ id: 1 })).resolves.toBeDefined();
+					await expect(caller.archivePartyRepresentative({ id: '00000000-0000-0000-0000-000000000001' })).resolves.toBeDefined();
 				});
 
 				it('should reject contributor restoring party representative', async () => {
@@ -2918,7 +2918,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					};
 
 					const caller = createCaller(partyRouter, contributorCtx);
-					await expect(caller.restorePartyRepresentative({ id: 1 })).rejects.toThrow(TRPCError);
+					await expect(caller.restorePartyRepresentative({ id: '00000000-0000-0000-0000-000000000001' })).rejects.toThrow(TRPCError);
 				});
 			});
 
@@ -2932,8 +2932,8 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(partyRouter, contributorCtx);
 					await expect(
 						caller.linkPartyToClaim({
-							claim_id: 100,
-							party_id: 1,
+							claim_id: '00000000-0000-0000-0000-000000000100',
+							party_id: '00000000-0000-0000-0000-000000000001',
 							role: 'Insured',
 						})
 					).rejects.toThrow(TRPCError);
@@ -2952,8 +2952,8 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					const caller = createCaller(partyRouter, adminCtx);
 					await expect(
 						caller.linkPartyToClaim({
-							claim_id: 100,
-							party_id: 1,
+							claim_id: '00000000-0000-0000-0000-000000000100',
+							party_id: '00000000-0000-0000-0000-000000000001',
 							role: ['Insured'],
 						})
 					).resolves.toBeDefined();
@@ -2966,7 +2966,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					};
 
 					const caller = createCaller(partyRouter, contributorCtx);
-					await expect(caller.archiveClaimParty({ id: 1 })).rejects.toThrow(TRPCError);
+					await expect(caller.archiveClaimParty({ id: '00000000-0000-0000-0000-000000000001' })).rejects.toThrow(TRPCError);
 				});
 
 				it('should allow admin to unlink party from claim', async () => {
@@ -2980,7 +2980,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					vi.mocked(mockPartyController.archiveClaimParty).mockResolvedValue({} as any);
 
 					const caller = createCaller(partyRouter, adminCtx);
-					await expect(caller.archiveClaimParty({ id: 1 })).resolves.toBeDefined();
+					await expect(caller.archiveClaimParty({ id: '00000000-0000-0000-0000-000000000001' })).resolves.toBeDefined();
 				});
 			});
 

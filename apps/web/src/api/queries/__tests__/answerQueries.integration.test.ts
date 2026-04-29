@@ -243,7 +243,7 @@ describe('answerQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Copy the source page template - this should create answer_call_edges for the copied answer
-			const copiedPage = await copyPageTemplate(ctx, checklist.id, sourcePage.id, { parentId: -1, position: 0 });
+			const copiedPage = await copyPageTemplate(ctx, checklist.id, sourcePage.id, { parentId: null, position: 0 });
 
 			// Verify answer_call_edges were created for the copied page's instance
 			const edges = await db
@@ -304,7 +304,7 @@ describe('answerQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			const result = await getAnswerForDeletion(ctx, 999999);
+			const result = await getAnswerForDeletion(ctx, '00000000-0000-0000-0000-000000000000');
 
 			expect(result).toBeUndefined();
 		});
@@ -418,7 +418,7 @@ describe('answerQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(getAnswer(ctx, 999999)).rejects.toThrow();
+			await expect(getAnswer(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow();
 		});
 
 		it('should enforce tenant isolation', async () => {

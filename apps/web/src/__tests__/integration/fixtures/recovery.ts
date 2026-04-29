@@ -2,12 +2,15 @@
  * Recovery Event Fixtures
  */
 
-import { Kysely } from 'kysely';
+import { Kysely, sql } from 'kysely';
 import type { DB } from '@/api/database/types';
 
 /**
  * Create a test recovery event
  * Note: settlement_id is required - a recovery event must be linked to a settlement
+ *
+ * Also updates claim.actual_recovery via delta increment to match production behavior
+ * (see createRecoveryEvent in recoveryQueries.ts).
  */
 export async function createTestRecoveryEvent(
 	db: Kysely<DB>,
@@ -22,16 +25,30 @@ export async function createTestRecoveryEvent(
 		notes?: string | null;
 	}
 ) {
+	const recoveryAmount = overrides.recovery_amount?.toString() || '1000.00';
+
 	const data = {
 		client_id: overrides.client_id,
 		claim_id: overrides.claim_id,
 		settlement_id: overrides.settlement_id,
 		created_by: overrides.created_by,
 		recovery_date: overrides.recovery_date || new Date(),
-		recovery_amount: overrides.recovery_amount?.toString() || '1000.00',
+		recovery_amount: recoveryAmount,
 		recovery_source: overrides.recovery_source ?? null,
 		notes: overrides.notes ?? null,
 	};
 
-	return db.insertInto('recovery_event').values(data).returningAll().executeTakeFirstOrThrow();
+	const event = await db.insertInto('recovery_event').values(data).returningAll().executeTakeFirstOrThrow();
+
+	// Mirror production behavior: increment claim.actual_recovery by the recovery amount
+	await db
+		.updateTable('claim')
+		.set({
+			actual_recovery: sql`COALESCE(actual_recovery::numeric, 0) + ${recoveryAmount}::numeric`,
+		})
+		.where('id', '=', overrides.claim_id)
+		.where('client_id', '=', overrides.client_id)
+		.execute();
+
+	return event;
 }

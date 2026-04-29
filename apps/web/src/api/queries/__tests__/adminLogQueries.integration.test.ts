@@ -105,8 +105,8 @@ describe('adminLogQueries integration tests', () => {
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'admin' });
 
-			// Insert many logs (using valid action values)
-			const actions = ['CREATE', 'UPDATE', 'DELETE', 'CLAIM', 'UNCLAIM', 'COMPLETE', 'CANCEL'];
+			// Insert many logs (using valid action values from current LogAction enum)
+			const actions = ['CREATE', 'UPDATE', 'DELETE', 'ASSIGN', 'UNASSIGN', 'START', 'COMPLETE', 'CANCEL'];
 			for (let i = 0; i < 15; i++) {
 				await db
 					.insertInto('claim_activity_logs')
@@ -412,7 +412,7 @@ describe('adminLogQueries integration tests', () => {
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'admin' });
 
-			const actions = ['CREATE', 'UPDATE', 'DELETE', 'CLAIM', 'UNCLAIM', 'COMPLETE', 'CANCEL'];
+			const actions = ['CREATE', 'UPDATE', 'DELETE', 'ASSIGN', 'UNASSIGN', 'START', 'COMPLETE', 'CANCEL'];
 			for (let i = 0; i < 15; i++) {
 				await db
 					.insertInto('claim_activity_logs')
