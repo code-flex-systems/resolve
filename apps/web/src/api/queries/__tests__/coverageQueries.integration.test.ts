@@ -53,7 +53,7 @@ describe('coverageQueries integration tests', () => {
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
 
-			// Create multiple coverages
+			// Create multiple coverages with explicit created_at for deterministic ordering
 			await db
 				.insertInto('claim_coverage')
 				.values([
@@ -64,6 +64,7 @@ describe('coverageQueries integration tests', () => {
 						coverage_amount: '100000',
 						amount_reserved: '5000',
 						created_by: user.id,
+						created_at: new Date('2024-01-01T00:00:00Z'),
 					},
 					{
 						claim_id: claim.id,
@@ -72,6 +73,7 @@ describe('coverageQueries integration tests', () => {
 						coverage_amount: '50000',
 						amount_reserved: '2500',
 						created_by: user.id,
+						created_at: new Date('2024-01-02T00:00:00Z'),
 					},
 				])
 				.execute();
@@ -118,13 +120,14 @@ describe('coverageQueries integration tests', () => {
 			expect(coverages).toHaveLength(0);
 		});
 
-		it('should order coverages by id ascending', async () => {
+		it('should order coverages by created_at ascending', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
 
-			// Create coverages in specific order
+			// Create coverages with explicit created_at to guarantee deterministic ordering
+			// (UUIDs are random, so id-tiebreak alone is not deterministic)
 			const cov1 = await db
 				.insertInto('claim_coverage')
 				.values({
@@ -132,6 +135,7 @@ describe('coverageQueries integration tests', () => {
 					client_id: client.id,
 					loss_type: 'collision',
 					created_by: user.id,
+					created_at: new Date('2024-01-01T00:00:00Z'),
 				})
 				.returningAll()
 				.executeTakeFirstOrThrow();
@@ -143,6 +147,7 @@ describe('coverageQueries integration tests', () => {
 					client_id: client.id,
 					loss_type: 'comprehensive',
 					created_by: user.id,
+					created_at: new Date('2024-01-02T00:00:00Z'),
 				})
 				.returningAll()
 				.executeTakeFirstOrThrow();
@@ -328,7 +333,7 @@ describe('coverageQueries integration tests', () => {
 			const user = await createTestUser(db, { client_id: client.id });
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
 
-			await expect(deleteCoverage(ctx, 999999)).rejects.toThrow('Coverage not found');
+			await expect(deleteCoverage(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow('Coverage not found');
 		});
 
 		it('should not delete coverage from different client (tenant isolation)', async () => {
@@ -780,7 +785,7 @@ describe('coverageQueries integration tests', () => {
 			const user = await createTestUser(db, { client_id: client.id });
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
 
-			await expect(archiveCoverage(ctx, 999999)).rejects.toThrow('Coverage not found');
+			await expect(archiveCoverage(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow('Coverage not found');
 		});
 
 		it('should enforce tenant isolation', async () => {

@@ -132,7 +132,7 @@ export async function createTestQuestionResponse(
 		created_by: string;
 		question_id?: string | null;
 		response_text?: string | null;
-		response_doc_id?: number | null;
+		response_doc_id?: string | null;
 	}
 ) {
 	const data = {

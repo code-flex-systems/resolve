@@ -57,6 +57,11 @@ async function setupSchema(): Promise<void> {
 		console.log(`Dropping schema if exists: ${TEST_SCHEMA}`);
 		await testPool.query(`DROP SCHEMA IF EXISTS ${TEST_SCHEMA} CASCADE`);
 
+		// Drop analytics schema too — the dump from manifest DB will recreate it,
+		// and CREATE SCHEMA without IF NOT EXISTS will fail if it already exists.
+		console.log('Dropping schema if exists: analytics');
+		await testPool.query(`DROP SCHEMA IF EXISTS analytics CASCADE`);
+
 		// Create fresh test schema
 		console.log(`Creating schema: ${TEST_SCHEMA}`);
 		await testPool.query(`CREATE SCHEMA ${TEST_SCHEMA}`);

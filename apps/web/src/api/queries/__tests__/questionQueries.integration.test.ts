@@ -181,7 +181,7 @@ describe('questionQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(copyQuestion(ctx, page.id, 999999)).rejects.toThrow('Question does not exist');
+			await expect(copyQuestion(ctx, page.id, '00000000-0000-0000-0000-000000000000')).rejects.toThrow('Question does not exist');
 		});
 
 		it('should enforce tenant isolation', async () => {
@@ -241,7 +241,7 @@ describe('questionQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			const result = await getQuestionForDeletion(ctx, 999999);
+			const result = await getQuestionForDeletion(ctx, '00000000-0000-0000-0000-000000000000');
 
 			expect(result).toBeUndefined();
 		});
@@ -350,7 +350,7 @@ describe('questionQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(getQuestion(ctx, 999999)).rejects.toThrow();
+			await expect(getQuestion(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow();
 		});
 
 		it('should enforce tenant isolation', async () => {

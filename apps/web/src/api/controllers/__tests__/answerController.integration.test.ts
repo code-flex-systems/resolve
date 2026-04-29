@@ -119,7 +119,9 @@ describe('answerController integration tests', () => {
 				});
 
 				expect(copiedAnswer.text).toBe('Detailed answer');
-				expect(copiedAnswer.position).toBe(5);
+				// copyAnswer appends to the end of the question's answer list, so
+				// the copy's position is one past the original's position.
+				expect(copiedAnswer.position).toBe(originalAnswer.position + 1);
 				expect(copiedAnswer.grade).toBe('10'); // Note: grade is stored as string in DB
 				expect(copiedAnswer.has_additional_info).toBe(true);
 				expect(copiedAnswer.requires_upload).toBe(false); // Matches original fixture
@@ -185,9 +187,9 @@ describe('answerController integration tests', () => {
 					answerController.copyAnswer(ctx, {
 						pageId: page.id,
 						questionId: question.id,
-						answerId: 999999,
+						answerId: '00000000-0000-0000-0000-000000000000',
 					})
-				).rejects.toThrow('no result');
+				).rejects.toThrow('Answer does not exist');
 			});
 		});
 

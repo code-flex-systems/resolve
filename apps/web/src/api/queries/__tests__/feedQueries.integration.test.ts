@@ -180,7 +180,7 @@ describe('feedQueries integration tests', () => {
 			const user = await createTestUser(db, { client_id: client.id });
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
 
-			const feed = await getFeed(ctx, 999999);
+			const feed = await getFeed(ctx, '00000000-0000-0000-0000-000000000000');
 			expect(feed).toBeUndefined();
 		});
 
@@ -501,7 +501,9 @@ describe('feedQueries integration tests', () => {
 
 			const feedB = await createTestFeed(db, { client_id: clientB.id, created_by: userB.id });
 
-			await deleteFeed(ctxA, feedB.id);
+			// deleteFeed enforces client scoping via executeTakeFirstOrThrow,
+			// so attempting to delete another tenant's feed should throw rather than silently no-op.
+			await expect(deleteFeed(ctxA, feedB.id)).rejects.toThrow();
 
 			// Feed should still exist
 			const stillExists = await db.selectFrom('feeds').selectAll().where('id', '=', feedB.id).executeTakeFirst();

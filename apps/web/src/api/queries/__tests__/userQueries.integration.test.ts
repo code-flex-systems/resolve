@@ -480,8 +480,10 @@ describe('userQueries integration tests', () => {
 			const partialFirstCount = await getUserCount(ctx, false, false, 'John');
 			expect(partialFirstCount).toBe(1);
 
-			// Search by partial last name
-			const partialLastCount = await getUserCount(ctx, false, false, 'Doe');
+			// Search by "First L" prefix of the concatenated "first last" field
+			// (Search uses prefix matching for index efficiency, so a leading-substring
+			// of the last name on its own would not match.)
+			const partialLastCount = await getUserCount(ctx, false, false, 'Jane D');
 			expect(partialLastCount).toBe(1);
 
 			// Search with no matches

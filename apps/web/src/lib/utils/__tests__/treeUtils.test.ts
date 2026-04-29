@@ -62,8 +62,8 @@ describe('getPageInstancesFromTree', () => {
 		];
 		const result = getPageInstancesFromTree(tree, 1);
 		expect(result).toEqual([
-			{ instanceId: 2, pageId: 200, title: 'Second' },
-			{ instanceId: 3, pageId: 300, title: 'Third' },
+			{ instanceId: 2, pageId: 200, title: 'Second', position: 1 },
+			{ instanceId: 3, pageId: 300, title: 'Third', position: 2 },
 		]);
 	});
 
@@ -112,9 +112,9 @@ describe('getPageInstancesFromTree', () => {
 		];
 		const result = getPageInstancesFromTree(tree, 1);
 		expect(result).toEqual([
-			{ instanceId: 2, pageId: 200, title: 'Child 1' },
-			{ instanceId: 3, pageId: 300, title: 'Grandchild' },
-			{ instanceId: 4, pageId: 400, title: 'Child 2' },
+			{ instanceId: 2, pageId: 200, title: 'Child 1', position: 0 },
+			{ instanceId: 3, pageId: 300, title: 'Grandchild', position: 0 },
+			{ instanceId: 4, pageId: 400, title: 'Child 2', position: 1 },
 		]);
 	});
 
@@ -154,8 +154,8 @@ describe('getPageInstancesFromTree', () => {
 		];
 		const result = getPageInstancesFromTree(tree, 2);
 		expect(result).toEqual([
-			{ instanceId: 1, pageId: 100, title: 'Root' },
-			{ instanceId: 3, pageId: 300, title: 'Grandchild' },
+			{ instanceId: 1, pageId: 100, title: 'Root', position: 0 },
+			{ instanceId: 3, pageId: 300, title: 'Grandchild', position: 0 },
 		]);
 	});
 
@@ -213,11 +213,11 @@ describe('getPageInstancesFromTree', () => {
 		];
 		const result = getPageInstancesFromTree(tree, 10); // Non-existent currentInstanceId
 		expect(result).toEqual([
-			{ instanceId: 1, pageId: 100, title: 'Root 1' },
-			{ instanceId: 2, pageId: 200, title: 'Branch 1-1' },
-			{ instanceId: 3, pageId: 300, title: 'Branch 1-2' },
-			{ instanceId: 4, pageId: 400, title: 'Root 2' },
-			{ instanceId: 5, pageId: 500, title: 'Branch 2-1' },
+			{ instanceId: 1, pageId: 100, title: 'Root 1', position: 0 },
+			{ instanceId: 2, pageId: 200, title: 'Branch 1-1', position: 0 },
+			{ instanceId: 3, pageId: 300, title: 'Branch 1-2', position: 1 },
+			{ instanceId: 4, pageId: 400, title: 'Root 2', position: 1 },
+			{ instanceId: 5, pageId: 500, title: 'Branch 2-1', position: 0 },
 		]);
 	});
 
@@ -254,9 +254,9 @@ describe('getPageInstancesFromTree', () => {
 		const result = getPageInstancesFromTree(tree, 999);
 		// Should preserve array order, not sort by instanceId
 		expect(result).toEqual([
-			{ instanceId: 3, pageId: 300, title: 'Third' },
-			{ instanceId: 1, pageId: 100, title: 'First' },
-			{ instanceId: 2, pageId: 200, title: 'Second' },
+			{ instanceId: 3, pageId: 300, title: 'Third', position: 0 },
+			{ instanceId: 1, pageId: 100, title: 'First', position: 1 },
+			{ instanceId: 2, pageId: 200, title: 'Second', position: 2 },
 		]);
 	});
 
@@ -274,7 +274,7 @@ describe('getPageInstancesFromTree', () => {
 			},
 		];
 		const result = getPageInstancesFromTree(tree, 999);
-		expect(result).toEqual([{ instanceId: 1, pageId: 100, title: 'Root' }]);
+		expect(result).toEqual([{ instanceId: 1, pageId: 100, title: 'Root', position: 0 }]);
 	});
 
 	it('should handle very deep nesting (5+ levels)', () => {
@@ -335,10 +335,10 @@ describe('getPageInstancesFromTree', () => {
 		];
 		const result = getPageInstancesFromTree(tree, 3);
 		expect(result).toEqual([
-			{ instanceId: 1, pageId: 100, title: 'Level 1' },
-			{ instanceId: 2, pageId: 200, title: 'Level 2' },
-			{ instanceId: 4, pageId: 400, title: 'Level 4' },
-			{ instanceId: 5, pageId: 500, title: 'Level 5' },
+			{ instanceId: 1, pageId: 100, title: 'Level 1', position: 0 },
+			{ instanceId: 2, pageId: 200, title: 'Level 2', position: 0 },
+			{ instanceId: 4, pageId: 400, title: 'Level 4', position: 0 },
+			{ instanceId: 5, pageId: 500, title: 'Level 5', position: 0 },
 		]);
 	});
 });

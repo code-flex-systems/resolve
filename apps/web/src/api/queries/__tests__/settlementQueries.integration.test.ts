@@ -618,13 +618,15 @@ describe('settlementQueries integration', () => {
 			// Assert
 			expect(result.id).toBe(settlement.id);
 
-			// Verify it's deleted
+			// Verify it's soft-deleted
 			const deleted = await db
 				.selectFrom('settlement')
 				.selectAll()
 				.where('id', '=', settlement.id)
 				.executeTakeFirst();
-			expect(deleted).toBeUndefined();
+			expect(deleted).toBeDefined();
+			expect(deleted?.deleted_at).not.toBeNull();
+			expect(deleted?.deleted_by).toBe(user.id);
 		});
 
 		it('should throw error when claim ID does not match settlement', async () => {

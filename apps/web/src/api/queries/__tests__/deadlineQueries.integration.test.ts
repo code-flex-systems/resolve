@@ -221,7 +221,7 @@ describe('deadlineQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
-			const result = await getDeadline(ctx, 999999);
+			const result = await getDeadline(ctx, '00000000-0000-0000-0000-000000000000');
 
 			// Assert
 			expect(result).toBeUndefined();
@@ -1209,7 +1209,7 @@ describe('deadlineQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act & Assert
-			await expect(syncDeadlineStatus(ctx, 999999, DeadlineStatus.MET)).rejects.toThrow(
+			await expect(syncDeadlineStatus(ctx, '00000000-0000-0000-0000-000000000000', DeadlineStatus.MET)).rejects.toThrow(
 				'Deadline not found'
 			);
 		});

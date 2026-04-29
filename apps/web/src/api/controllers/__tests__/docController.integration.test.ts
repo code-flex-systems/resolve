@@ -48,14 +48,24 @@ describe('docController integration tests', () => {
 
 				await docController.deleteDocGroup(ctx, { groupId: group.id });
 
-				// Verify group was deleted
+				// Verify group was soft-deleted
 				const deletedGroup = await db
 					.selectFrom('doc_group')
 					.selectAll()
 					.where('id', '=', group.id)
+					.where('deleted_at', 'is', null)
 					.executeTakeFirst();
 
 				expect(deletedGroup).toBeUndefined();
+
+				// Confirm row still exists with deleted_at populated
+				const archivedGroup = await db
+					.selectFrom('doc_group')
+					.selectAll()
+					.where('id', '=', group.id)
+					.executeTakeFirst();
+				expect(archivedGroup).toBeDefined();
+				expect(archivedGroup?.deleted_at).not.toBeNull();
 			});
 		});
 
@@ -85,20 +95,31 @@ describe('docController integration tests', () => {
 
 				await docController.deleteDocGroup(ctx, { groupId: group.id });
 
-				// Verify all documents were deleted
+				// Verify all documents were soft-deleted (no rows remain with deleted_at null)
 				const remainingDocs = await db
 					.selectFrom('doc')
 					.selectAll()
 					.where('id', 'in', [doc1.id, doc2.id])
+					.where('deleted_at', 'is', null)
 					.execute();
 
 				expect(remainingDocs).toHaveLength(0);
 
-				// Verify group was deleted
+				// Confirm rows still exist with deleted_at populated
+				const archivedDocs = await db
+					.selectFrom('doc')
+					.selectAll()
+					.where('id', 'in', [doc1.id, doc2.id])
+					.execute();
+				expect(archivedDocs).toHaveLength(2);
+				expect(archivedDocs.every((d) => d.deleted_at !== null)).toBe(true);
+
+				// Verify group was soft-deleted
 				const deletedGroup = await db
 					.selectFrom('doc_group')
 					.selectAll()
 					.where('id', '=', group.id)
+					.where('deleted_at', 'is', null)
 					.executeTakeFirst();
 
 				expect(deletedGroup).toBeUndefined();
@@ -124,14 +145,24 @@ describe('docController integration tests', () => {
 
 				await docController.deleteDocGroup(ctx, { groupId: parentGroup.id });
 
-				// Verify both parent and child groups were deleted
+				// Verify both parent and child groups were soft-deleted
 				const remainingGroups = await db
 					.selectFrom('doc_group')
 					.selectAll()
 					.where('id', 'in', [parentGroup.id, childGroup.id])
+					.where('deleted_at', 'is', null)
 					.execute();
 
 				expect(remainingGroups).toHaveLength(0);
+
+				// Confirm rows still exist with deleted_at populated
+				const archivedGroups = await db
+					.selectFrom('doc_group')
+					.selectAll()
+					.where('id', 'in', [parentGroup.id, childGroup.id])
+					.execute();
+				expect(archivedGroups).toHaveLength(2);
+				expect(archivedGroups.every((g) => g.deleted_at !== null)).toBe(true);
 			});
 
 			it('should delete documents in nested groups', async () => {
@@ -166,14 +197,24 @@ describe('docController integration tests', () => {
 
 				await docController.deleteDocGroup(ctx, { groupId: parentGroup.id });
 
-				// Verify all documents were deleted (both parent and child)
+				// Verify all documents were soft-deleted (both parent and child)
 				const remainingDocs = await db
 					.selectFrom('doc')
 					.selectAll()
 					.where('id', 'in', [parentDoc.id, childDoc.id])
+					.where('deleted_at', 'is', null)
 					.execute();
 
 				expect(remainingDocs).toHaveLength(0);
+
+				// Confirm rows still exist with deleted_at populated
+				const archivedDocs = await db
+					.selectFrom('doc')
+					.selectAll()
+					.where('id', 'in', [parentDoc.id, childDoc.id])
+					.execute();
+				expect(archivedDocs).toHaveLength(2);
+				expect(archivedDocs.every((d) => d.deleted_at !== null)).toBe(true);
 			});
 		});
 
@@ -184,7 +225,7 @@ describe('docController integration tests', () => {
 				const ctx = createTestContext(db, { id: user.id, client_id: client.id });
 
 				await expect(
-					docController.deleteDocGroup(ctx, { groupId: 999999 })
+					docController.deleteDocGroup(ctx, { groupId: '00000000-0000-0000-0000-000000000000' })
 				).rejects.toThrow('Document group not found');
 			});
 		});

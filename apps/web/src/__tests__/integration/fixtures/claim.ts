@@ -4,6 +4,9 @@
 
 import { Kysely } from 'kysely';
 import type { DB } from '@/api/database/types';
+import type { Insertable } from 'kysely';
+
+type ClaimInsert = Insertable<DB['claim']>;
 
 // Counter to ensure unique claim numbers within same test run
 let claimCounter = 0;
@@ -34,10 +37,11 @@ export async function createTestClaim(
 		created_by?: string | null;
 		desk_location_id?: string | null;
 		feed_id?: string | null;
+		created_at?: Date | string;
 	}
 ) {
 	claimCounter++;
-	const data = {
+	const data: ClaimInsert = {
 		client_id: overrides.client_id,
 		claim_number: overrides.claim_number || `CLM-${Date.now()}-${claimCounter}`,
 		client: overrides.client ?? null,
@@ -59,6 +63,10 @@ export async function createTestClaim(
 		desk_location_id: overrides.desk_location_id ?? null,
 		feed_id: overrides.feed_id ?? null,
 	};
+
+	// Default created_at to "now" so that date-range queries (e.g. recovery metrics)
+	// pick up claims from a freshly seeded fixture.
+	data.created_at = overrides.created_at ?? new Date();
 
 	return db
 		.insertInto('claim')
