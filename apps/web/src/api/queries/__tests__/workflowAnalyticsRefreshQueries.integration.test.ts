@@ -144,16 +144,6 @@ async function hoursBeforeEndOf(
 }
 
 /**
- * Get Postgres' CURRENT_DATE in YYYY-MM-DD format. We use the server's view of
- * "today" to derive expected date strings — JS Date math in UTC may not align
- * with Postgres' tz-aware CURRENT_DATE.
- */
-async function pgCurrentDate(db: Kysely<DB>): Promise<string> {
-	const result = await sql<{ d: Date }>`SELECT CURRENT_DATE AS d`.execute(db);
-	return result.rows[0].d.toISOString().split('T')[0];
-}
-
-/**
  * Compute YYYY-MM-DD for (CURRENT_DATE - N days) using Postgres so the date
  * matches what the function under test will produce.
  */
