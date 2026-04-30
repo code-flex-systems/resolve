@@ -264,7 +264,49 @@ body {
 }
 
 /* react-day-picker overrides */
-.rdp {
+.rdp-root {
 	--rdp-accent-color: var(--text-accent);
-	--rdp-background-color: var(--status-info-bg);
+	--rdp-accent-background-color: color-mix(in srgb, var(--text-accent) 12%, transparent);
+	--rdp-today-color: var(--text-accent);
+	--rdp-range_start-color: var(--text-on-accent);
+	--rdp-range_end-color: var(--text-on-accent);
+	--rdp-range_start-date-background-color: var(--text-accent);
+	--rdp-range_end-date-background-color: var(--text-accent);
+
+	--rdp-day-height: 36px;
+	--rdp-day-width: 36px;
+	--rdp-day_button-height: 30px;
+	--rdp-day_button-width: 30px;
+
+	--rdp-nav_button-height: 24px;
+	--rdp-nav_button-width: 24px;
+	--rdp-nav-height: 32px;
+
+	font-family: var(--font-sans);
+	font-size: var(--text-sm);
+	color: var(--text-primary);
+}
+
+/* Selected days should match the size/weight of unselected days */
+.rdp-root .rdp-selected {
+	font-weight: var(--font-medium);
+	font-size: inherit;
+}
+
+/* Smaller chevrons in nav buttons */
+.rdp-root .rdp-chevron {
+	width: 14px;
+	height: 14px;
+}
+
+/* Tighter month caption */
+.rdp-root .rdp-month_caption {
+	font-size: var(--text-sm);
+	font-weight: var(--font-semibold);
+	color: var(--text-primary);
+}
+
+.rdp-root .rdp-weekday {
+	font-size: var(--text-xs);
+	color: var(--text-muted);
 }

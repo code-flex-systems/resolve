@@ -63,6 +63,11 @@
    VARIANT: FILLED
    ========================================================================= */
 
+.filled.color-primary {
+	background: color-mix(in srgb, var(--text-accent) 12%, transparent);
+	color: var(--text-accent);
+}
+
 .filled.color-success {
 	background: var(--status-success-bg);
 	color: var(--status-success);
@@ -94,6 +99,11 @@
 
 .outlined {
 	background: transparent;
+}
+
+.outlined.color-primary {
+	border: 1px solid var(--text-accent);
+	color: var(--text-accent);
 }
 
 .outlined.color-success {

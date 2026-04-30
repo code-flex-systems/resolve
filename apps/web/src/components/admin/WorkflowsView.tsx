@@ -1,18 +1,16 @@
 'use client';
 
-import { IconMapPin, IconPlus, IconSearch, IconWorld } from '@tabler/icons-react';
+import { IconInfoCircle, IconPlus, IconRoute2, IconSearch } from '@tabler/icons-react';
 import Dropdown from '@/components/ui/Dropdown';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import Skeleton from '@/components/ui/Skeleton';
-import Divider from '@/components/ui/Divider';
-import Chip from '@/components/ui/Chip';
 import { useState, useMemo } from 'react';
 import WorkflowDetailPanel from '@/components/admin/WorkflowDetailPanel';
 import WorkflowDefinitionFormDialog from '@/components/admin/WorkflowDefinitionFormDialog';
 import { useWorkflowTrpc } from '@/hooks/trpc/useWorkflowTrpc';
-import { useDeskLocationStore } from '@/stores/useDeskLocationStore';
 import Button from '@/components/ui/Button';
+import styles from './WorkflowsView.module.css';
 
 export default function WorkflowsView() {
 	const [selectedWorkflowId, setSelectedWorkflowId] = useState<string | null>(null);
@@ -21,12 +19,10 @@ export default function WorkflowsView() {
 	const [isActive, setIsActive] = useState(true);
 
 	const { listDefinitions } = useWorkflowTrpc();
-	const deskStore = useDeskLocationStore();
 
 	const { data: definitionsData, isLoading } = listDefinitions({ isActive });
 	const allDefinitions = definitionsData?.rows || [];
 
-	// Client-side search filter
 	const definitions = useMemo(() => {
 		if (!searchTerm) return allDefinitions;
 		const term = searchTerm.toLowerCase();
@@ -40,25 +36,13 @@ export default function WorkflowsView() {
 	return (
 		<div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
 			{/* Left Panel - Workflow List */}
-			<Card
-				variant="beveled"
-				padding="none"
-				style={{
-					width: 320,
-					marginRight: 16,
-				}}
-			>
-				{/* Title */}
+			<Card variant="beveled" padding="none" style={{ width: 320, marginRight: 16, display: 'flex', flexDirection: 'column' }}>
 				<div style={{ padding: 16, paddingBottom: 8 }}>
-					<span>
+					<span style={{ fontSize: 14, fontWeight: 600 }}>
 						Workflows ({definitions.length.toLocaleString()})
 					</span>
-					<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '8px 0 0', lineHeight: 1.5 }}>
-						Workflows define the stages claims move through. Each workflow can have thresholds for SLA monitoring and rules for automated routing.
-					</p>
 				</div>
 
-				{/* Search */}
 				<div style={{ paddingInline: 16, paddingBottom: 8 }}>
 					<Input
 						fullWidth
@@ -69,10 +53,10 @@ export default function WorkflowsView() {
 					/>
 				</div>
 
-				{/* Active/Inactive Filter and Add New Button */}
-				<div style={{ paddingInline: 16, paddingBottom: 8, display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+				<div style={{ paddingInline: 16, paddingBottom: 12, display: 'flex', justifyContent: 'space-between', gap: 8 }}>
 					<div style={{ minWidth: 100 }}>
-						<Dropdown inlineLabel
+						<Dropdown
+							inlineLabel
 							options={[
 								{ value: 'active', label: 'Active' },
 								{ value: 'inactive', label: 'Inactive' },
@@ -82,79 +66,50 @@ export default function WorkflowsView() {
 							size="sm"
 						/>
 					</div>
-
-					<Button variant="contained" onClick={() => setShowCreateDialog(true)} startIcon={<IconPlus size={16} />} size="sm">
-						Workflow
+					<Button
+						variant="contained"
+						onClick={() => setShowCreateDialog(true)}
+						startIcon={<IconPlus size={16} />}
+						size="sm"
+					>
+						New
 					</Button>
 				</div>
 
-				<div style={{ padding: '0px 10px 10px' }}>
-					<Divider />
-				</div>
-
 				{/* Workflow List */}
-				<div style={{ height: 'calc(100% - 180px)', overflowY: 'auto', paddingInline: 16, paddingBottom: 16 }}>
+				<div style={{ flex: 1, overflowY: 'auto', paddingInline: 16, paddingBottom: 16 }}>
 					{isLoading ? (
 						<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-							<Skeleton variant="rect" height={80} />
-							<Skeleton variant="rect" height={80} />
-							<Skeleton variant="rect" height={80} />
+							<Skeleton variant="rect" height={64} />
+							<Skeleton variant="rect" height={64} />
+							<Skeleton variant="rect" height={64} />
 						</div>
 					) : definitions.length === 0 ? (
-						<span style={{ fontSize: 13,  color: 'var(--text-secondary)', textAlign: 'center', marginTop: 16  }}>
+						<span
+							style={{
+								fontSize: 13,
+								color: 'var(--text-secondary)',
+								textAlign: 'center',
+								marginTop: 16,
+								display: 'block',
+							}}
+						>
 							{searchTerm ? 'No workflows found' : 'No workflows yet'}
 						</span>
 					) : (
 						<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 							{definitions.map((definition) => {
 								const isSelected = selectedWorkflowId === definition.id;
-								const location = definition.desk_location_id
-									? deskStore.locationsById.get(definition.desk_location_id)
-									: null;
-
 								return (
 									<div
 										key={definition.id}
-										style={{
-											padding: 12,
-											border: isSelected ? '2px solid' : '1px solid',
-											borderColor: isSelected ? 'primary.main' : 'var(--border)',
-											backgroundColor: isSelected ? 'rgba(33, 181, 255, 0.04)' : 'background.paper',
-											cursor: 'pointer',
-											transition: 'all 0.2s',
-											}}
+										className={`${styles.navItem} ${isSelected ? styles.navItemSelected : ''}`}
 										onClick={() => setSelectedWorkflowId(definition.id)}
 									>
-										<span style={{ fontSize: 14, fontWeight: isSelected ? 600 : 500 }}>
-											{definition.name}
-										</span>
-
+										<span className={styles.navItemTitle}>{definition.name}</span>
 										{definition.description && (
-											<span style={{  fontSize: 12,  color: 'var(--text-secondary)'  , 
-													overflow: 'hidden',
-													textOverflow: 'ellipsis',
-													display: '-webkit-box',
-													WebkitLineClamp: 2,
-													WebkitBoxOrient: 'vertical',
-												 }}
-											>
-												{definition.description}
-											</span>
+											<span className={styles.navItemDescription}>{definition.description}</span>
 										)}
-
-										<div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-											<Chip
-												size="sm"
-												color={location ? 'info' : 'neutral'}
-												variant="outlined"
-											>{location ? `Desk Location: ${location.name}` : 'Global'}</Chip>
-											{!definition.is_active && (
-												<Chip 
-													size="sm"
-													color="neutral"
-													style={{ fontSize: 11, height: 20 }}>Inactive</Chip>
-											)}
-										</div>
 									</div>
 								);
 							})}
@@ -164,20 +119,23 @@ export default function WorkflowsView() {
 			</Card>
 
 			{/* Right Panel - Workflow Detail */}
-			<div style={{ flex: 1, overflowY: 'auto',
-					backgroundColor: 'var(--bg-primary)', }}>
+			<div style={{ flex: 1, overflowY: 'auto', backgroundColor: 'var(--bg-primary)' }}>
 				{selectedWorkflowId ? (
 					<WorkflowDetailPanel workflowId={selectedWorkflowId} />
 				) : (
-					<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', padding: 24 }}>
-						<span style={{ fontSize: 14,  color: 'var(--text-secondary)'  }}>
-							Select a workflow to view details
-						</span>
+					<div className={styles.emptyState}>
+						<IconRoute2 size={48} style={{ color: 'var(--text-muted)' }} />
+						<span className={styles.emptyTitle}>Select a workflow to view details</span>
+						<div className={styles.emptyDescription}>
+							<IconInfoCircle size={16} style={{ color: 'var(--text-muted)', flexShrink: 0, marginTop: 2 }} />
+							<span>
+								Workflows define the stages claims move through. Each workflow can have thresholds for SLA monitoring and rules for automated routing.
+							</span>
+						</div>
 					</div>
 				)}
 			</div>
 
-			{/* Create Dialog */}
 			{showCreateDialog && (
 				<WorkflowDefinitionFormDialog
 					onClose={() => setShowCreateDialog(false)}

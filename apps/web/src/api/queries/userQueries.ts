@@ -89,24 +89,38 @@ export async function getUsersWithDeskAssignments(
 		deskLocationId?: string;
 	}
 ) {
-	// Base query - all users with assignment counts
+	// LEFT JOIN to active assignments + their desk location/type so we can aggregate per user.
 	let query = ctx.db
 		.selectFrom('users')
-		.leftJoin(
-			(eb) =>
-				eb
-					.selectFrom('user_desk_location')
-					.select([
-						'user_desk_location.user_id',
-						eb.fn.countAll<number>().as('assignment_count'),
-					])
-					.where('user_desk_location.removed_at', 'is', null)
-					.groupBy('user_desk_location.user_id')
-					.as('assignment_counts'),
-			(join) => join.onRef('assignment_counts.user_id', '=', 'users.id')
+		.leftJoin('user_desk_location as udl', (join) =>
+			join.onRef('udl.user_id', '=', 'users.id').on('udl.removed_at', 'is', null)
+		)
+		.leftJoin('desk_location as dl', (join) =>
+			join.onRef('dl.id', '=', 'udl.desk_location_id').on('dl.deleted_at', 'is', null)
+		)
+		.leftJoin('desk_location_type as dlt', (join) =>
+			join.onRef('dlt.id', '=', 'dl.desk_location_type_id').on('dlt.deleted_at', 'is', null)
 		)
 		.selectAll('users')
-		.select(sql<number>`MAX(COALESCE(assignment_counts.assignment_count, 0))`.as('assignment_count'))
+		.select([
+			sql<number>`COUNT(udl.id) FILTER (WHERE dl.id IS NOT NULL)`.as('assignment_count'),
+			sql<number>`COALESCE(SUM(dl.capacity_threshold) FILTER (WHERE dl.id IS NOT NULL), 0)`.as('capacity'),
+			sql`COALESCE(
+				jsonb_agg(
+					jsonb_build_object(
+						'id', udl.id,
+						'desk_location_id', udl.desk_location_id,
+						'desk_location_name', dl.name,
+						'desk_location_type_name', dlt.name,
+						'priority', udl.priority
+					)
+					ORDER BY udl.priority ASC
+				) FILTER (WHERE dl.id IS NOT NULL),
+				'[]'::jsonb
+			)`
+				.$castTo<unknown>()
+				.as('assignments'),
+		])
 		.select(sql<string>`COUNT(*) OVER()`.as('total_count'))
 		.where('users.client_id', '=', ctx.session.user.client_id)
 		.where('users.disabled', '=', false);
@@ -116,31 +130,37 @@ export async function getUsersWithDeskAssignments(
 		query = query.where((eb) => buildUserSearchFilter(eb, searchTerm));
 	}
 
-	// If desk filters are provided, filter to users with at least one matching assignment
-	if (deskLocationTypeId !== undefined || deskLocationId !== undefined) {
-		if (deskLocationId !== undefined) {
-			query = query
-				.innerJoin('user_desk_location', (join) =>
-					join
-						.onRef('users.id', '=', 'user_desk_location.user_id')
-						.on('user_desk_location.removed_at', 'is', null)
-						.on('user_desk_location.desk_location_id', '=', deskLocationId)
-				);
-		} else if (deskLocationTypeId !== undefined) {
-			query = query
-				.innerJoin('user_desk_location', (join) =>
-					join.onRef('users.id', '=', 'user_desk_location.user_id').on('user_desk_location.removed_at', 'is', null)
-				)
-				.innerJoin('desk_location', (join) =>
-					join
-						.onRef('user_desk_location.desk_location_id', '=', 'desk_location.id')
-						.on('desk_location.deleted_at', 'is', null)
-						.on('desk_location.desk_location_type_id', '=', deskLocationTypeId)
-				);
-		}
+	// Filter: only users who have at least one assignment matching the criteria.
+	// EXISTS keeps the assignment aggregates unaffected by the filter.
+	if (deskLocationId !== undefined) {
+		query = query.where((eb) =>
+			eb.exists(
+				eb
+					.selectFrom('user_desk_location as udl_filter')
+					.select(sql`1`.as('one'))
+					.whereRef('udl_filter.user_id', '=', 'users.id')
+					.where('udl_filter.removed_at', 'is', null)
+					.where('udl_filter.desk_location_id', '=', deskLocationId)
+			)
+		);
+	} else if (deskLocationTypeId !== undefined) {
+		query = query.where((eb) =>
+			eb.exists(
+				eb
+					.selectFrom('user_desk_location as udl_filter')
+					.innerJoin('desk_location as dl_filter', (join) =>
+						join
+							.onRef('dl_filter.id', '=', 'udl_filter.desk_location_id')
+							.on('dl_filter.deleted_at', 'is', null)
+					)
+					.select(sql`1`.as('one'))
+					.whereRef('udl_filter.user_id', '=', 'users.id')
+					.where('udl_filter.removed_at', 'is', null)
+					.where('dl_filter.desk_location_type_id', '=', deskLocationTypeId)
+			)
+		);
 	}
 
-	// Always group by user columns to support assignment count aggregation
 	query = query.groupBy([
 		'users.id',
 		'users.first',

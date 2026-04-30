@@ -141,6 +141,9 @@ th:hover .resizeHandle {
 	border-bottom: 1px solid var(--border);
 	color: var(--text-primary);
 	max-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .table td > * {
@@ -174,10 +177,16 @@ th:hover .resizeHandle {
    ========================================================================= */
 
 .checkboxCell {
-	width: 40px;
-	min-width: 40px;
+	width: 32px;
+	min-width: 32px;
+	max-width: 32px;
+	padding: 0 !important;
 	text-align: center;
-	padding: 0 var(--space-2) !important;
+}
+
+.checkboxCell input[type='checkbox'] {
+	display: block;
+	margin: 0 auto;
 }
 
 /* =========================================================================

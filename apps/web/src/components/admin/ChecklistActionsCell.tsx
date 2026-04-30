@@ -13,12 +13,9 @@ interface ChecklistActionsCellProps {
 	row: any;
 	value?: any;
 	id?: string | number;
-	isManageMode?: boolean;
 }
 
 export default function ChecklistActionsCell(params: ChecklistActionsCellProps) {
-	const { isManageMode = true } = params;
-	if (!isManageMode) return null;
 	const router = useRouter();
 	const [updating, setUpdating] = useState(false);
 	const { mutate: updateChecklist, isPending } = useChecklistTrpc().update;
@@ -27,29 +24,45 @@ export default function ChecklistActionsCell(params: ChecklistActionsCellProps) 
 
 	return (
 		<>
-			<div style={styles.container} className="flex-row-right">
+			<div style={styles.container}>
 				<Tooltip content={published ? 'Unpublish' : 'Publish'}>
-							<Button variant="icon" size="sm" color="neutral" disabled={isPending}>
-							published ? (
-							<IconArchive style={{ ...styles.icon, color: 'var(--status-error)' }} />
+					<Button
+						variant="icon"
+						size="sm"
+						color="neutral"
+						disabled={isPending}
+						onClick={() => setUpdating(true)}
+					>
+						{published ? (
+							<IconArchive size={15} stroke={1.5} style={{ color: 'var(--status-error)' }} />
 						) : (
-							<IconArchiveOff style={{ ...styles.icon, color: 'var(--status-success)' }} />
-						)
-						</Button>
-						</Tooltip>
+							<IconArchiveOff size={15} stroke={1.5} style={{ color: 'var(--status-success)' }} />
+						)}
+					</Button>
+				</Tooltip>
 				<div style={{ marginLeft: '10px' }}>
 					<Tooltip content="Go to breakdown...">
-							<Button variant="icon" size="sm" color="neutral">
-							<IconChartBar style={{ ...styles.icon, transform: 'rotate(90deg)' }} />
+						<Button
+							variant="icon"
+							size="sm"
+							color="neutral"
+							onClick={() => router.push(`/checklists/${params.row.id}/breakdown`)}
+						>
+							<IconChartBar size={15} stroke={1.5} style={{ transform: 'rotate(90deg)' }} />
 						</Button>
-						</Tooltip>
+					</Tooltip>
 				</div>
 				<div style={{ marginLeft: '10px' }}>
 					<Tooltip content="Open checklist...">
-							<Button variant="icon" size="sm" color="neutral">
-							<IconExternalLink style={styles.icon} />
+						<Button
+							variant="icon"
+							size="sm"
+							color="neutral"
+							onClick={() => router.push(`/checklists/${params.row.id}`)}
+						>
+							<IconExternalLink size={15} stroke={1.5} />
 						</Button>
-						</Tooltip>
+					</Tooltip>
 				</div>
 			</div>
 
@@ -99,9 +112,8 @@ const styles = {
 	container: {
 		width: '100%',
 		height: '100%',
-		padding: '10px',
-	},
-	icon: {
-		fontSize: 17,
+		display: 'flex',
+		justifyContent: 'flex-end',
+		alignItems: 'center',
 	},
 };

@@ -1,28 +1,26 @@
 'use client';
 
-import { IconEye, IconFileSearch, IconFilter, IconSquarePlus, IconUpload, IconUserSearch } from '@tabler/icons-react';
+import { IconFileSearch, IconFilter, IconSquarePlus, IconUserSearch } from '@tabler/icons-react';
 import Combobox, { type ComboboxOption } from '@/components/ui/Combobox';
 import Card from '@/components/ui/Card';
-import Collapse from '@/components/ui/Collapse';
 import Switch from '@/components/ui/Switch';
 import Button from '@/components/ui/Button';
 import { useAdminStore } from '@/stores/useAdminStore';
 import { formatAmount, formatMDYAbv } from '@/lib/utils/utils';
 import { formatLineOfBusiness, formatLabel } from '@/lib/utils/claimUtils';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
-import { formatCityState } from '@/schemas/addressSchemas';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
 import IconHeaderCell from '../common/IconHeaderCell';
 import SearchInput from '../common/SearchInput';
 import Toolbar from '../common/Toolbar';
-import { useMemo, useState, useEffect, useCallback } from 'react';
-import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
+import { useMemo, useRef, useState, useEffect } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import { formatRecoveryStatus } from '@/lib/utils/recoveryUtils';
 import { LineOfBusinessSelect } from '../common/ReferenceDataSelect';
 import RecoveryStatusSelect from '../common/RecoveryStatusSelect';
 import SubstatusSelect from '../common/SubstatusSelect';
-import BasicPopper from '../common/BasicPopper';
+import Popper from '@/components/ui/Popper';
 import { RecoveryStatus, ClaimSearch, ClaimSubstatus } from '@/config/enums';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import ClaimDetailPanel from './ClaimDetailPanel';
@@ -45,23 +43,12 @@ const COLUMNS: ColumnDef<any, any>[] = [
 		),
 		size: 150,
 	},
-	{
-		accessorKey: 'client_adjuster',
-		header: (ctx) => <IconHeaderCell {...ctx} />,
-		size: 150,
-	},
-	{
-		accessorKey: 'insured',
-		header: (ctx) => <IconHeaderCell {...ctx} />,
-		size: 150,
-	},
+	{ accessorKey: 'client_adjuster', header: (ctx) => <IconHeaderCell {...ctx} />, size: 150 },
+	{ accessorKey: 'insured', header: (ctx) => <IconHeaderCell {...ctx} />, size: 150 },
 	{
 		accessorKey: 'date_of_loss',
 		header: (ctx) => <IconHeaderCell {...ctx} />,
-		cell: ({ getValue }) => {
-			const value = getValue();
-			return formatMDYAbv(value);
-		},
+		cell: ({ getValue }) => formatMDYAbv(getValue()),
 		size: 150,
 	},
 	{
@@ -72,31 +59,21 @@ const COLUMNS: ColumnDef<any, any>[] = [
 	{
 		accessorKey: 'line_of_business',
 		header: (ctx) => <IconHeaderCell {...ctx} />,
-		cell: ({ getValue }) => {
-			const v = getValue();
-			return formatLineOfBusiness(v);
-		},
+		cell: ({ getValue }) => formatLineOfBusiness(getValue()),
 		size: 150,
 	},
 	{
 		accessorKey: 'recovery_status',
 		header: (ctx) => <IconHeaderCell {...ctx} />,
-		cell: ({ getValue }) => {
-			const v = getValue();
-			return formatRecoveryStatus(v);
-		},
+		cell: ({ getValue }) => formatRecoveryStatus(getValue()),
 		size: 150,
 	},
 	{
 		accessorKey: 'substatus',
 		header: (ctx) => <IconHeaderCell {...ctx} />,
-		cell: ({ getValue }) => {
-			const v = getValue();
-			return formatLabel(v);
-		},
+		cell: ({ getValue }) => formatLabel(getValue()),
 		size: 150,
 	},
-	// Amount fields grouped at end (ClaimHeader order)
 	{
 		accessorKey: 'claim_amount',
 		header: (ctx) => <IconHeaderCell {...ctx} />,
@@ -135,69 +112,77 @@ const COLUMNS: ColumnDef<any, any>[] = [
 	},
 ];
 
-const PINNED_COLUMNS: { left?: string[]; right?: string[] } = {
-	left: ['claim_number'],
-};
-
-function NoRows() {
-	return (
-		<CustomNoRowsOverlay
-			text="No claims found"
-			icon={<IconFileSearch size={35} style={{ color: 'var(--text-muted)' }} />}
-		/>
-	);
+interface ClaimFiltersFormValues {
+	manual_only: boolean;
+	lob: string | null;
+	recovery_status: string | null;
+	substatus: ClaimSubstatus | null;
+	insured: string | null;
+	client: string | null;
 }
+
+const EMPTY_FILTERS: ClaimFiltersFormValues = {
+	manual_only: false,
+	lob: null,
+	recovery_status: null,
+	substatus: null,
+	insured: null,
+	client: null,
+};
 
 export default function Claims() {
 	const router = useRouter();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
 	const claimConstraints = useAdminStore((state) => state.claimConstraints);
-	const selectedFeedId = useAdminStore((state) => state.selectedFeedId);
-	const setFeedId = useAdminStore((state) => state.setFeedId);
-	const toggleImportClaimsDialog = useAdminStore((state) => state.toggleImportClaimsDialog);
 	const updateClaimConstraints = useAdminStore((state) => state.updateClaimConstraints);
 
 	// URL filters hook for managing filters via search params
 	const { getParam, getBoolParam, setParams, clearParams, setParam } = useUrlFilters();
 
-	// Applied filter states (read from URL params)
+	// Applied filter state lives in URL params
 	const appliedLob = getParam('lob');
 	const appliedRecoveryStatus = getParam('recovery_status');
 	const appliedSubstatus = getParam('substatus');
 	const appliedInsured = getParam('insured');
 	const appliedClient = getParam('client');
 	const appliedManualOnly = getBoolParam('manual_only');
-
-	// Draft filter states (in the popper, not yet applied)
-	const [draftLob, setDraftLob] = useState<string | null>(null);
-	const [draftRecoveryStatus, setDraftRecoveryStatus] = useState<string | null>(null);
-	const [draftSubstatus, setDraftSubstatus] = useState<ClaimSubstatus | null>(null);
-	const [draftInsured, setDraftInsured] = useState<string | null>(null);
-	const [draftClient, setDraftClient] = useState<string | null>(null);
-	const [draftManualOnly, setDraftManualOnly] = useState(false);
-
-	// Claim number search - synced with URL param
 	const appliedClaimNumber = getParam('claim_number') ?? '';
+
+	const currentApplied: ClaimFiltersFormValues = useMemo(
+		() => ({
+			manual_only: appliedManualOnly,
+			lob: appliedLob,
+			recovery_status: appliedRecoveryStatus,
+			substatus: (appliedSubstatus as ClaimSubstatus) ?? null,
+			insured: appliedInsured,
+			client: appliedClient,
+		}),
+		[appliedManualOnly, appliedLob, appliedRecoveryStatus, appliedSubstatus, appliedInsured, appliedClient]
+	);
+
+	// RHF manages the in-popper draft state; URL is the source of truth for what's applied
+	const { control, handleSubmit, reset } = useForm<ClaimFiltersFormValues>({
+		defaultValues: currentApplied,
+	});
+
+	// Claim number search (toolbar input — outside the popper)
 	const [claimNumberSearch, setClaimNumberSearch] = useState('');
 
-	// Search states for autocompletes (in filters popper)
+	// Combobox typing state for insured/client suggestions
 	const [insuredSearchTerm, setInsuredSearchTerm] = useState('');
 	const [clientSearchTerm, setClientSearchTerm] = useState('');
 	const [debouncedInsuredSearch, setDebouncedInsuredSearch] = useState('');
 	const [debouncedClientSearch, setDebouncedClientSearch] = useState('');
 
 	const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
-	const [filtersAnchorEl, setFiltersAnchorEl] = useState<HTMLElement | null>(null);
+	const [filtersOpen, setFiltersOpen] = useState(false);
+	const filtersAnchorRef = useRef<HTMLButtonElement>(null);
 
-	const { data: feeds = [] } = useFeedTrpc().list();
 	const trpcUtils = useClaimTrpc();
 
-	// Use applied filters for the actual query
-	const effectiveFeedId = appliedManualOnly ? null : selectedFeedId;
-
 	const { data = { rows: [], count: undefined }, isFetching } = trpcUtils.list({
-		feedId: effectiveFeedId,
+		feedId: appliedManualOnly ? null : undefined,
 		searchTerm: appliedClaimNumber ? { value: appliedClaimNumber, type: ClaimSearch.CLAIM_NUMBER } : undefined,
 		line_of_business: appliedLob ?? undefined,
 		recovery_status: (appliedRecoveryStatus as RecoveryStatus) ?? undefined,
@@ -218,7 +203,6 @@ export default function Claims() {
 		[data.rows]
 	);
 
-	// Autocomplete options - derived from unique lists and search terms
 	const insuredOptions = useMemo(() => {
 		if (uniqueInsureds.length <= 20) return uniqueInsureds;
 		if (!debouncedInsuredSearch) return [];
@@ -235,26 +219,14 @@ export default function Claims() {
 			.slice(0, 20);
 	}, [uniqueClients, debouncedClientSearch]);
 
-	const selectedFeed = useMemo(() => {
-		if (!selectedFeedId) return;
-		return feeds.find((f) => f.id === selectedFeedId);
-	}, [feeds, selectedFeedId]);
-
-	// Debounce claim number search - write to URL param
 	const debouncedClaimSearch = useDebounce((search: string) => setParam('claim_number', search), 500);
-
-	// Debounce insured search
 	const debouncedInsuredSearchCallback = useDebounce((search: string) => setDebouncedInsuredSearch(search), 500);
-
-	// Debounce client search
 	const debouncedClientSearchCallback = useDebounce((search: string) => setDebouncedClientSearch(search), 500);
 
-	// Sync local search state with URL param changes
 	useEffect(() => {
 		setClaimNumberSearch(appliedClaimNumber);
 	}, [appliedClaimNumber]);
 
-	// Debounce local search input to URL param
 	useEffect(() => {
 		debouncedClaimSearch(claimNumberSearch);
 	}, [claimNumberSearch, debouncedClaimSearch]);
@@ -267,105 +239,71 @@ export default function Claims() {
 		debouncedClientSearchCallback(clientSearchTerm);
 	}, [clientSearchTerm, debouncedClientSearchCallback]);
 
-	// Sync selectedClaimId with URL query param
 	useEffect(() => {
 		const selected = searchParams.get('selected');
-		if (selected) {
-			setSelectedClaimId(selected);
-		} else {
-			setSelectedClaimId(null);
-		}
+		setSelectedClaimId(selected ?? null);
 	}, [searchParams]);
 
-	// Handle row click - update URL with selected claim ID
 	const handleRowClick = (row: any) => {
-		const claimId = row.id;
 		const newParams = new URLSearchParams(searchParams.toString());
-		newParams.set('selected', claimId.toString());
+		newParams.set('selected', String(row.id));
 		router.push(`${pathname}?${newParams.toString()}`);
 	};
 
-	// Handle panel close - clear selected claim from URL
 	const handleClosePanel = () => {
 		const newParams = new URLSearchParams(searchParams.toString());
 		newParams.delete('selected');
 		router.push(`${pathname}${newParams.toString() ? `?${newParams.toString()}` : ''}`);
 	};
 
-	// Handle opening filters popper - sync draft states with applied states
-	const handleOpenFilters = (e: React.MouseEvent) => {
-		setDraftLob(appliedLob);
-		setDraftRecoveryStatus(appliedRecoveryStatus);
-		setDraftSubstatus((appliedSubstatus as ClaimSubstatus) ?? null);
-		setDraftInsured(appliedInsured);
-		setDraftClient(appliedClient);
-		setDraftManualOnly(appliedManualOnly);
-		// Initialize search terms with current values
+	const handleOpenFilters = () => {
+		// Sync RHF draft state with whatever is currently applied
+		reset(currentApplied);
 		setInsuredSearchTerm(appliedInsured ?? '');
 		setClientSearchTerm(appliedClient ?? '');
-		setFiltersAnchorEl(e.currentTarget as HTMLElement);
+		setFiltersOpen(true);
 	};
 
-	// Apply filters from draft to URL params
-	const handleApplyFilters = () => {
+	const handleCloseFilters = () => {
+		setInsuredSearchTerm('');
+		setClientSearchTerm('');
+		setFiltersOpen(false);
+	};
+
+	const onApplyFilters = handleSubmit((values) => {
 		setParams({
-			lob: draftLob,
-			recovery_status: draftRecoveryStatus,
-			substatus: draftSubstatus,
-			insured: draftInsured,
-			client: draftClient,
-			manual_only: draftManualOnly,
+			lob: values.lob,
+			recovery_status: values.recovery_status,
+			substatus: values.substatus,
+			insured: values.insured,
+			client: values.client,
+			manual_only: values.manual_only,
 		});
-		if (draftManualOnly) {
-			setFeedId(null);
-		}
-		// Reset search terms
 		setInsuredSearchTerm('');
 		setClientSearchTerm('');
-		setFiltersAnchorEl(null);
-	};
+		setFiltersOpen(false);
+	});
 
-	// Clear all filters from URL params
 	const handleClearAllFilters = () => {
-		// Clear all URL params except 'selected' (claim detail panel)
 		clearParams(['selected']);
-		// Reset draft states
-		setDraftLob(null);
-		setDraftRecoveryStatus(null);
-		setDraftSubstatus(null);
-		setDraftInsured(null);
-		setDraftClient(null);
-		setDraftManualOnly(false);
+		reset(EMPTY_FILTERS);
 		setInsuredSearchTerm('');
 		setClientSearchTerm('');
-		setClaimNumberSearch('');
-		setFeedId(undefined);
 	};
 
-	// Handle closing filters popper - reset search terms
-	const handleCloseFilters = useCallback(() => {
-		setInsuredSearchTerm('');
-		setClientSearchTerm('');
-		setFiltersAnchorEl(null);
-	}, []);
+	const activeFilters = [
+		appliedLob,
+		appliedRecoveryStatus,
+		appliedSubstatus,
+		appliedInsured,
+		appliedClient,
+		appliedManualOnly,
+		appliedClaimNumber,
+	].filter(Boolean);
+	const hasActiveFilters = activeFilters.length > 0;
 
-	const hasActiveFilters =
-		appliedLob ||
-		appliedRecoveryStatus ||
-		appliedSubstatus ||
-		appliedInsured ||
-		appliedClient ||
-		appliedManualOnly ||
-		appliedClaimNumber;
-
-	// Map string options to ComboboxOption for insured/client
 	const insuredComboboxOptions: ComboboxOption[] = insuredOptions.map((s) => ({ value: s, label: s }));
 	const clientComboboxOptions: ComboboxOption[] = clientOptions.map((s) => ({ value: s, label: s }));
-
-	const selectedInsuredOption: ComboboxOption | null = draftInsured
-		? { value: draftInsured, label: draftInsured }
-		: null;
-	const selectedClientOption: ComboboxOption | null = draftClient ? { value: draftClient, label: draftClient } : null;
 
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading claims...">
@@ -375,17 +313,17 @@ export default function Claims() {
 						View and manage all claims across the organization. Click a claim to see its full details.
 					</p>
 
-					{/* Search and Filters Toolbar */}
 					<Toolbar
 						left={
 							<div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
 								<SearchInput
 									value={claimNumberSearch}
-									onChange={(value) => setClaimNumberSearch(value)}
+									onChange={setClaimNumberSearch}
 									placeholder="Search by claim number..."
 									width={280}
 								/>
 								<Button
+									ref={filtersAnchorRef}
 									variant="outlined"
 									onClick={handleOpenFilters}
 									endIcon={<IconFilter size={16} />}
@@ -395,8 +333,8 @@ export default function Claims() {
 										<div
 											style={{
 												marginLeft: 4,
-												backgroundColor: 'primary.main',
-												color: 'white',
+												backgroundColor: 'var(--text-accent)',
+												color: 'var(--text-on-accent)',
 												borderRadius: '50%',
 												width: 18,
 												height: 18,
@@ -407,17 +345,7 @@ export default function Claims() {
 												fontWeight: 600,
 											}}
 										>
-											{
-												[
-													appliedLob,
-													appliedRecoveryStatus,
-													appliedSubstatus,
-													appliedInsured,
-													appliedClient,
-													appliedManualOnly,
-													appliedClaimNumber,
-												].filter(Boolean).length
-											}
+											{activeFilters.length}
 										</div>
 									)}
 								</Button>
@@ -426,38 +354,16 @@ export default function Claims() {
 										Clear all filters
 									</Button>
 								)}
-								<Collapse open={!!selectedFeed}>
-									<div style={{ display: 'flex', alignItems: 'center', marginLeft: '5px' }}>
-										<IconEye size={18} style={{ color: 'var(--text-secondary)' }} />
-										<span style={{ fontSize: 14, lineHeight: '18px', marginLeft: '8px' }}>
-											Viewing{' '}
-											<span style={{ color: 'var(--text-accent)', fontWeight: 600 }}>
-												{selectedFeed?.name ?? ''}
-											</span>
-										</span>
-									</div>
-								</Collapse>
 							</div>
 						}
 						right={
-							<>
-								<Button
-									variant="contained"
-									color="neutral"
-									startIcon={<IconUpload size={20} />}
-									onClick={toggleImportClaimsDialog}
-									style={{ marginRight: '10px' }}
-								>
-									Import
-								</Button>
-								<Button
-									variant="contained"
-									startIcon={<IconSquarePlus size={20} />}
-									onClick={() => router.push('/admin/claims/edit')}
-								>
-									Claim
-								</Button>
-							</>
+							<Button
+								variant="contained"
+								startIcon={<IconSquarePlus size={20} />}
+								onClick={() => router.push('/admin/claims/edit')}
+							>
+								Claim
+							</Button>
 						}
 						leftWidth="100%"
 						rightWidth="0%"
@@ -466,118 +372,141 @@ export default function Claims() {
 					/>
 
 					{/* Filters Popper */}
-					{!!filtersAnchorEl && (
-						<BasicPopper
-							anchorEl={filtersAnchorEl}
-							setAnchorEl={handleCloseFilters}
-							placement="bottom-start"
-						>
-							<div style={styles.filtersPaper}>
-								<span style={{ fontSize: 14, fontWeight: 600 }}>Filter Claims</span>
-								<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-									<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-										<Switch
-											size="sm"
-											checked={draftManualOnly}
-											onChange={(checked) => setDraftManualOnly(checked)}
-										/>
-										<span style={{ fontSize: 13 }}>Only Manual Claims</span>
-									</div>
-									<div>
-										<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
-											Line of Business
-										</span>
-										<LineOfBusinessSelect
-											lineOfBusiness={draftLob}
-											setLineOfBusiness={setDraftLob}
-											clearable={true}
-										/>
-									</div>
-									<div>
-										<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
-											Recovery Status
-										</span>
-										<RecoveryStatusSelect
-											recoveryStatus={draftRecoveryStatus}
-											setRecoveryStatus={setDraftRecoveryStatus}
-											clearable={true}
-											height={32}
-										/>
-									</div>
-									<div>
-										<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
-											Substatus
-										</span>
-										<SubstatusSelect
-											substatus={draftSubstatus}
-											setSubstatus={setDraftSubstatus}
-											clearable={true}
-											height={32}
-										/>
-									</div>
-									<div>
-										<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
-											Insured
-										</span>
-										<Combobox
-											freeSolo
-											options={insuredComboboxOptions}
-											value={selectedInsuredOption}
-											onChange={(opt) => {
-												setDraftInsured(opt ? String(opt.value) : null);
-											}}
-											onInputChange={(value) => {
-												setInsuredSearchTerm(value);
-											}}
-											noOptionsText={insuredSearchTerm ? 'No matches' : 'Type to search'}
-											placeholder={
-												insuredOptions.length === 0 && !insuredSearchTerm
-													? 'Type to search...'
-													: 'Search insured...'
-											}
-											fullWidth
-										/>
-									</div>
-									<div>
-										<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
-											Client
-										</span>
-										<Combobox
-											freeSolo
-											options={clientComboboxOptions}
-											value={selectedClientOption}
-											onChange={(opt) => {
-												setDraftClient(opt ? String(opt.value) : null);
-											}}
-											onInputChange={(value) => {
-												setClientSearchTerm(value);
-											}}
-											noOptionsText={clientSearchTerm ? 'No matches' : 'Type to search'}
-											placeholder={
-												clientOptions.length === 0 && !clientSearchTerm
-													? 'Type to search...'
-													: 'Search client...'
-											}
-											fullWidth
-										/>
-									</div>
+					<Popper
+						open={filtersOpen}
+						onClose={handleCloseFilters}
+						anchorRef={filtersAnchorRef}
+						placement="bottom-start"
+					>
+						<form onSubmit={onApplyFilters} style={styles.filtersPaper}>
+							<span style={{ fontSize: 14, fontWeight: 600 }}>Filter Claims</span>
+							<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+								<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+									<Controller
+										control={control}
+										name="manual_only"
+										render={({ field }) => (
+											<Switch size="sm" checked={field.value} onChange={field.onChange} />
+										)}
+									/>
+									<span style={{ fontSize: 13 }}>Only Manual Claims</span>
 								</div>
-								<div
-									style={{
-										display: 'flex',
-										justifyContent: 'flex-end',
-										marginTop: 16,
-										paddingTop: 16,
-										borderTop: '1px solid #e0e0e0',
-									}}
-								>
-									<Button variant="contained" onClick={handleApplyFilters} size="sm">
-										Apply
-									</Button>
+								<div>
+									<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
+										Line of Business
+									</span>
+									<Controller
+										control={control}
+										name="lob"
+										render={({ field }) => (
+											<LineOfBusinessSelect
+												lineOfBusiness={field.value}
+												setLineOfBusiness={field.onChange}
+												clearable
+											/>
+										)}
+									/>
+								</div>
+								<div>
+									<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
+										Recovery Status
+									</span>
+									<Controller
+										control={control}
+										name="recovery_status"
+										render={({ field }) => (
+											<RecoveryStatusSelect
+												recoveryStatus={field.value}
+												setRecoveryStatus={field.onChange}
+												clearable
+												height={32}
+											/>
+										)}
+									/>
+								</div>
+								<div>
+									<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
+										Substatus
+									</span>
+									<Controller
+										control={control}
+										name="substatus"
+										render={({ field }) => (
+											<SubstatusSelect
+												substatus={field.value}
+												setSubstatus={field.onChange}
+												clearable
+												height={32}
+											/>
+										)}
+									/>
+								</div>
+								<div>
+									<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
+										Insured
+									</span>
+									<Controller
+										control={control}
+										name="insured"
+										render={({ field }) => (
+											<Combobox
+												freeSolo
+												options={insuredComboboxOptions}
+												value={field.value ? { value: field.value, label: field.value } : null}
+												onChange={(opt) => field.onChange(opt ? String(opt.value) : null)}
+												onInputChange={setInsuredSearchTerm}
+												noOptionsText={insuredSearchTerm ? 'No matches' : 'Type to search'}
+												placeholder={
+													insuredOptions.length === 0 && !insuredSearchTerm
+														? 'Type to search...'
+														: 'Search insured...'
+												}
+												fullWidth
+											/>
+										)}
+									/>
+								</div>
+								<div>
+									<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
+										Client
+									</span>
+									<Controller
+										control={control}
+										name="client"
+										render={({ field }) => (
+											<Combobox
+												freeSolo
+												options={clientComboboxOptions}
+												value={field.value ? { value: field.value, label: field.value } : null}
+												onChange={(opt) => field.onChange(opt ? String(opt.value) : null)}
+												onInputChange={setClientSearchTerm}
+												noOptionsText={clientSearchTerm ? 'No matches' : 'Type to search'}
+												placeholder={
+													clientOptions.length === 0 && !clientSearchTerm
+														? 'Type to search...'
+														: 'Search client...'
+												}
+												fullWidth
+											/>
+										)}
+									/>
 								</div>
 							</div>
-						</BasicPopper>
-					)}
+							<div
+								style={{
+									display: 'flex',
+									justifyContent: 'flex-end',
+									marginTop: 16,
+									paddingTop: 16,
+									borderTop: '1px solid var(--border)',
+								}}
+							>
+								<Button type="submit" variant="contained" size="sm">
+									Apply
+								</Button>
+							</div>
+						</form>
+					</Popper>
 
 					<div style={styles.table}>
 						<DataTable
@@ -614,12 +543,14 @@ const styles = {
 	},
 	table: {
 		width: '100%',
-		height: 'calc(100% - 95px)', // Account for two toolbars (50px + 45px)
+		height: 'calc(100% - 95px)',
 	},
 	filtersPaper: {
 		marginTop: 5,
 		padding: '15px',
-		minSize: 300,
+		minWidth: 300,
 		maxWidth: 400,
+		display: 'flex',
+		flexDirection: 'column' as const,
 	},
 };

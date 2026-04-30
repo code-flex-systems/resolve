@@ -30,7 +30,8 @@ function NoRows() {
 }
 
 export default function ExecutionHistoryTable({ ruleId, compact = false }: ExecutionHistoryTableProps) {
-	const [allRows, setAllRows] = useState<ExecutionRow[]>([]);
+	// Pages already loaded (does not include the current `data` page — that's appended at render time).
+	const [previousPages, setPreviousPages] = useState<ExecutionRow[]>([]);
 	const [cursor, setCursor] = useState<{ createdAt: string; id: string } | undefined>();
 	const [statusFilter, setStatusFilter] = useState<RuleExecutionStatus | ''>('');
 	const [detailRow, setDetailRow] = useState<ExecutionRow | null>(null);
@@ -39,7 +40,7 @@ export default function ExecutionHistoryTable({ ruleId, compact = false }: Execu
 		{
 			...(ruleId != null ? { ruleId } : {}),
 			...(statusFilter ? { status: statusFilter } : {}),
-			limit: 25,
+			limit: compact ? 8 : 25,
 			cursor,
 		},
 		{
@@ -47,41 +48,32 @@ export default function ExecutionHistoryTable({ ruleId, compact = false }: Execu
 		}
 	);
 
-	// Append new rows when data arrives
+	// Reset accumulated pages whenever filters change
 	useEffect(() => {
-		if (data?.rows) {
-			if (cursor) {
-				// Appending next page
-				setAllRows((prev) => {
-					const existingIds = new Set(prev.map((r) => r.id));
-					const newRows = data.rows.filter((r) => !existingIds.has(r.id));
-					return [...prev, ...newRows];
-				});
-			} else {
-				// Fresh load (no cursor = first page)
-				setAllRows(data.rows);
-			}
-		}
-	}, [data, cursor]);
-
-	// Reset when ruleId prop changes
-	useEffect(() => {
-		setAllRows([]);
+		setPreviousPages([]);
 		setCursor(undefined);
-	}, [ruleId]);
+	}, [ruleId, statusFilter]);
 
-	// Reset when filter changes
+	const allRows = useMemo<ExecutionRow[]>(() => {
+		const currentPage = data?.rows ?? [];
+		if (previousPages.length === 0) return currentPage;
+		const seen = new Set(previousPages.map((r) => r.id));
+		return [...previousPages, ...currentPage.filter((r) => !seen.has(r.id))];
+	}, [previousPages, data?.rows]);
+
 	const handleStatusFilterChange = useCallback((value: RuleExecutionStatus | '') => {
 		setStatusFilter(value);
-		setAllRows([]);
-		setCursor(undefined);
 	}, []);
 
 	const handleLoadMore = useCallback(() => {
-		if (data?.nextCursor) {
-			setCursor(data.nextCursor);
-		}
-	}, [data?.nextCursor]);
+		if (!data?.nextCursor || !data.rows) return;
+		// Snapshot the page we're currently showing before fetching the next one
+		setPreviousPages((prev) => {
+			const seen = new Set(prev.map((r) => r.id));
+			return [...prev, ...data.rows.filter((r) => !seen.has(r.id))];
+		});
+		setCursor(data.nextCursor);
+	}, [data]);
 
 	const columns: ColumnDef<any, any>[] = useMemo(() => {
 		const cols: ColumnDef<any, any>[] = [];
@@ -208,8 +200,16 @@ export default function ExecutionHistoryTable({ ruleId, compact = false }: Execu
 			)}
 
 			{/* DataGrid */}
-			<div style={{ flex: 1, minHeight: 400 }}>
-				<DataTable rows={allRows} columns={columns} loading={isLoading} onRowClick={setDetailRow} />
+			<div style={{ flex: 1, minHeight: compact ? 280 : 400 }}>
+				<DataTable
+					rows={allRows}
+					columns={columns}
+					loading={isLoading}
+					onRowClick={setDetailRow}
+					rowHeight={compact ? 40 : 44}
+					headerHeight={compact ? 36 : 40}
+					hideFooter
+				/>
 			</div>
 
 			{/* Load More button */}

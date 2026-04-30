@@ -13,6 +13,34 @@ import { formatActionType, formatTriggerType } from '@/lib/utils/workflowUtils';
 import { WorkflowActionType, WorkflowTriggerType } from '@/config/enums';
 
 const PAGE_SIZE = 5;
+const ROW_HEIGHT = 76;
+// Slightly oversized to accommodate row borders + padding without flexing.
+// Use as a fixed height (not min-height) so partial pages don't shrink the panel.
+const ITEMS_HEIGHT = PAGE_SIZE * ROW_HEIGHT + 24;
+
+function CountBadge({ value }: { value: number }) {
+	return (
+		<span
+			style={{
+				display: 'inline-flex',
+				alignItems: 'center',
+				justifyContent: 'center',
+				minWidth: 24,
+				height: 22,
+				padding: '0 8px',
+				borderRadius: 11,
+				backgroundColor: 'color-mix(in srgb, var(--text-accent) 12%, transparent)',
+				color: 'var(--text-accent)',
+				fontSize: 12,
+				fontWeight: 600,
+				lineHeight: 1,
+				fontVariantNumeric: 'tabular-nums',
+			}}
+		>
+			{value}
+		</span>
+	);
+}
 
 type PendingExecution = PendingExecutionList['rows'][number];
 
@@ -91,7 +119,7 @@ export default function PendingExecutionsPanel() {
 					<span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
 						Pending Approvals
 					</span>
-					<Skeleton variant="rect" width={40} height={24} />
+					<Skeleton variant="rect" width={28} height={22} />
 				</div>
 				<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 					<CardSkeleton />
@@ -108,118 +136,107 @@ export default function PendingExecutionsPanel() {
 				<span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
 					Pending Approvals
 				</span>
-				<Chip 
-					size="sm"
-					color="info"
-					style={{ fontWeight: 600, minWidth: 28 }}>{totalCount}</Chip>
+				<CountBadge value={totalCount} />
 			</div>
 
-			{/* Content */}
-			{rows.length === 0 ? (
-				/* Empty state */
-				<div
-					style={{
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						justifyContent: 'center',
-						paddingBlock: 40,
-						gap: 12,
-					}}
-				>
-					<IconHourglass size={40} style={{ color: 'var(--text-muted)' }} />
-					<span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
-						No pending executions
-					</span>
-				</div>
-			) : (
-				<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-					{rows.map((execution: PendingExecution) => (
-						<div
-							key={execution.id}
-							style={{
-								padding: 16,
-								display: 'flex',
-								alignItems: 'center',
-								justifyContent: 'space-between',
-								gap: 16,
-								opacity: isFetching ? 0.6 : 1,
-								transition: 'opacity 0.2s',
-							}}
-						>
-							{/* Left side: info */}
-							<div style={{ flex: 1, minWidth: 0 }}>
-								<span
-									style={{
-										fontSize: 14,
-										fontWeight: 600,
-										color: 'var(--text-primary)',
-										whiteSpace: 'nowrap',
-										overflow: 'hidden',
-										textOverflow: 'ellipsis',
-									}}
-								>
-									{execution.rule_name}
-								</span>
-								<div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
-									<span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-										Claim {execution.claim_number}
+			{/* Content — fixed height so paging doesn't shift the layout */}
+			<div style={{ height: ITEMS_HEIGHT, display: 'flex', flexDirection: 'column' }}>
+				{rows.length === 0 ? (
+					<div
+						style={{
+							flex: 1,
+							display: 'flex',
+							flexDirection: 'column',
+							alignItems: 'center',
+							justifyContent: 'center',
+							gap: 12,
+						}}
+					>
+						<IconHourglass size={40} style={{ color: 'var(--text-muted)' }} />
+						<span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>No pending executions</span>
+					</div>
+				) : (
+					<div style={{ display: 'flex', flexDirection: 'column' }}>
+						{rows.map((execution: PendingExecution, idx: number) => (
+							<div
+								key={execution.id}
+								style={{
+									padding: '16px 4px',
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'space-between',
+									gap: 16,
+									borderBottom:
+										idx === rows.length - 1 ? 'none' : '1px solid var(--border)',
+									opacity: isFetching ? 0.6 : 1,
+									transition: 'opacity 0.2s',
+								}}
+							>
+								<div style={{ flex: 1, minWidth: 0 }}>
+									<span
+										style={{
+											fontSize: 14,
+											fontWeight: 600,
+											color: 'var(--text-primary)',
+											whiteSpace: 'nowrap',
+											overflow: 'hidden',
+											textOverflow: 'ellipsis',
+										}}
+									>
+										{execution.rule_name}
 									</span>
-									<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-										{formatRelativeTime(execution.created_at)}
-									</span>
+									<div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+										<span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+											Claim {execution.claim_number}
+										</span>
+										<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+											{formatRelativeTime(execution.created_at)}
+										</span>
+									</div>
+								</div>
+
+								<div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+									<Chip size="sm" color="info">
+										{formatActionType(execution.action_type as WorkflowActionType)}
+									</Chip>
+									<Chip size="sm" color="neutral">
+										{formatTriggerType(execution.trigger_type as WorkflowTriggerType)}
+									</Chip>
+								</div>
+
+								<div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+									<Tooltip content="Approve">
+										<span>
+											<Button
+												variant="icon"
+												size="sm"
+												disabled={isMutating}
+												onClick={() => handleApprove(execution.id)}
+												style={{ color: 'var(--status-success)' }}
+											>
+												<IconCircleCheck size={20} />
+											</Button>
+										</span>
+									</Tooltip>
+									<Tooltip content="Reject">
+										<span>
+											<Button
+												variant="icon"
+												size="sm"
+												disabled={isMutating}
+												onClick={() => handleReject(execution.id)}
+												style={{ color: 'var(--status-error)' }}
+											>
+												<IconCircleX size={20} />
+											</Button>
+										</span>
+									</Tooltip>
 								</div>
 							</div>
-
-							{/* Chips */}
-							<div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-								<Chip 
-									size="sm"
-									style={{
-										fontSize: 11,
-										fontWeight: 500,
-										backgroundColor: '#e0f2fe',
-										color: '#075985',
-									}}>{formatActionType(execution.action_type as WorkflowActionType)}</Chip>
-								<Chip 
-									size="sm"
-									style={{
-										fontSize: 11,
-										fontWeight: 500,
-										backgroundColor: '#f1f5f9',
-										color: '#475569',
-									}}>{formatTriggerType(execution.trigger_type as WorkflowTriggerType)}</Chip>
-							</div>
-
-							{/* Action buttons */}
-							<div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-								<Tooltip content="Approve">
-									<span>
-										<Button variant="icon" size="sm"
-											disabled={isMutating}
-											onClick={() => handleApprove(execution.id)}
-											style={{ color: 'var(--status-success)' }}
-										>
-											<IconCircleCheck size={20} />
-										</Button>
-									</span>
-								</Tooltip>
-								<Tooltip content="Reject">
-									<span>
-										<Button variant="icon" size="sm"
-											disabled={isMutating}
-											onClick={() => handleReject(execution.id)}
-											style={{ color: 'var(--status-error)' }}
-										>
-											<IconCircleX size={20} />
-										</Button>
-									</span>
-								</Tooltip>
-							</div>
-						</div>
-					))}
-				</div>
-			)}
+						))}
+					</div>
+				)}
+			</div>
 
 			{/* Pagination */}
 			{totalCount > PAGE_SIZE && (
