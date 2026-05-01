@@ -10,7 +10,7 @@ export type SendEmailOptions = {
  */
 export async function sendEmail({ to, subject, html, from }: SendEmailOptions): Promise<void> {
 	const provider = process.env.EMAIL_PROVIDER ?? 'resend';
-	const sender = from ?? process.env.EMAIL_FROM ?? 'notifications@manifest5.xyz';
+	const sender = from ?? process.env.EMAIL_FROM ?? 'notifications@example.com';
 
 	switch (provider) {
 		case 'resend': {

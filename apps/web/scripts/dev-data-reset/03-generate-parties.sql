@@ -12,7 +12,7 @@ DECLARE
     v_user_id UUID;
 BEGIN
     SELECT id INTO v_client_id FROM client LIMIT 1;
-    SELECT id INTO v_user_id FROM users WHERE email = 'owenfarthing@craig680.onmicrosoft.com' LIMIT 1;
+    SELECT id INTO v_user_id FROM users ORDER BY created_at ASC LIMIT 1;
 
     -- =====================================================
     -- ENTITY PARTIES (15 - individuals/businesses involved in loss)

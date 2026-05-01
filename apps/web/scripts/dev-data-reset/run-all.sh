@@ -16,7 +16,7 @@ DB_HOST="${DB_HOST:-localhost}"
 DB_PORT="${DB_PORT:-5432}"
 DB_USER="${DB_USER:-postgres}"
 DB_PASSWORD="${DB_PASSWORD:-password}"
-DB_DATABASE="${DB_DATABASE:-manifest}"
+DB_DATABASE="${DB_DATABASE:-resolve}"
 
 # Load from .env if exists
 if [ -f "$ENV_FILE" ]; then

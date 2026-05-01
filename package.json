@@ -1,5 +1,5 @@
 {
-	"name": "manifest",
+	"name": "resolve",
 	"private": true,
 	"workspaces": [
 		"apps/*"

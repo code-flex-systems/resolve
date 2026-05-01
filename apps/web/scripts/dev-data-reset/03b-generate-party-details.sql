@@ -11,7 +11,7 @@ DECLARE
     v_party_int INTEGER;
 BEGIN
     SELECT id INTO v_client_id FROM client LIMIT 1;
-    SELECT id INTO v_user_id FROM users WHERE email = 'owenfarthing@craig680.onmicrosoft.com' LIMIT 1;
+    SELECT id INTO v_user_id FROM users ORDER BY created_at ASC LIMIT 1;
 
     -- Add addresses for all parties (using party name pattern for variety)
     FOR v_party IN SELECT id, name, is_business FROM party LOOP
@@ -99,7 +99,7 @@ DECLARE
     v_party_int INTEGER;
     v_address_id UUID;
 BEGIN
-    SELECT id INTO v_user_id FROM users WHERE email = 'owenfarthing@craig680.onmicrosoft.com' LIMIT 1;
+    SELECT id INTO v_user_id FROM users ORDER BY created_at ASC LIMIT 1;
 
     FOR v_party IN SELECT p.id, p.name FROM party p WHERE p.party_type = 'facilitator' LOOP
         -- Derive a deterministic integer from the UUID

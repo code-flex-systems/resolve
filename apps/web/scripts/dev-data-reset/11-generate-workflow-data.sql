@@ -73,7 +73,7 @@ BEGIN
     RAISE NOTICE 'Section 0: Setup & lookups...';
 
     SELECT id INTO v_client_id FROM client LIMIT 1;
-    SELECT id INTO v_admin_user_id FROM users WHERE email = 'owenfarthing@craig680.onmicrosoft.com' LIMIT 1;
+    SELECT id INTO v_admin_user_id FROM users ORDER BY created_at ASC LIMIT 1;
     SELECT ARRAY_AGG(id ORDER BY email) INTO v_user_ids FROM users WHERE disabled = false;
 
     -- Load all 50 claim IDs ordered by claim_number into an array

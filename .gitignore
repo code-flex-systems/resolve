@@ -1,2 +1,6 @@
 node_modules
 .env
+sonar-project.properties
+
+# Internal planning, status, and design docs (excluded from public repo)
+project_files/

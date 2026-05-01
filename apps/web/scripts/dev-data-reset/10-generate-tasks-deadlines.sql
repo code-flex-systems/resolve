@@ -1,7 +1,7 @@
 -- =====================================================
 -- 10-generate-tasks-deadlines.sql
 -- Generate tasks and deadlines for selected claims
--- Focus on user: owenfarthing@craig680.onmicrosoft.com
+-- Attributes records to the oldest seeded user (acts as the dev admin)
 -- Claims selected by claim_number (spread across distribution):
 --   PROP-2024-00003, GL-2024-00015, WC-2024-00028, PL-2024-00040, GL-2024-00048
 -- Distribution:
@@ -20,7 +20,7 @@ DECLARE
     v_task_id UUID;
 BEGIN
     SELECT id INTO v_client_id FROM client LIMIT 1;
-    SELECT id INTO v_user_id FROM users WHERE email = 'owenfarthing@craig680.onmicrosoft.com' LIMIT 1;
+    SELECT id INTO v_user_id FROM users ORDER BY created_at ASC LIMIT 1;
 
     -- Get or create a desk location for tasks
     SELECT id INTO v_desk_location_id FROM desk_location WHERE client_id = v_client_id LIMIT 1;

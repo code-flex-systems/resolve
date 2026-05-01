@@ -5,7 +5,7 @@
  * test database and schema isolation.
  *
  * Strategy:
- * - Uses `manifest_test` database with `test` schema
+ * - Uses `resolve_test` database with `test` schema
  * - Each test file gets a fresh database state via table truncation
  * - Real Kysely instance for actual query execution
  */
@@ -19,7 +19,7 @@ import type { ProtectedContext } from '@/server/trpc/trpc';
 const TEST_DB_CONFIG = {
 	user: process.env.DB_USER || 'postgres',
 	password: process.env.DB_PASSWORD || 'password',
-	database: process.env.DB_DATABASE || 'manifest_test',
+	database: process.env.DB_DATABASE || 'resolve_test',
 	host: process.env.DB_HOST || 'localhost',
 	port: parseInt(process.env.DB_PORT || '5432', 10),
 };

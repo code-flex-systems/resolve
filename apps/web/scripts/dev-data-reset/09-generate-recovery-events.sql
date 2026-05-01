@@ -28,7 +28,7 @@ DECLARE
     i INT;
 BEGIN
     SELECT id INTO v_client_id FROM client LIMIT 1;
-    SELECT id INTO v_user_id FROM users WHERE email = 'owenfarthing@craig680.onmicrosoft.com' LIMIT 1;
+    SELECT id INTO v_user_id FROM users ORDER BY created_at ASC LIMIT 1;
 
     FOR v_settlement IN
         SELECT s.id, s.claim_id, s.settlement_amount, s.settlement_date, s.status

@@ -41,7 +41,7 @@ DECLARE
     v_year TEXT;
 BEGIN
     SELECT id INTO v_client_id FROM client LIMIT 1;
-    SELECT id INTO v_user_id FROM users WHERE email = 'owenfarthing@craig680.onmicrosoft.com' LIMIT 1;
+    SELECT id INTO v_user_id FROM users ORDER BY created_at ASC LIMIT 1;
 
     -- Get available users for assignment (emails for client_adjuster field which is TEXT)
     SELECT ARRAY_AGG(email) INTO v_users FROM users WHERE email IS NOT NULL;
