@@ -1,16 +1,13 @@
 'use client';
 
 import Chip from '@/components/ui/Chip';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import type { DateRange } from '@/types/dateTypes';
 import { formatUser } from '@/lib/utils/utils';
 import { useClerkSession } from '@/lib/auth/use-clerk-session';
-import ExportButton from '@/components/common/ExportButton';
-import { CsvColumn } from '@/lib/utils/exportUtils';
-import { trpc } from '@/lib/trpc';
 import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 function DescriptionCell({ row, compact }: { row: any; value?: any } & { compact: boolean }) {
@@ -240,6 +237,7 @@ export default function UserActivityTable({
 	pageSize = 25,
 	compact = false,
 	showPagination = true,
+	onCountChange,
 }: {
 	checklistId?: string;
 	claimId?: string;
@@ -249,10 +247,9 @@ export default function UserActivityTable({
 	pageSize?: number;
 	compact?: boolean;
 	showPagination?: boolean;
+	onCountChange?: (count: number) => void;
 }) {
 	const [constraints, setConstraints] = useState<{ page: number; pageSize: number }>({ page: 0, pageSize });
-	const trpcUtils = trpc.useUtils();
-	const { data: session } = useClerkSession();
 
 	const filters = useMemo(
 		() => ({
@@ -290,118 +287,12 @@ export default function UserActivityTable({
 		return gridColumns;
 	}, [compact]);
 
-	// CSV column configuration matching table display
-	const csvColumns: CsvColumn<(typeof logs.rows)[number]>[] = useMemo(
-		() => [
-			{
-				header: 'Action',
-				accessor: 'action',
-				formatter: (value) => {
-					switch (value) {
-						case 'insert':
-							return 'Insert';
-						case 'update':
-							return 'Update';
-						case 'delete':
-							return 'Delete';
-						default:
-							return value || '';
-					}
-				},
-			},
-			{
-				header: 'Question',
-				accessor: 'question_text',
-			},
-			{
-				header: 'Page',
-				accessor: 'page_label',
-			},
-			{
-				header: 'Old Response Text',
-				accessor: 'old_response_text',
-				formatter: (value) => value || '',
-			},
-			{
-				header: 'New Response Text',
-				accessor: 'new_response_text',
-				formatter: (value) => value || '',
-			},
-			{
-				header: 'Old Answers',
-				accessor: (row) => {
-					try {
-						const answers =
-							typeof row.old_answers === 'string' ? JSON.parse(row.old_answers) : row.old_answers;
-						if (!answers || !Array.isArray(answers)) return '';
-						return answers.map((a: any) => a.label).join(', ');
-					} catch {
-						return '';
-					}
-				},
-			},
-			{
-				header: 'New Answers',
-				accessor: (row) => {
-					try {
-						const answers =
-							typeof row.new_answers === 'string' ? JSON.parse(row.new_answers) : row.new_answers;
-						if (!answers || !Array.isArray(answers)) return '';
-						return answers.map((a: any) => a.label).join(', ');
-					} catch {
-						return '';
-					}
-				},
-			},
-			{
-				header: 'User',
-				accessor: (row) =>
-					formatUser(
-						{ email: row.email ?? '', first: row.first ?? '', last: row.last ?? '' },
-						session?.user?.email ?? undefined
-					),
-			},
-			{
-				header: 'User Email',
-				accessor: 'email',
-			},
-			{
-				header: 'Timestamp',
-				accessor: 'created_at',
-				formatter: (value) => dayjs(value).format('MMMM D, YYYY hh:mm A'),
-			},
-		],
-		[session?.user?.email]
-	);
+	useEffect(() => {
+		if (logs.count !== undefined) onCountChange?.(logs.count);
+	}, [logs.count, onCountChange]);
 
 	return (
-		<div style={{ width: '100%', height: '100%', position: 'relative' }}>
-			{showPagination && !compact && (
-				<div
-					style={{
-						display: 'flex',
-						justifyContent: 'flex-end',
-						alignItems: 'center',
-						position: 'absolute',
-						top: -45,
-						right: 0,
-						zIndex: 1,
-					}}
-				>
-					<span style={{ fontSize: 12, color: 'text.secondary', marginRight: '20px' }}>
-						{(logs.count ?? 0).toLocaleString()} event{(logs.count ?? 0) !== 1 ? 's' : ''}
-					</span>
-					<ExportButton
-						onExport={async () => {
-							const result = await trpcUtils.response.exportResponseAuditLogs.fetch({ filters });
-							return result;
-						}}
-						columns={csvColumns}
-						filename="user_activity"
-						size="sm"
-					/>
-				</div>
-			)}
+		<div style={{ width: '100%', height: '100%' }}>
 			{!isFetchingLogs && !logs.count ? (
 				<div
 					style={{

@@ -1,6 +1,6 @@
 'use client';
 
-import { IconClipboard, IconEdit, IconSettings, IconUserCircle } from '@tabler/icons-react';
+import { IconClipboard, IconEdit, IconUserCircle } from '@tabler/icons-react';
 import Tooltip from '@/components/ui/Tooltip';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -10,7 +10,6 @@ import SearchInput from '../common/SearchInput';
 import { useEffect, useMemo, useState } from 'react';
 import StackedHeaderCell from '../common/StackedHeaderCell';
 import { useAdminStore } from '@/stores/useAdminStore';
-import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import BulkDeskAssignmentDialog from './BulkDeskAssignmentDialog';
 import EditUserDeskAssignmentsDialog from './EditUserDeskAssignmentsDialog';
 import { useUrlFilters } from '@/hooks/useUrlFilters';
@@ -20,13 +19,12 @@ import DeskLocationFilter from '../common/DeskLocationFilter';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
 import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
-function NoUsersRows() {
-	return (
-		<CustomNoRowsOverlay
-			text="No users found"
-			icon={<IconUserCircle size={35} style={{ color: 'var(--text-muted)' }} />}
-		/>
-	);
+interface AssignmentDetail {
+	id: string;
+	desk_location_id: string;
+	desk_location_name: string | null;
+	desk_location_type_name: string | null;
+	priority: number;
 }
 
 export default function DeskAssignmentTab() {
@@ -36,21 +34,14 @@ export default function DeskAssignmentTab() {
 	const [showBulkAssignDialog, setShowBulkAssignDialog] = useState(false);
 	const [editingUserId, setEditingUserId] = useState<string | null>(null);
 
-	// URL filters hook
 	const { getParam, setParam, setParams } = useUrlFilters();
 
-	// Filter states from URL params
 	const userSearchTerm = getParam('search') ?? '';
-	const deskLocationTypeIdStr = getParam('desk_type');
-	const deskLocationTypeId = deskLocationTypeIdStr ?? null;
-	const deskLocationIdStr = getParam('desk_location');
-	const deskLocationId = deskLocationIdStr ?? null;
+	const deskLocationTypeId = getParam('desk_type') ?? null;
+	const deskLocationId = getParam('desk_location') ?? null;
 
-	// Local state for search input
 	const [searchTerm, setSearchTerm] = useState('');
-	const [isManageMode, setIsManageMode] = useState(false);
 
-	// Fetch users with desk assignments
 	const { data: usersData = { rows: [], count: undefined }, isFetching: usersFetching } =
 		useUserTrpc().withDeskAssignments({
 			limit: userConstraints.pageSize,
@@ -60,15 +51,12 @@ export default function DeskAssignmentTab() {
 			deskLocationId: deskLocationId ?? undefined,
 		});
 
-	// Sync local search state with URL param changes
 	useEffect(() => {
 		setSearchTerm(userSearchTerm);
 	}, [userSearchTerm]);
 
-	// Debounce search input to URL param
 	const debouncedSearch = useDebounce((search: string) => setParam('search', search), 500);
 
-	// Memoized columns - setEditingUserId is stable (useState setter)
 	const columns: ColumnDef<any, any>[] = useMemo(
 		() => [
 			{
@@ -81,35 +69,79 @@ export default function DeskAssignmentTab() {
 				),
 			},
 			{
+				header: 'Capacity',
+				accessorKey: 'capacity',
+				cell: ({ row: { original: row } }) => {
+					const capacity = Number(row.capacity ?? 0);
+					return (
+						<span style={{ fontSize: 13 }}>
+							{capacity > 0 ? `${capacity.toLocaleString()} units` : '—'}
+						</span>
+					);
+				},
+				size: 120,
+			},
+			{
 				header: 'Desk Assignments',
 				accessorKey: 'desk_assignments',
 				cell: ({ row: { original: row } }) => {
-					const count = row.assignment_count || 0;
-					return count === 1 ? '1 desk' : `${count} desks`;
+					const count = Number(row.assignment_count ?? 0);
+					const assignments: AssignmentDetail[] = Array.isArray(row.assignments) ? row.assignments : [];
+					return (
+						<div
+							style={{
+								display: 'flex',
+								flexDirection: 'column',
+								gap: 4,
+								padding: '8px 0',
+								whiteSpace: 'normal',
+							}}
+						>
+							<span style={{ fontWeight: 600, fontSize: 13, color: 'var(--text-primary)' }}>
+								{count === 1 ? '1 desk' : `${count} desks`}
+							</span>
+							{assignments.length > 0 && (
+								<div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+									{assignments.map((a) => (
+										<span
+											key={a.id}
+											style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.4 }}
+										>
+											{a.desk_location_type_name ?? 'Unknown type'} — {a.desk_location_name ?? 'Unknown location'}
+										</span>
+									))}
+								</div>
+							)}
+						</div>
+					);
 				},
-				size: 150,
+				size: 320,
 			},
 			{
 				header: 'Actions',
 				accessorKey: 'actions',
-				cell: ({ row: { original: row } }) => {
-					if (!isManageMode) return null;
-					return (
-						<div style={styles.actionsContainer}>
-							<Tooltip content="Edit desk assignments">
-								<Button variant="icon" size="sm" color="neutral">
-									<IconEdit size={15} />
-								</Button>
-							</Tooltip>
-						</div>
-					);
-				},
-				size: 100,
+				cell: ({ row: { original: row } }) => (
+					<div style={styles.actionsContainer}>
+						<Tooltip content="Edit desk assignments">
+							<Button
+								variant="icon"
+								size="sm"
+								color="neutral"
+								onClick={() => setEditingUserId(row.id)}
+							>
+								<IconEdit size={15} stroke={1.5} />
+							</Button>
+						</Tooltip>
+					</div>
+				),
+				size: 90,
 				enableSorting: false,
 			},
 		],
-		[isManageMode]
+		[]
 	);
+
+	const selectionCount = Object.keys(selectedUserIds).filter((k) => selectedUserIds[k]).length;
 
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading desk assignments...">
@@ -134,7 +166,7 @@ export default function DeskAssignmentTab() {
 								onChange={(id: string | null) => {
 									setParams({
 										desk_type: id?.toString() ?? null,
-										desk_location: null, // Clear desk location when type changes
+										desk_location: null,
 									});
 								}}
 								label="Desk Type"
@@ -163,27 +195,10 @@ export default function DeskAssignmentTab() {
 								variant="contained"
 								startIcon={<IconClipboard size={20} />}
 								onClick={() => setShowBulkAssignDialog(true)}
-								disabled={Object.keys(selectedUserIds).filter((k) => selectedUserIds[k]).length === 0}
-								style={{ marginLeft: '10px' }}
+								disabled={selectionCount === 0}
 							>
-								Assign to Desk ({Object.keys(selectedUserIds).filter((k) => selectedUserIds[k]).length})
+								Assign to Desk ({selectionCount})
 							</Button>
-							<Tooltip content="Manage">
-								<Button
-									variant="icon"
-									size="sm"
-									onClick={() => setIsManageMode(!isManageMode)}
-									style={{
-										marginLeft: 8,
-										backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined,
-									}}
-								>
-									<IconSettings
-										size={20}
-										style={{ color: isManageMode ? 'primary.main' : undefined }}
-									/>
-								</Button>
-							</Tooltip>
 						</div>
 					</div>
 					<div style={styles.table}>
@@ -193,16 +208,13 @@ export default function DeskAssignmentTab() {
 							loading={usersFetching}
 							rows={usersData.rows}
 							rowCount={usersData?.count ?? 0}
-							rowHeight={60}
+							rowHeight={64}
 							checkboxSelection
 							rowSelection={selectedUserIds}
-							onRowSelectionChange={(newSelection) => {
-								setSelectedUserIds(newSelection);
-							}}
+							onRowSelectionChange={setSelectedUserIds}
 							paginationMode="server"
 							paginationModel={userConstraints}
 							onPaginationModelChange={updateUserConstraints}
-							pinnedRight={isManageMode ? ['actions'] : []}
 						/>
 					</div>
 				</Card>

@@ -17,17 +17,15 @@ import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import ChecklistSelect from '../common/ChecklistSelect';
 import useSelectedBreakdownAnswerData from '@/hooks/useSelectedBreakdownAnswerData';
-import { IconArrowLeft, IconQuote } from '@tabler/icons-react';
+import { IconQuote } from '@tabler/icons-react';
 import Collapse from '@/components/ui/Collapse';
-import Divider from '@/components/ui/Divider';
-import Button from '@/components/ui/Button';
-import Tooltip from '@/components/ui/Tooltip';
+import { useBreadcrumbs } from '@/components/common/BreadcrumbContext';
+import styles from './ChecklistPageBreakdown.module.css';
 
 export default function ChecklistPageBreakdown() {
 	const searchParams = useSearchParams();
 	const pathname = usePathname();
 	const instanceId = searchParams.get('instanceId') ?? '';
-	const pageId = searchParams.get('pageId') ?? '';
 	const pagePosition = Number(searchParams.get('pagePosition') ?? '0');
 	const router = useRouter();
 	const isAdmin = useIsAdmin();
@@ -36,9 +34,9 @@ export default function ChecklistPageBreakdown() {
 	const breakdownClaim = useBreakdownStore((state) => state.breakdownClaim);
 	const breakdownRange = useBreakdownStore((state) => state.breakdownRange);
 	const breakdownUsers = useBreakdownStore((state) => state.breakdownUsers);
-	const selectedQuestionId = useBreakdownStore((state) => state.selectedQuestionId);
 	const answerData = useSelectedBreakdownAnswerData();
 	const [showPageSelect, setShowPageSelect] = useState(false);
+	const { setSegments } = useBreadcrumbs();
 
 	const { data: instances = [] } = usePageTrpc().listInstances({ checklistId }, { enabled: !!checklistId });
 	const { data: checklists = [] } = useChecklistTrpc().list({});
@@ -59,6 +57,14 @@ export default function ChecklistPageBreakdown() {
 		}
 	}, [searchParams.get('pageId'), searchParams.get('instanceId')]);
 
+	useEffect(() => {
+		setSegments([
+			{ label: 'Checklists', href: '/admin/checklists/templates' },
+			{ label: selectedChecklist?.name ?? 'Loading...' },
+			{ label: 'Breakdown' },
+		]);
+	}, [selectedChecklist?.name, setSegments]);
+
 	const setSearchParams = (newInstanceId: string | null) => {
 		if (!newInstanceId) return;
 		const selectedPage = instances.find((i) => i.instance_id === newInstanceId);
@@ -73,63 +79,31 @@ export default function ChecklistPageBreakdown() {
 
 	return (
 		<>
-			<div
-				
-				
-				
-				
-				
-				
-				 style={{ flex: 1, width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', padding: '10px' }}
-			>
-				<div
-					
-					
-					
-					
-					
-					 style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', overflow: 'auto', padding: '0px 2px' }}
-				>
-					<div  style={{ marginRight: '5px' }}>
-						<Tooltip content="Back to dashboard">
-							<Button variant="icon" size="sm" color="neutral">
-							<IconArrowLeft size={16} />
-						</Button>
-						</Tooltip>
-					</div>
-					<div  style={{ marginRight: '5px' }}>
-						<ChecklistSelect
-							checklist={selectedChecklist ?? null}
-							setChecklist={(newChecklist) => {
-								if (!newChecklist) return;
-								router.push(`/checklists/${newChecklist.id}/breakdown`);
-							}}
-							showEmpty
+			<div className={styles.page}>
+				<div className={styles.toolbar}>
+					<ChecklistSelect
+						checklist={selectedChecklist ?? null}
+						setChecklist={(newChecklist) => {
+							if (!newChecklist) return;
+							router.push(`/checklists/${newChecklist.id}/breakdown`);
+						}}
+						showEmpty
+						clearable={false}
+					/>
+					{!!instanceId && (
+						<PageInstanceSelect
+							checklistId={checklistId}
+							instanceId={instanceId}
+							setInstanceId={setSearchParams}
 							clearable={false}
 						/>
-					</div>
-					{/* <Collapse open={instanceId !== -1}> */}
-					{!!instanceId && (
-						<div  style={{ marginRight: '5px' }}>
-							<PageInstanceSelect
-								checklistId={checklistId}
-								instanceId={instanceId}
-								setInstanceId={setSearchParams}
-								clearable={false}
-							/>
-						</div>
 					)}
-					{/* </Collapse> */}
-					<div  style={{ marginRight: '5px' }}>
-						<BasicDateRangePicker
-							defaultLabel="This Month"
-							defaultValue={breakdownRange}
-							onConfirm={updateBreakdownRange}
-						/>
-					</div>
-					<div  style={{ marginRight: '5px' }}>
-						<ClaimFilter claim={breakdownClaim} setClaim={updateBreakdownClaim} />
-					</div>
+					<BasicDateRangePicker
+						defaultLabel="This Month"
+						defaultValue={breakdownRange}
+						onConfirm={updateBreakdownRange}
+					/>
+					<ClaimFilter claim={breakdownClaim} setClaim={updateBreakdownClaim} />
 					<UserFilter
 						users={breakdownUsers}
 						setUsers={updateBreakdownUsers}
@@ -137,23 +111,13 @@ export default function ChecklistPageBreakdown() {
 						text="Filter by responder"
 					/>
 					<Collapse open={!!answerData}>
-						<div  style={{ marginLeft: '5px' }}>
-							<CustomChip color="info" size="sm">
-								<IconQuote size={16} style={{ color: 'var(--text-accent)' }} />
-								<span style={{ color: 'var(--text-accent)' }}>{`${answerData?.answer_text ?? ''} (p${pagePosition})`}</span>
-							</CustomChip>
-						</div>
+						<CustomChip color="info" size="sm">
+							<IconQuote size={16} style={{ color: 'var(--text-accent)' }} />
+							<span style={{ color: 'var(--text-accent)' }}>{`${answerData?.answer_text ?? ''} (p${pagePosition})`}</span>
+						</CustomChip>
 					</Collapse>
 				</div>
-				<Divider />
-				<div
-					
-					
-					
-					
-					
-					 style={{ width: '100%', height: 'calc(100vh - 70px)', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', padding: '20px 10px' }}
-				>
+				<div className={styles.content}>
 					<BreakdownNavigation />
 					<Breakdown />
 				</div>

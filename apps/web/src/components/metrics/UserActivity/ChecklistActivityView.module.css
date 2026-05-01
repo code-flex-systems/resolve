@@ -1,0 +1,43 @@
+.page {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.toolbar {
+	width: 100%;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.cardHeader {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 16px;
+	width: 100%;
+}
+
+.cardTitle {
+	font-size: 18px;
+	font-weight: 600;
+	color: var(--text-primary);
+}
+
+.cardActions {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.cardCount {
+	font-size: 13px;
+	color: var(--text-muted);
+	white-space: nowrap;
+}
+
+.tableArea {
+	width: 100%;
+}

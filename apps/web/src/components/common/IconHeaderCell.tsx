@@ -1,11 +1,19 @@
 'use client';
-import { JSX } from 'react';
+import { cloneElement, isValidElement, JSX, type ReactElement } from 'react';
 
 interface IconHeaderCellProps {
 	headerName?: string;
 	colDef?: { headerName?: string };
 	column?: any;
 	icon?: JSX.Element;
+}
+
+function toTitleCase(raw: string) {
+	return raw
+		.replace(/_/g, ' ')
+		.split(' ')
+		.map((w) => (w ? w[0].toUpperCase() + w.slice(1).toLowerCase() : w))
+		.join(' ');
 }
 
 export default function IconHeaderCell(props: IconHeaderCellProps & Record<string, any>) {
@@ -17,26 +25,32 @@ export default function IconHeaderCell(props: IconHeaderCellProps & Record<strin
 		props.column?.id ??
 		'';
 
-	// Format: capitalize and replace underscores with spaces
-	const displayName = headerName.replace(/_/g, ' ').toUpperCase();
+	const displayName = toTitleCase(headerName);
+
+	const sizedIcon =
+		props.icon && isValidElement(props.icon)
+			? cloneElement(props.icon as ReactElement<any>, {
+					size: (props.icon as any).props?.size ?? 14,
+					stroke: (props.icon as any).props?.stroke ?? 1.75,
+				})
+			: props.icon;
 
 	return (
-		<div style={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%' }}>
-			{props.icon ?? null}
+		<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+			{sizedIcon ?? null}
 			<span
 				style={{
 					fontSize: 12,
 					fontWeight: 600,
-					marginLeft: props.icon ? 5 : undefined,
 					color: 'var(--text-secondary)',
 					whiteSpace: 'nowrap',
 					overflow: 'hidden',
 					textOverflow: 'ellipsis',
-					letterSpacing: '0.04em',
+					letterSpacing: 'var(--tracking-wide)',
 				}}
 			>
 				{displayName}
 			</span>
-		</div>
+		</span>
 	);
 }

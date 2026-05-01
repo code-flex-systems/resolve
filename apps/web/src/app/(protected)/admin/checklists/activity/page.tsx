@@ -1,5 +1,5 @@
-import UserActivityView from '@/components/metrics/UserActivity/UserActivityView';
+import ChecklistActivityView from '@/components/metrics/UserActivity/ChecklistActivityView';
 
 export default function ChecklistsActivityPage() {
-	return <UserActivityView />;
+	return <ChecklistActivityView />;
 }

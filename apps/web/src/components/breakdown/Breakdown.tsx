@@ -1,31 +1,13 @@
-const BASE_COLOR_LIGHT = '#9394a1';
 'use client';
 import { useBreakdownStore } from '@/stores/useBreakdownStore';
 import IconHeaderCell from '../common/IconHeaderCell';
 import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
-import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import useSelectedBreakdownAnswerData from '@/hooks/useSelectedBreakdownAnswerData';
-import { IconQuote } from '@tabler/icons-react';
 import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
-
-function NoRows() {
-	return (
-		<CustomNoRowsOverlay
-			text="Select an answer to see responses"
-			icon={<IconQuote size={35} style={{ color: BASE_COLOR_LIGHT }} />}
-		/>
-	);
-}
-function NoResults() {
-	return (
-		<CustomNoRowsOverlay
-			text="No responses found"
-			icon={<IconQuote size={35} style={{ color: BASE_COLOR_LIGHT }} />}
-		/>
-	);
-}
+import Card from '@/components/ui/Card';
+import styles from './Breakdown.module.css';
 
 const COLUMNS: ColumnDef<any, any>[] = [
 	{
@@ -85,34 +67,20 @@ export default function Breakdown() {
 	}, [selectedAnswerId]);
 
 	return (
-		<div     style={{ flex: 1, height: '100%', flexShrink: 1, minWidth: 0 }}>
-			<div  className="flex-col-start" style={styles.paper}>
-				<div style={styles.table}>
-					<DataTable
-						columns={COLUMNS}
-						headerHeight={45}
-						loading={loadingBreakdown}
-						rows={breakdown}
-						rowCount={answerData?.answer_count ?? 0}
-						rowHeight={40}
-						paginationMode="server"
-						paginationModel={constraints}
-						onPaginationModelChange={setContraints}
-					/>
-				</div>
+		<Card variant="beveled" padding="md" className={styles.card}>
+			<div className={styles.table}>
+				<DataTable
+					columns={COLUMNS}
+					headerHeight={45}
+					loading={loadingBreakdown}
+					rows={breakdown}
+					rowCount={answerData?.answer_count ?? 0}
+					rowHeight={40}
+					paginationMode="server"
+					paginationModel={constraints}
+					onPaginationModelChange={setContraints}
+				/>
 			</div>
-		</div>
+		</Card>
 	);
 }
-
-const styles = {
-	paper: {
-		width: '100%',
-		height: '100%',
-		padding: '15px 15px 0px',
-	},
-	table: {
-		width: '100%',
-		height: '100%',
-	},
-};

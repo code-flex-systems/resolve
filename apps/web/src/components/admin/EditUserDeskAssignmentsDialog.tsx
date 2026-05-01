@@ -195,26 +195,27 @@ export default function EditUserDeskAssignmentsDialog({ userId, onClose }: EditU
 			onClose={onClose}
 			width={600}
 		>
-			<div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 16 }}>
-				<span style={{ color: 'var(--text-secondary)' }}>
+			<div style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
+				<span style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>
 					Assign up to 5 desk locations with priority ordering (1 = highest priority)
 				</span>
 
 				{assignments.map((assignment, index) => {
-					// Get list of desk locations already selected at other priorities
 					const excludedLocationIds = assignments
 						.filter((a) => a.priority !== assignment.priority && a.deskLocationId !== null)
 						.map((a) => a.deskLocationId!);
 
 					return (
 						<div key={assignment.priority}>
-							<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+							<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 								<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-									<span style={{ color: 'var(--text-accent)' }}>
+									<span style={{ color: 'var(--text-accent)', fontWeight: 600 }}>
 										Priority {assignment.priority}
 									</span>
 									{assignment.deskLocationId && (
-										<Button variant="icon" size="sm"
+										<Button
+											variant="icon"
+											size="sm"
 											onClick={() => removeAssignmentSlot(assignment.priority)}
 											disabled={isSaving}
 										>
@@ -229,6 +230,7 @@ export default function EditUserDeskAssignmentsDialog({ userId, onClose }: EditU
 										updateAssignment(assignment.priority, 'deskLocationTypeId', value)
 									}
 									disabled={isSaving}
+									fullWidth
 								/>
 
 								<DeskLocationSelect
@@ -237,9 +239,14 @@ export default function EditUserDeskAssignmentsDialog({ userId, onClose }: EditU
 									deskLocationTypeId={assignment.deskLocationTypeId}
 									disabled={!assignment.deskLocationTypeId || isSaving}
 									excludedLocationIds={excludedLocationIds}
+									fullWidth
 								/>
 							</div>
-							{index < assignments.length - 1 && <Divider />}
+							{index < assignments.length - 1 && (
+								<div style={{ margin: '20px 0' }}>
+									<Divider />
+								</div>
+							)}
 						</div>
 					);
 				})}

@@ -74,9 +74,10 @@ export default function BulkDeskAssignmentDialog({ selectedUserIds, onClose }: B
 					value={deskLocationTypeId}
 					onChange={(newValue) => {
 						setDeskLocationTypeId(newValue);
-						setDeskLocationId(null); // Reset location when type changes
+						setDeskLocationId(null);
 					}}
 					required
+					fullWidth
 				/>
 
 				<DeskLocationSelect
@@ -85,6 +86,7 @@ export default function BulkDeskAssignmentDialog({ selectedUserIds, onClose }: B
 					deskLocationTypeId={deskLocationTypeId}
 					disabled={!deskLocationTypeId}
 					required
+					fullWidth
 				/>
 
 				<Dropdown
@@ -99,6 +101,7 @@ export default function BulkDeskAssignmentDialog({ selectedUserIds, onClose }: B
 					value={priority}
 					onChange={(v) => setPriority(Number(v))}
 					disabled={isPending}
+					fullWidth
 				/>
 			</div>
 		</BasicDialog>

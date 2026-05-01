@@ -41,12 +41,12 @@ export default function WorkflowManagementOverview() {
 	const utilizationRatio = workloadData?.workloadUtilizationRatio ?? null;
 	const utilizationPercent = utilizationRatio !== null ? Math.round(utilizationRatio * 100) : null;
 
-	const totalClaims = queueData?.totalClaimsInWorkflow ?? 0;
-	const totalOpenWorkUnits = queueData?.totalOpenWorkUnits ?? 0;
+	const totalClaims = Number(queueData?.totalClaimsInWorkflow ?? 0);
+	const totalOpenWorkUnits = Number(queueData?.totalOpenWorkUnits ?? 0);
 
-	const tasksCompleted = throughputData?.totals.tasksCompleted ?? 0;
-	const tasksCreated = throughputData?.totals.tasksCreated ?? 0;
-	const workUnitsCompleted = throughputData?.totals.workUnitsCompleted ?? 0;
+	const tasksCompleted = Number(throughputData?.totals.tasksCompleted ?? 0);
+	const tasksCreated = Number(throughputData?.totals.tasksCreated ?? 0);
+	const workUnitsCompleted = Number(throughputData?.totals.workUnitsCompleted ?? 0);
 
 	if (isLoading) {
 		return <CardioLoadingIndicator message="Loading workflow data..." />;
@@ -85,7 +85,7 @@ export default function WorkflowManagementOverview() {
 					icon={<IconTrendingUp size={20} />}
 					iconColor="var(--text-accent)"
 					iconBgColor="var(--status-info-bg)"
-					value={totalClaims}
+					value={totalClaims.toLocaleString()}
 					label="Total Workload"
 					subtitle="Active claims in workflow"
 				/>
@@ -103,15 +103,15 @@ export default function WorkflowManagementOverview() {
 					iconBgColor="rgba(139, 92, 246, 0.1)"
 					value={`${tasksCreated ? Math.floor((tasksCompleted / tasksCreated) * 100) : 0}%`}
 					label="Daily Throughput"
-					subtitle={`${tasksCreated} tasks created today`}
+					subtitle={`${tasksCreated.toLocaleString()} tasks created today`}
 				/>
 				<KpiCard
 					icon={<IconTrendingUp size={20} />}
 					iconColor="var(--status-warning)"
 					iconBgColor="var(--status-warning-bg)"
-					value={totalOpenWorkUnits}
+					value={totalOpenWorkUnits.toLocaleString()}
 					label="Open Work Units"
-					subtitle={`${workUnitsCompleted} units completed today`}
+					subtitle={`${workUnitsCompleted.toLocaleString()} units completed today`}
 				/>
 			</div>
 

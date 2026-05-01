@@ -2,14 +2,15 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import BasicPopper from './BasicPopper';
-import CustomChip from '@/components/ui/Chip';
-import CustomButton from '@/components/ui/Button';
+import Button from '@/components/ui/Button';
+import Chip from '@/components/ui/Chip';
 import type { DateRange } from '@/types/dateTypes';
 import { IconClock } from '@tabler/icons-react';
 import dayjs, { Dayjs } from 'dayjs';
 import { getCurrentFiscalQuarterStart } from '@/lib/utils/utils';
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/style.css';
+import styles from './BasicDateRangePicker.module.css';
 
 const shortcutItems: { label: string; getValue: () => DateRange<Dayjs> }[] = [
 	{
@@ -57,7 +58,6 @@ const shortcutItems: { label: string; getValue: () => DateRange<Dayjs> }[] = [
 			return [today.startOf('month').startOf('day'), today.endOf('month').endOf('day')];
 		},
 	},
-
 	{ label: 'Reset', getValue: () => [null, null] },
 ];
 
@@ -86,7 +86,6 @@ export default function BasicDateRangePicker({
 	onConfirm,
 	clearable = false,
 	disableFuture = true,
-	height = 30,
 }: {
 	defaultLabel: string;
 	defaultValue: DateRange<Dayjs>;
@@ -128,41 +127,52 @@ export default function BasicDateRangePicker({
 
 	return (
 		<>
-			<span
-				onClick={(e) => {
-					setAnchorEl(e.currentTarget);
-					e.preventDefault();
-					e.stopPropagation();
-				}}
-				style={{ display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer', margin: '5px 0px', height }}
-			>
-				<CustomChip color={isEmpty ? 'neutral' : 'info'} size="sm">
-					<IconClock size={16} style={{ color: isEmpty ? undefined : 'var(--text-accent)' }} />
-					<span style={{ color: isEmpty ? undefined : 'var(--text-accent)', fontStyle: isEmpty ? 'italic' : undefined }}>{labelConfirmed}</span>
-				</CustomChip>
+			<span className={styles.trigger}>
+				<Button
+					variant="ghost"
+					size="md"
+					color={isEmpty || !clearable ? 'neutral' : 'primary'}
+					startIcon={<IconClock size={14} />}
+					onClick={(e) => {
+						setAnchorEl(e.currentTarget);
+						e.preventDefault();
+						e.stopPropagation();
+					}}
+				>
+					{labelConfirmed}
+				</Button>
 				{!isEmpty && clearable && (
-					<button onClick={(e) => { e.stopPropagation(); setRange([null, null]); setLabelConfirmed(EMPTY_LABEL); onConfirm(range); }} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 14 }}>x</button>
+					<button
+						className={styles.clearBtn}
+						onClick={(e) => {
+							e.stopPropagation();
+							setRange([null, null]);
+							setLabelConfirmed(EMPTY_LABEL);
+							onConfirm(range);
+						}}
+					>
+						×
+					</button>
 				)}
 			</span>
 			{!!anchorEl && (
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={onClose} placement="bottom-start">
-					<div style={{ background: 'var(--bg-white)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)', padding: 8, marginTop: 5 }}>
-						<div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start' }}>
-							<div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'flex-start' }}>
-								<div style={{ width: 130, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', padding: 10 }}>
-									{shortcuts.map((s, i) => (
-										<span key={i} style={{ margin: '5px 0px', cursor: 'pointer' }}>
-											<CustomChip
-												color={s.label === label ? 'info' : 'neutral'}
-												size="sm"
-												onClick={() => {
-													if (s.label !== 'Reset') setLabel(s.label);
-													setRange(s.getValue());
-												}}
-											>
-												{s.label}
-											</CustomChip>
-										</span>
+					<div className={styles.popover}>
+						<div className={styles.body}>
+							<div className={styles.calendarRow}>
+								<div className={styles.shortcuts}>
+									{shortcuts.map((s) => (
+										<Chip
+											key={s.label}
+											size="sm"
+											color={s.label === label ? 'primary' : 'neutral'}
+											onClick={() => {
+												if (s.label !== 'Reset') setLabel(s.label);
+												setRange(s.getValue());
+											}}
+										>
+											{s.label}
+										</Chip>
 									))}
 								</div>
 								<DayPicker
@@ -180,39 +190,22 @@ export default function BasicDateRangePicker({
 								/>
 							</div>
 
-							<div
-								style={{
-									width: '100%',
-									display: 'flex',
-									justifyContent: 'space-between',
-									alignItems: 'center',
-									padding: 10,
-								}}
-							>
-								<div></div>
-								<div>
-									<CustomButton
-										onClick={() => onClose()}
-										variant="outlined"
-										size="sm"
-										style={{ marginRight: '10px' }}
-									>
-										Cancel
-									</CustomButton>
-									<CustomButton
-										onClick={() => {
-											setLabelConfirmed(label);
-											onConfirm(range);
-											setAnchorEl(null);
-										}}
-										variant="contained"
-										color="success"
-										size="sm"
-										disabled={!clearable && range.some((r) => !r)}
-									>
-										Apply
-									</CustomButton>
-								</div>
+							<div className={styles.footer}>
+								<Button onClick={() => onClose()} variant="outlined" size="sm" color="neutral">
+									Cancel
+								</Button>
+								<Button
+									onClick={() => {
+										setLabelConfirmed(label);
+										onConfirm(range);
+										setAnchorEl(null);
+									}}
+									variant="contained"
+									size="sm"
+									disabled={!clearable && range.some((r) => !r)}
+								>
+									Apply
+								</Button>
 							</div>
 						</div>
 					</div>

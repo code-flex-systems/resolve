@@ -1,8 +1,7 @@
 'use client';
 
-import { IconBell, IconBellOff, IconClock, IconNetwork, IconPower, IconTowerOff, IconRefresh, IconRss, IconSettings } from '@tabler/icons-react';
+import { IconClock, IconNetwork, IconRefresh } from '@tabler/icons-react';
 import Button from '@/components/ui/Button';
-import Tooltip from '@/components/ui/Tooltip';
 import Card from '@/components/ui/Card';
 import { FeedStatus } from '@/config/enums';
 import { Ping } from 'ldrs/react';
@@ -12,7 +11,6 @@ import { useState } from 'react';
 import { formatHour, formatMDYAbv } from '@/lib/utils/utils';
 import { useFeedTrpc } from '@/hooks/trpc/useFeedTrpc';
 import IconHeaderCell from '../common/IconHeaderCell';
-import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 const getStatusColor = (status: FeedStatus) => {
@@ -37,10 +35,6 @@ const formatStatus = (status: FeedStatus) => {
 	}
 };
 
-function NoRows() {
-	return <CustomNoRowsOverlay text="No feeds found" icon={<IconRss size={35} style={{ color: 'var(--text-muted)' }} />} />;
-}
-
 interface FeedActionsCellProps {
 	row: {
 		id: string;
@@ -48,77 +42,51 @@ interface FeedActionsCellProps {
 	};
 	mutate: (params: { id: string; params: { status: FeedStatus } }) => void;
 	isPending: boolean;
-	isManageMode: boolean;
 }
 
-function FeedActionsCell({ row, mutate, isPending, isManageMode }: FeedActionsCellProps) {
-	if (!isManageMode) return null;
+function FeedActionsCell({ row, mutate, isPending }: FeedActionsCellProps) {
+	const isOffline = row.status === FeedStatus.OFFLINE;
+	const isMuted = row.status === FeedStatus.MUTED;
+
 	return (
-		<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-			<Tooltip
-				content={row.status === FeedStatus.OFFLINE ? 'Feed is offline' : 'Test Connection'}
-			>
-				<span>
-					<Button variant="icon" disabled={row.status === FeedStatus.OFFLINE || isPending} size="sm">
-						<IconNetwork size={20} />
-					</Button>
-				</span>
-			</Tooltip>
-			<Tooltip
-				content={
-					row.status === FeedStatus.OFFLINE
-						? 'Feed is offline'
-						: row.status === FeedStatus.MUTED
-							? 'Unmute'
-							: 'Mute'
+		<div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8 }}>
+			<Button variant="ghost" size="sm" color="neutral" disabled={isOffline || isPending}>
+				Test
+			</Button>
+			<Button
+				variant="ghost"
+				size="sm"
+				color="neutral"
+				disabled={isOffline || isPending}
+				onClick={() =>
+					mutate({
+						id: row.id,
+						params: { status: isMuted ? FeedStatus.ONLINE : FeedStatus.MUTED },
+					})
 				}
 			>
-				<span>
-					<Button variant="icon"
-						onClick={() =>
-							mutate({
-								id: row.id,
-								params: {
-									status: row.status === FeedStatus.MUTED ? FeedStatus.ONLINE : FeedStatus.MUTED,
-								},
-							})
-						}
-						disabled={row.status === FeedStatus.OFFLINE || isPending}
-						size="sm"
-					>
-						{row.status === FeedStatus.MUTED ? (
-							<IconBell size={20} />
-						) : (
-							<IconBellOff size={20} />
-						)}
-					</Button>
-				</span>
-			</Tooltip>
-			<Tooltip content={row.status === FeedStatus.OFFLINE ? 'Reconnect' : 'Disconnect'}>
-				<span>
-					<Button variant="icon"
-						onClick={() =>
-							mutate({
-								id: row.id,
-								params: {
-									status: row.status === FeedStatus.OFFLINE ? FeedStatus.ONLINE : FeedStatus.OFFLINE,
-								},
-							})
-						}
-						disabled={isPending}
-						size="sm"
-					>
-						{row.status === FeedStatus.OFFLINE ? <IconPower size={20} /> : <IconTowerOff size={20} />}
-					</Button>
-				</span>
-			</Tooltip>
+				{isMuted ? 'Unmute' : 'Mute'}
+			</Button>
+			<Button
+				variant="ghost"
+				size="sm"
+				color="neutral"
+				disabled={isPending}
+				onClick={() =>
+					mutate({
+						id: row.id,
+						params: { status: isOffline ? FeedStatus.ONLINE : FeedStatus.OFFLINE },
+					})
+				}
+			>
+				{isOffline ? 'Reconnect' : 'Disconnect'}
+			</Button>
 		</div>
 	);
 }
 
 export default function Feeds() {
 	const [testing, setTesting] = useState(false);
-	const [isManageMode, setIsManageMode] = useState(false);
 	const { data: feeds = [], isFetching } = useFeedTrpc().list();
 	const { mutate, isPending } = useFeedTrpc().update;
 
@@ -159,7 +127,9 @@ export default function Feeds() {
 		{
 			accessorKey: 'schedule',
 			size: 150,
-			header: (params) => <IconHeaderCell {...params} icon={<IconClock style={{ color: 'var(--text-muted)' }} />} />,
+			header: (params) => (
+				<IconHeaderCell {...params} icon={<IconClock style={{ color: 'var(--text-muted)' }} />} />
+			),
 			cell: ({ row: { original: row } }: any) => (
 				<span style={{ fontSize: 13 }}>
 					{formatHour(row.schedule)} {row.schedule < 5 || row.schedule >= 19 ? '(nightly)' : '(daily)'}
@@ -169,7 +139,9 @@ export default function Feeds() {
 		{
 			accessorKey: 'last_synced_at',
 			size: 150,
-			header: (params) => <IconHeaderCell {...params} icon={<IconRefresh style={{ color: 'var(--text-muted)' }} />} />,
+			header: (params) => (
+				<IconHeaderCell {...params} icon={<IconRefresh style={{ color: 'var(--text-muted)' }} />} />
+			),
 			cell: ({ row: { original: row } }: any) => (
 				<span style={{ fontSize: 13 }}>{formatMDYAbv(row.last_synced_at?.toString())}</span>
 			),
@@ -177,50 +149,43 @@ export default function Feeds() {
 		{
 			header: '',
 			accessorKey: 'actions',
-			size: 130,
+			size: 290,
 			enableSorting: false,
 			cell: ({ row: { original: row } }: any) => (
-				<FeedActionsCell row={row} mutate={mutate} isPending={isPending} isManageMode={isManageMode} />
+				<FeedActionsCell row={row} mutate={mutate} isPending={isPending} />
 			),
 		},
 	];
 
 	return (
 		<div style={{ width: '100%', height: '100%' }}>
-			<Card variant="beveled" padding="md" style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+			<Card
+				variant="beveled"
+				padding="md"
+				style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}
+			>
 				<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
 					Feeds are data sources that import claims into the system. Configure feed connections and monitor their status.
 				</p>
 				<Toolbar
 					left={undefined}
 					right={
-						<>
-							<Tooltip content="Test all connections">
-							<Button variant="icon" size="sm" color="neutral" onClick={onTest} disabled={testing || !feeds.length}>
-							<IconNetwork size={16} />
+						<Button
+							variant="outlined"
+							size="sm"
+							color="neutral"
+							startIcon={<IconNetwork size={14} />}
+							onClick={onTest}
+							disabled={testing || !feeds.length}
+						>
+							Test all
 						</Button>
-						</Tooltip>
-							<Tooltip content="Manage">
-								<Button variant="icon" size="sm"
-									onClick={() => setIsManageMode(!isManageMode)}
-									style={{ marginLeft: 8, backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined }}
-								>
-									<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
-								</Button>
-							</Tooltip>
-						</>
 					}
 					height={50}
 					padding={0}
 				/>
-				<div style={{ height: 'calc(100% - 60px)', width: '100%' }}>
-					<DataTable
-						rows={feeds}
-						columns={columns}
-						loading={isFetching}
-						hideFooter
-						pinnedRight={isManageMode ? ['actions'] : []}
-					/>
+				<div style={{ flex: 1, minHeight: 0, width: '100%' }}>
+					<DataTable rows={feeds} columns={columns} loading={isFetching} hideFooter />
 				</div>
 			</Card>
 		</div>

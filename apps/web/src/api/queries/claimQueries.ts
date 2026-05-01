@@ -211,6 +211,10 @@ export async function getClaims(
 		);
 	}
 
+	if (line_of_business) {
+		baseQuery = baseQuery.where('claim.line_of_business', '=', line_of_business);
+	}
+
 	if (recovery_status) {
 		baseQuery = baseQuery.where('claim.recovery_status', '=', recovery_status);
 	}

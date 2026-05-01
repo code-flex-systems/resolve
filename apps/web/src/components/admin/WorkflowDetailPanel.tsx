@@ -1,11 +1,10 @@
 'use client';
 
-import { IconArchive, IconChevronDown, IconChevronUp, IconEdit, IconMapPin, IconPlus, IconWorld } from '@tabler/icons-react';
+import { IconArchive, IconEdit, IconPlus } from '@tabler/icons-react';
 import Dropdown from '@/components/ui/Dropdown';
 import Input, { Textarea } from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
-import Collapse from '@/components/ui/Collapse';
 import Skeleton from '@/components/ui/Skeleton';
 import Chip from '@/components/ui/Chip';
 import { useState, useEffect, useMemo } from 'react';
@@ -40,7 +39,6 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 	const [runningRuleId, setRunningRuleId] = useState<string | null>(null);
 	const [executionSummary, setExecutionSummary] = useState<RuleExecutionSummary | null>(null);
 	const [summaryRuleName, setSummaryRuleName] = useState('');
-	const [historyExpanded, setHistoryExpanded] = useState(false);
 	const [historyRuleFilter, setHistoryRuleFilter] = useState<string | undefined>(undefined);
 
 	const [formData, setFormData] = useState({
@@ -166,7 +164,7 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 
 	if (isLoading) {
 		return (
-			<div style={{ maxWidth: 1000, marginInline: 'auto' }}>
+			<div style={{ maxWidth: 1000, margin: '0 auto', padding: '0 4px' }}>
 				<div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 					<Skeleton variant="rect" height={200} />
 					<Skeleton variant="rect" height={150} />
@@ -178,27 +176,32 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 
 	if (!workflow) {
 		return (
-			<div style={{ maxWidth: 1000, marginInline: 'auto' }}>
+			<div style={{ maxWidth: 1000, margin: '0 auto', padding: '0 4px' }}>
 				<span style={{ color: 'var(--text-secondary)' }}>Workflow not found</span>
 			</div>
 		);
 	}
 
 	return (
-		<div style={{ maxWidth: 1000, marginInline: 'auto' }}>
+		<div style={{ maxWidth: 1000, margin: '0 auto', padding: '0 4px' }}>
 			<div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-				{/* Section 1: Workflow Definition (Gradient Container) */}
+				{/* Section 1: Workflow Definition */}
 				<Card variant="float" padding="md">
 					<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-						<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
+						<span style={{ fontSize: 13, color: 'var(--text-muted)', letterSpacing: 'var(--tracking-wide)' }}>
 							WORKFLOW DEFINITION
 						</span>
 						{!isEditing && (
 							<Tooltip content="Edit Workflow">
-							<Button variant="icon" size="sm" color="neutral">
-							<IconEdit size={16} />
-						</Button>
-						</Tooltip>
+								<Button
+									variant="icon"
+									size="sm"
+									color="neutral"
+									onClick={() => setIsEditing(true)}
+								>
+									<IconEdit size={16} />
+								</Button>
+							</Tooltip>
 						)}
 					</div>
 
@@ -259,45 +262,37 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 							</div>
 						</div>
 					) : (
-						<div>
-							<span style={{ fontSize: 18, fontWeight: 600 }}>
+						<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+							<span style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)' }}>
 								{workflow.name}
 							</span>
 
 							{workflow.description && (
-								<span style={{ fontSize: 14,  color: 'var(--text-secondary)'  }}>
+								<span style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
 									{workflow.description}
 								</span>
 							)}
 
-							<div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-								<Chip
-									size="sm"
-									color={location ? 'info' : 'neutral'}
-									variant="outlined"
-								>{location ? `Desk Location: ${location.name}` : 'Global'}</Chip>
-								<Chip
-									size="sm"
-									color={workflow.is_active ? 'success' : 'neutral'}>{workflow.is_active ? 'Active' : 'Inactive'}</Chip>
+							<div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
+								<Chip size="sm" color={location ? 'primary' : 'neutral'}>
+									{location ? `Desk Location: ${location.name}` : 'Global'}
+								</Chip>
+								<Chip size="sm" color={workflow.is_active ? 'success' : 'neutral'}>
+									{workflow.is_active ? 'Active' : 'Inactive'}
+								</Chip>
 							</div>
 
-							<div style={{ display: 'flex', gap: 16, marginTop: 16 }}>
+							<div style={{ display: 'flex', gap: 16, marginTop: 8, flexWrap: 'wrap' }}>
 								{(workflow as any).creator_first_name && (
-									<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
+									<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
 										{(workflow as any).creator_first_name} {(workflow as any).creator_last_name}
 									</span>
 								)}
-								<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
-									Created:{' '}
-									{workflow.created_at
-										? formatMDY(new Date(workflow.created_at).toISOString())
-										: 'N/A'}
+								<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+									Created: {workflow.created_at ? formatMDY(new Date(workflow.created_at).toISOString()) : 'N/A'}
 								</span>
-								<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
-									Updated:{' '}
-									{workflow.updated_at
-										? formatMDY(new Date(workflow.updated_at).toISOString())
-										: 'N/A'}
+								<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+									Updated: {workflow.updated_at ? formatMDY(new Date(workflow.updated_at).toISOString()) : 'N/A'}
 								</span>
 							</div>
 						</div>
@@ -392,8 +387,8 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 								No rules configured
 							</span>
 						) : (
-							<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-								{rules.map((rule) => (
+							<div style={{ display: 'flex', flexDirection: 'column' }}>
+								{rules.map((rule, idx) => (
 									<RuleCard
 										key={rule.id}
 										rule={rule}
@@ -401,6 +396,7 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 										onArchive={handleArchiveRule}
 										onRun={handleRunRule}
 										isRunning={runningRuleId === rule.id}
+										showDivider={idx !== rules.length - 1}
 									/>
 								))}
 							</div>
@@ -408,46 +404,26 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 					</div>
 				</Card>
 
-				{/* Section 4: Execution History (Collapsible) */}
+				{/* Section 4: Execution History */}
 				<Card variant="beveled" padding="none">
 					<div style={{ padding: 16 }}>
-						<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-							<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-								<span style={{ fontSize: 13, fontWeight: 600 }}>
-									Execution History
-								</span>
-								<Button variant="icon" size="sm"
-									onClick={() => setHistoryExpanded((prev) => !prev)}
-								>
-									{historyExpanded ? <IconChevronUp size={20} /> : <IconChevronDown size={20} />}
-								</Button>
+						<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+							<span style={{ fontSize: 13, fontWeight: 600 }}>Execution History</span>
+							<div style={{ minWidth: 160 }}>
+								<Dropdown
+									options={[
+										{ value: '', label: 'All Rules' },
+										...rules.map((rule) => ({ value: rule.id, label: rule.name })),
+									]}
+									value={historyRuleFilter ?? ''}
+									onChange={(v) => {
+										setHistoryRuleFilter(v === '' ? undefined : String(v));
+									}}
+									size="sm"
+								/>
 							</div>
-							{historyExpanded && (
-								<div style={{ minWidth: 160 }}>
-									<Dropdown
-										options={[
-											{ value: '', label: 'All Rules' },
-											...rules.map((rule) => ({
-												value: rule.id,
-												label: rule.name,
-											})),
-										]}
-										value={historyRuleFilter ?? ''}
-										onChange={(v) => {
-											setHistoryRuleFilter(v === '' ? undefined : String(v));
-										}}
-										size="sm"
-									/>
-								</div>
-							)}
 						</div>
-						<Collapse open={historyExpanded}>
-							<div style={{ marginTop: 16 }}>
-								{historyExpanded && (
-									<ExecutionHistoryTable ruleId={historyRuleFilter} compact />
-								)}
-							</div>
-						</Collapse>
+						<ExecutionHistoryTable ruleId={historyRuleFilter} compact />
 					</div>
 				</Card>
 			</div>

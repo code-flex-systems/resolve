@@ -1,67 +1,65 @@
 'use client';
 
-import { IconChecklist, IconFileSearch, IconSettings, IconSquarePlus } from '@tabler/icons-react';
-import Tooltip from '@/components/ui/Tooltip';
+import { IconChecklist, IconSquarePlus } from '@tabler/icons-react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
-import { formatMDY } from '@/lib/utils/utils';
-import { useMemo, useState } from 'react';
+import { formatMDYAbv } from '@/lib/utils/utils';
 import Toolbar from '../common/Toolbar';
-import IconHeaderCell from '../common/IconHeaderCell';
 import ChecklistActionsCell from './ChecklistActionsCell';
 import { useAdminStore } from '@/stores/useAdminStore';
 import NewChecklistDialog from './NewChecklistDialog';
-import ExpandableHeaderCell from '../common/ExpandableHeaderCell';
-import StackedHeaderCell from '../common/StackedHeaderCell';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import PageTransitionWrapper from '../common/PageTransitionWrapper';
 import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
-const getColumns = (isManageMode: boolean): ColumnDef<any, any>[] => [
+const columns: ColumnDef<any, any>[] = [
 	{
 		accessorKey: 'name',
-		header: '',
-		cell: (info: any) => {
-			const params = { row: info.row.original, value: info.getValue() };
-			return <StackedHeaderCell primary={params.row.name} secondary={params.row.creator} />;
-		},
-		size: 200,
+		header: 'Title',
+		cell: ({ row }) => row.original.name,
+		size: 260,
+		enableSorting: false,
+	},
+	{
+		accessorKey: 'creator',
+		header: 'Creator',
+		cell: ({ row }) => row.original.creator,
+		size: 160,
 		enableSorting: false,
 	},
 	{
 		accessorKey: 'page_count',
-		header: '',
+		header: 'Pages',
 		cell: ({ getValue }) => {
 			const value = getValue();
-			return `${value?.toLocaleString() ?? ''} pages`;
+			return value?.toLocaleString() ?? '';
 		},
-		size: 120,
+		size: 90,
 		enableSorting: false,
 	},
 	{
-		accessorKey: 'dates',
-		header: (ctx) => <IconHeaderCell {...ctx} />,
-		cell: (info: any) => {
-			const params = { row: info.row.original, value: info.getValue() };
-			return (
-				<StackedHeaderCell
-					primary={params.row.updated_at ? `Last updated ${formatMDY(params.row.updated_at)}` : ''}
-					secondary={`Created ${formatMDY(params.row.created_at)}`}
-				/>
-			);
-		},
-		size: 250,
+		accessorKey: 'updated_at',
+		header: 'Last Updated',
+		cell: ({ row }) => formatMDYAbv(row.original.updated_at),
+		size: 130,
+		enableSorting: false,
+	},
+	{
+		accessorKey: 'created_at',
+		header: 'Created',
+		cell: ({ row }) => formatMDYAbv(row.original.created_at),
+		size: 130,
 		enableSorting: false,
 	},
 	{
 		accessorKey: 'actions',
 		header: '',
-		minSize: 200,
+		size: 120,
 		enableSorting: false,
 		cell: (info: any) => {
 			const params = { row: info.row.original, value: info.getValue() };
-			return <ChecklistActionsCell {...params} isManageMode={isManageMode} />;
+			return <ChecklistActionsCell {...params} />;
 		},
 	},
 ];
@@ -79,9 +77,7 @@ export default function ChecklistsTab() {
 	const { data: checklists = [], isFetching } = useChecklistTrpc().list({});
 	const showNewChecklistDialog = useAdminStore((state) => state.showNewChecklistDialog);
 	const toggleNewChecklistDialog = useAdminStore((state) => state.toggleNewChecklistDialog);
-	const [isManageMode, setIsManageMode] = useState(false);
 
-	const columns = useMemo(() => getColumns(isManageMode), [isManageMode]);
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading checklists...">
 			<div style={styles.container}>
@@ -101,31 +97,13 @@ export default function ChecklistsTab() {
 							</p>
 						}
 						right={
-							<>
-								<Button
-									variant="contained"
-									startIcon={<IconSquarePlus size={20} />}
-									onClick={toggleNewChecklistDialog}
-								>
-									Checklist
-								</Button>
-								<Tooltip content="Manage">
-									<Button
-										variant="icon"
-										size="sm"
-										onClick={() => setIsManageMode(!isManageMode)}
-										style={{
-											marginLeft: 8,
-											backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined,
-										}}
-									>
-										<IconSettings
-											size={20}
-											style={{ color: isManageMode ? 'primary.main' : undefined }}
-										/>
-									</Button>
-								</Tooltip>
-							</>
+							<Button
+								variant="contained"
+								startIcon={<IconSquarePlus size={20} />}
+								onClick={toggleNewChecklistDialog}
+							>
+								Checklist
+							</Button>
 						}
 						padding={'0px 10px'}
 					/>
@@ -136,8 +114,7 @@ export default function ChecklistsTab() {
 							headerHeight={45}
 							loading={isFetching}
 							rows={checklists}
-							rowHeight={60}
-							pinnedRight={isManageMode ? ['actions'] : []}
+							rowHeight={52}
 							hideFooter
 						/>
 					</div>

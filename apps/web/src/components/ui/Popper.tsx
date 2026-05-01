@@ -7,7 +7,7 @@ import styles from './Popper.module.css';
 export interface PopperProps {
 	open: boolean;
 	onClose: () => void;
-	anchorRef: React.RefObject<HTMLElement>;
+	anchorRef: React.RefObject<HTMLElement | null>;
 	placement?: 'top' | 'bottom' | 'left' | 'right' | 'bottom-start' | 'bottom-end';
 	children: ReactNode;
 	className?: string;
@@ -100,6 +100,11 @@ function Popper({
 		if (!open) return;
 
 		const handleMouseDown = (e: MouseEvent) => {
+			const target = e.target as Element | null;
+			// Ignore clicks inside portaled listboxes/menus opened from within the popper
+			// (Combobox, Dropdown, etc. render their menus to document.body, so they aren't
+			// DOM descendants of the popper but should be treated as part of it.)
+			if (target?.closest('[role="listbox"], [role="menu"]')) return;
 			if (
 				popperRef.current &&
 				!popperRef.current.contains(e.target as Node) &&

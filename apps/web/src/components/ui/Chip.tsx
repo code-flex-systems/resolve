@@ -5,7 +5,7 @@ import styles from './Chip.module.css';
 
 export interface ChipProps extends HTMLAttributes<HTMLSpanElement> {
 	variant?: 'filled' | 'outlined';
-	color?: 'success' | 'error' | 'warning' | 'info' | 'neutral';
+	color?: 'primary' | 'success' | 'error' | 'warning' | 'info' | 'neutral';
 	size?: 'sm' | 'md';
 	children: ReactNode;
 	className?: string;
