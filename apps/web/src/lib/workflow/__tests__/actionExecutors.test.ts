@@ -5,7 +5,7 @@ vi.mock('@/api/queries/deskQueries', () => ({
 	createClaimTransition: vi.fn().mockResolvedValue({ id: 100 }),
 	updateClaimDeskLocation: vi
 		.fn()
-		.mockResolvedValue({ id: 1, desk_location_id: 5, claim_number: 'CLM-001' }),
+		.mockResolvedValue({ id: 'claim-1', desk_location_id: 'desk-5', claim_number: 'CLM-001' }),
 }));
 
 vi.mock('@/api/queries/taskQueries', () => ({
@@ -22,9 +22,7 @@ import * as taskQueries from '@/api/queries/taskQueries';
 // =============================================================================
 
 function createMockCtx(overrides: Record<string, unknown> = {}) {
-	const mockExecuteTakeFirst = vi
-		.fn()
-		.mockResolvedValue({ claim_number: 'CLM-001', priority: 3 });
+	const mockExecuteTakeFirst = vi.fn().mockResolvedValue({ claim_number: 'CLM-001', priority: 3 });
 	const mockExecute = vi.fn().mockResolvedValue([]);
 	const mockChain = {
 		selectFrom: vi.fn().mockReturnThis(),
@@ -51,10 +49,10 @@ function makeInput(overrides: Record<string, unknown> = {}) {
 	return {
 		input: {
 			ctx,
-			claimId: 1,
-			currentDeskLocationId: 10 as number | null,
+			claimId: 'claim-1',
+			currentDeskLocationId: 'desk-10' as string | null,
 			actionConfig: {} as Record<string, unknown>,
-			ruleId: 42,
+			ruleId: 'rule-42',
 			ruleName: 'Test Rule',
 			...overrides,
 		},
@@ -103,8 +101,8 @@ describe('executeAction', () => {
 
 		it('skips when claim is already at destination', async () => {
 			const { input } = makeInput({
-				currentDeskLocationId: 5,
-				actionConfig: { destination_location_id: 5 },
+				currentDeskLocationId: 'desk-5',
+				actionConfig: { destination_location_id: 'desk-5' },
 			});
 			const result = await executeAction(WorkflowActionType.MOVE_CLAIM, input);
 			expect(result).toEqual({
@@ -112,7 +110,7 @@ describe('executeAction', () => {
 				data: {
 					skipped: true,
 					reason: 'Claim already at destination',
-					currentLocationId: 5,
+					currentLocationId: 'desk-5',
 				},
 			});
 			expect(deskQueries.createClaimTransition).not.toHaveBeenCalled();
@@ -121,8 +119,8 @@ describe('executeAction', () => {
 
 		it('moves claim successfully and records transition', async () => {
 			const { input } = makeInput({
-				currentDeskLocationId: 10,
-				actionConfig: { destination_location_id: 20 },
+				currentDeskLocationId: 'desk-10',
+				actionConfig: { destination_location_id: 'desk-20' },
 			});
 
 			const result = await executeAction(WorkflowActionType.MOVE_CLAIM, input);
@@ -130,20 +128,24 @@ describe('executeAction', () => {
 			expect(result).toEqual({
 				success: true,
 				data: {
-					previousLocationId: 10,
-					newLocationId: 20,
+					previousLocationId: 'desk-10',
+					newLocationId: 'desk-20',
 					transitionId: 100,
 				},
 			});
 
 			expect(deskQueries.createClaimTransition).toHaveBeenCalledWith(input.ctx, {
-				claimId: 1,
-				deskLocationId: 20,
-				previousDeskLocationId: 10,
-				enteredReason: 'rule:42',
+				claimId: 'claim-1',
+				deskLocationId: 'desk-20',
+				previousDeskLocationId: 'desk-10',
+				enteredReason: 'rule:rule-42',
 			});
 
-			expect(deskQueries.updateClaimDeskLocation).toHaveBeenCalledWith(input.ctx, 1, 20);
+			expect(deskQueries.updateClaimDeskLocation).toHaveBeenCalledWith(
+				input.ctx,
+				'claim-1',
+				'desk-20'
+			);
 		});
 
 		it('returns error when destination_location_id is 0 (falsy)', async () => {
@@ -160,16 +162,16 @@ describe('executeAction', () => {
 		it('passes undefined for previousDeskLocationId when currentDeskLocationId is null', async () => {
 			const { input } = makeInput({
 				currentDeskLocationId: null,
-				actionConfig: { destination_location_id: 20 },
+				actionConfig: { destination_location_id: 'desk-20' },
 			});
 
 			await executeAction(WorkflowActionType.MOVE_CLAIM, input);
 
 			expect(deskQueries.createClaimTransition).toHaveBeenCalledWith(input.ctx, {
-				claimId: 1,
-				deskLocationId: 20,
+				claimId: 'claim-1',
+				deskLocationId: 'desk-20',
 				previousDeskLocationId: undefined,
-				enteredReason: 'rule:42',
+				enteredReason: 'rule:rule-42',
 			});
 		});
 	});
@@ -181,7 +183,7 @@ describe('executeAction', () => {
 	describe('CREATE_TASK', () => {
 		it('returns error when title_template is missing', async () => {
 			const { input } = makeInput({
-				actionConfig: { target_location_id: 5 },
+				actionConfig: { target_location_id: 'desk-5' },
 			});
 			const result = await executeAction(WorkflowActionType.CREATE_TASK, input);
 			expect(result).toEqual({
@@ -203,7 +205,7 @@ describe('executeAction', () => {
 
 		it('returns error when title_template is empty string (falsy)', async () => {
 			const { input } = makeInput({
-				actionConfig: { title_template: '', target_location_id: 5 },
+				actionConfig: { title_template: '', target_location_id: 'desk-5' },
 			});
 			const result = await executeAction(WorkflowActionType.CREATE_TASK, input);
 			expect(result).toEqual({
@@ -227,7 +229,7 @@ describe('executeAction', () => {
 			const { input, mockExecuteTakeFirst } = makeInput({
 				actionConfig: {
 					title_template: 'Review {claim_number} urgently',
-					target_location_id: 5,
+					target_location_id: 'desk-5',
 				},
 			});
 			mockExecuteTakeFirst.mockResolvedValue({ claim_number: 'CLM-999' });
@@ -244,7 +246,7 @@ describe('executeAction', () => {
 				claimNumber: 'CLM-PRE',
 				actionConfig: {
 					title_template: 'Review {claim_number}',
-					target_location_id: 5,
+					target_location_id: 'desk-5',
 				},
 			});
 
@@ -260,7 +262,7 @@ describe('executeAction', () => {
 				claimNumber: null,
 				actionConfig: {
 					title_template: 'Review {claim_number}',
-					target_location_id: 5,
+					target_location_id: 'desk-5',
 				},
 			});
 			// null means "not pre-fetched", so it should query the DB
@@ -278,7 +280,7 @@ describe('executeAction', () => {
 				claimNumber: null,
 				actionConfig: {
 					title_template: 'Review {claim_number}',
-					target_location_id: 5,
+					target_location_id: 'desk-5',
 				},
 			});
 			mockExecuteTakeFirst.mockResolvedValue(undefined);
@@ -286,7 +288,7 @@ describe('executeAction', () => {
 			const result = await executeAction(WorkflowActionType.CREATE_TASK, input);
 
 			expect(result.success).toBe(true);
-			expect(result.data?.title).toBe('Review #1');
+			expect(result.data?.title).toBe('Review #claim-1');
 		});
 
 		it('uses fallback #<claimId> when claimNumber is empty string', async () => {
@@ -294,14 +296,14 @@ describe('executeAction', () => {
 				claimNumber: '',
 				actionConfig: {
 					title_template: 'Review {claim_number}',
-					target_location_id: 5,
+					target_location_id: 'desk-5',
 				},
 			});
 
 			const result = await executeAction(WorkflowActionType.CREATE_TASK, input);
 
 			expect(result.success).toBe(true);
-			expect(result.data?.title).toBe('Review #1');
+			expect(result.data?.title).toBe('Review #claim-1');
 			expect(mockExecuteTakeFirst).not.toHaveBeenCalled();
 		});
 
@@ -310,7 +312,7 @@ describe('executeAction', () => {
 				claimNumber: 'CLM-001',
 				actionConfig: {
 					title_template: 'Task for {claim_number}',
-					target_location_id: 7,
+					target_location_id: 'desk-7',
 					task_type: 'review',
 					description: 'Do the thing',
 					deadline_date: '2026-04-01',
@@ -322,8 +324,8 @@ describe('executeAction', () => {
 			await executeAction(WorkflowActionType.CREATE_TASK, input);
 
 			expect(taskQueries.createTask).toHaveBeenCalledWith(input.ctx, {
-				claimId: 1,
-				deskLocationId: 7,
+				claimId: 'claim-1',
+				deskLocationId: 'desk-7',
 				taskType: 'review',
 				title: 'Task for CLM-001',
 				description: 'Do the thing',
@@ -338,7 +340,7 @@ describe('executeAction', () => {
 				claimNumber: 'CLM-001',
 				actionConfig: {
 					title_template: 'Simple task',
-					target_location_id: 5,
+					target_location_id: 'desk-5',
 				},
 			});
 
@@ -422,7 +424,7 @@ describe('executeAction', () => {
 	describe('UPDATE_PRIORITY', () => {
 		it('returns error when user_id is missing', async () => {
 			const { input } = makeInput({
-				actionConfig: { desk_location_id: 5, new_priority: 1 },
+				actionConfig: { desk_location_id: 'desk-5', new_priority: 1 },
 			});
 			const result = await executeAction(WorkflowActionType.UPDATE_PRIORITY, input);
 			expect(result).toEqual({
@@ -444,7 +446,7 @@ describe('executeAction', () => {
 
 		it('returns error when new_priority is missing', async () => {
 			const { input } = makeInput({
-				actionConfig: { user_id: 'user-2', desk_location_id: 5 },
+				actionConfig: { user_id: 'user-2', desk_location_id: 'desk-5' },
 			});
 			const result = await executeAction(WorkflowActionType.UPDATE_PRIORITY, input);
 			expect(result).toEqual({
@@ -455,7 +457,7 @@ describe('executeAction', () => {
 
 		it('returns error when user not found at desk location', async () => {
 			const { input, mockExecuteTakeFirst } = makeInput({
-				actionConfig: { user_id: 'user-2', desk_location_id: 5, new_priority: 1 },
+				actionConfig: { user_id: 'user-2', desk_location_id: 'desk-5', new_priority: 1 },
 			});
 			mockExecuteTakeFirst.mockResolvedValue(undefined);
 
@@ -463,13 +465,13 @@ describe('executeAction', () => {
 
 			expect(result).toEqual({
 				success: false,
-				error: 'User user-2 not assigned to desk location 5',
+				error: 'User user-2 not assigned to desk location desk-5',
 			});
 		});
 
 		it('skips when user is already at target priority', async () => {
 			const { input, mockExecuteTakeFirst } = makeInput({
-				actionConfig: { user_id: 'user-2', desk_location_id: 5, new_priority: 3 },
+				actionConfig: { user_id: 'user-2', desk_location_id: 'desk-5', new_priority: 3 },
 			});
 			mockExecuteTakeFirst.mockResolvedValue({ priority: 3 });
 
@@ -481,7 +483,7 @@ describe('executeAction', () => {
 					skipped: true,
 					reason: 'User already at target priority',
 					userId: 'user-2',
-					deskLocationId: 5,
+					deskLocationId: 'desk-5',
 					currentPriority: 3,
 				},
 			});
@@ -489,7 +491,7 @@ describe('executeAction', () => {
 
 		it('updates priority and returns old and new values', async () => {
 			const { input, mockExecuteTakeFirst, mockExecute } = makeInput({
-				actionConfig: { user_id: 'user-2', desk_location_id: 5, new_priority: 1 },
+				actionConfig: { user_id: 'user-2', desk_location_id: 'desk-5', new_priority: 1 },
 			});
 			mockExecuteTakeFirst.mockResolvedValue({ priority: 3 });
 			mockExecute.mockResolvedValue([]);
@@ -500,7 +502,7 @@ describe('executeAction', () => {
 				success: true,
 				data: {
 					userId: 'user-2',
-					deskLocationId: 5,
+					deskLocationId: 'desk-5',
 					oldPriority: 3,
 					newPriority: 1,
 				},
@@ -509,7 +511,7 @@ describe('executeAction', () => {
 
 		it('allows new_priority of 0', async () => {
 			const { input, mockExecuteTakeFirst } = makeInput({
-				actionConfig: { user_id: 'user-2', desk_location_id: 5, new_priority: 0 },
+				actionConfig: { user_id: 'user-2', desk_location_id: 'desk-5', new_priority: 0 },
 			});
 			mockExecuteTakeFirst.mockResolvedValue({ priority: 3 });
 

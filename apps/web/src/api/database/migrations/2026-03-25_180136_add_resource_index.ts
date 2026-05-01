@@ -23,9 +23,15 @@ export async function up(db: Kysely<any>): Promise<void> {
 	)`.execute(db);
 
 	// varchar_pattern_ops enables B-tree prefix search (LIKE 'term%')
-	await sql`CREATE INDEX idx_resource_index_search ON resource_index (client_id, label varchar_pattern_ops)`.execute(db);
-	await sql`CREATE INDEX idx_resource_index_secondary ON resource_index (client_id, secondary_label varchar_pattern_ops)`.execute(db);
-	await sql`CREATE INDEX idx_resource_index_linked ON resource_index (client_id, linked_resource_id) WHERE linked_resource_id IS NOT NULL`.execute(db);
+	await sql`CREATE INDEX idx_resource_index_search ON resource_index (client_id, label varchar_pattern_ops)`.execute(
+		db
+	);
+	await sql`CREATE INDEX idx_resource_index_secondary ON resource_index (client_id, secondary_label varchar_pattern_ops)`.execute(
+		db
+	);
+	await sql`CREATE INDEX idx_resource_index_linked ON resource_index (client_id, linked_resource_id) WHERE linked_resource_id IS NOT NULL`.execute(
+		db
+	);
 }
 
 export async function down(db: Kysely<any>): Promise<void> {

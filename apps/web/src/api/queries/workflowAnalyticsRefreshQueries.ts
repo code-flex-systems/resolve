@@ -169,9 +169,7 @@ export async function refreshDailyWorkflowSnapshot(
  * @param ctx - Protected context
  * @returns Array of date strings (YYYY-MM-DD format)
  */
-export async function getMissingSnapshotDates(
-	ctx: ProtectedContext
-): Promise<string[]> {
+export async function getMissingSnapshotDates(ctx: ProtectedContext): Promise<string[]> {
 	const clientId = ctx.session.user.client_id;
 
 	// Raw SQL needed for generate_series() which is PostgreSQL-specific

@@ -77,7 +77,8 @@ export default function SettlementFormDialog({
 	isEditing,
 	isSubmitting,
 }: SettlementFormDialogProps) {
-	const hasSettlementAmount = formData.settlement_amount && parseFloat(formData.settlement_amount) > 0;
+	const hasSettlementAmount =
+		formData.settlement_amount && parseFloat(formData.settlement_amount) > 0;
 	const isPaymentPlan = formData.settlement_structure === SettlementStructure.PAYMENT_PLAN;
 
 	// Validation
@@ -120,186 +121,186 @@ export default function SettlementFormDialog({
 		>
 			<div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 8 }}>
 				<Dropdown
-						label="Adverse Party"
-						options={adverseParties.map((cp) => ({
-							value: cp.id,
-							label: cp.party?.name || '',
-						}))}
-						value={formData.claim_party_id}
-						onChange={(v) => setFormData({ ...formData, claim_party_id: String(v) })}
-						required
-						fullWidth
-					/>
-					<Dropdown
-						label="Coverage"
-						options={coverages.map((coverage) => ({
-							value: coverage.id,
-							label: `${capitalize(coverage.loss_type)}${coverage.coverage_amount ? ` - ${formatCurrencyExact(Number(coverage.coverage_amount))}` : ''}`,
-						}))}
-						value={formData.coverage_id}
-						onChange={(v) => setFormData({ ...formData, coverage_id: String(v) })}
-						required
-						fullWidth
-					/>
+					label="Adverse Party"
+					options={adverseParties.map((cp) => ({
+						value: cp.id,
+						label: cp.party?.name || '',
+					}))}
+					value={formData.claim_party_id}
+					onChange={(v) => setFormData({ ...formData, claim_party_id: String(v) })}
+					required
+					fullWidth
+				/>
+				<Dropdown
+					label="Coverage"
+					options={coverages.map((coverage) => ({
+						value: coverage.id,
+						label: `${capitalize(coverage.loss_type)}${coverage.coverage_amount ? ` - ${formatCurrencyExact(Number(coverage.coverage_amount))}` : ''}`,
+					}))}
+					value={formData.coverage_id}
+					onChange={(v) => setFormData({ ...formData, coverage_id: String(v) })}
+					required
+					fullWidth
+				/>
 
-					{/* Adverse Party Reference */}
-					<Input
-						label="Adverse Party Claim #"
-						value={formData.adverse_party_reference}
-						onChange={(e) => setFormData({ ...formData, adverse_party_reference: e.target.value })}
-						fullWidth
-						placeholder="External reference number"
-					/>
+				{/* Adverse Party Reference */}
+				<Input
+					label="Adverse Party Claim #"
+					value={formData.adverse_party_reference}
+					onChange={(e) => setFormData({ ...formData, adverse_party_reference: e.target.value })}
+					fullWidth
+					placeholder="External reference number"
+				/>
 
-					<Input
-						label="Demand Amount"
-						type="number"
-						value={formData.demand_amount}
-						onChange={(e) => setFormData({ ...formData, demand_amount: e.target.value })}
-						fullWidth
-						required
-						placeholder="0.00"
-						step="0.01"
-						min="0"
-					/>
-					<DateField
-						label="Demand Date"
-						value={formData.demand_date || null}
-						onChange={(val) => setFormData({ ...formData, demand_date: val ?? '' })}
-						fullWidth
-					/>
-					{/* Edit-only fields: Status, Agreed Liability, Settlement Amount, Settlement Date */}
-					{isEditing && (
-						<>
-							<Dropdown
-								label="Status"
-								options={[
-									{ value: SettlementStatus.SENT, label: 'Sent' },
-									{ value: SettlementStatus.SETTLED, label: 'Settled' },
-									{ value: SettlementStatus.CLOSED, label: 'Closed' },
-								]}
-								value={formData.status}
-								onChange={(v) => setFormData({ ...formData, status: String(v) })}
-								fullWidth
-							/>
-							<Input
-								label="Agreed Liability %"
-								type="number"
-								value={formData.agreed_liability_percentage}
-								onChange={(e) =>
-									setFormData({
-										...formData,
-										agreed_liability_percentage: e.target.value,
-									})
-								}
-								fullWidth
-								placeholder="0-100"
-								step="0.01"
-								min="0"
-								max="100"
-							/>
-							<Input
-								label="Settlement Amount"
-								type="number"
-								value={formData.settlement_amount}
-								onChange={(e) => setFormData({ ...formData, settlement_amount: e.target.value })}
-								fullWidth
-								placeholder="0.00"
-								step="0.01"
-								min="0"
-							/>
-							<DateField
-								label="Settlement Date"
-								value={formData.settlement_date || null}
-								onChange={(val) => setFormData({ ...formData, settlement_date: val ?? '' })}
-								fullWidth
-							/>
-						</>
-					)}
-
-					{/* Settlement Structure - available on both create and edit */}
-					<Dropdown
-						label="Settlement Structure"
-						options={[
-							{ value: SettlementStructure.LUMP_SUM, label: 'Lump Sum' },
-							{ value: SettlementStructure.PAYMENT_PLAN, label: 'Payment Plan' },
-						]}
-						value={formData.settlement_structure || SettlementStructure.LUMP_SUM}
-						onChange={(v) =>
-							setFormData({
-								...formData,
-								settlement_structure: String(v),
-								// Clear payment fields if switching to lump sum
-								...(String(v) === SettlementStructure.LUMP_SUM && {
-									payment_amount: '',
-									payment_frequency: '',
-								}),
-							})
-						}
-						fullWidth
-					/>
-
-					{/* Payment Plan Fields - available on both create and edit when payment plan is selected */}
-					{isPaymentPlan && (
-						<>
-							<Input
-								label="Payment Amount (per installment)"
-								type="number"
-								value={formData.payment_amount}
-								onChange={(e) => setFormData({ ...formData, payment_amount: e.target.value })}
-								fullWidth
-								required
-								placeholder="0.00"
-								step="0.01"
-								min="0"
-							/>
-							<Dropdown
-								label="Payment Frequency"
-								options={[
-									{ value: PaymentFrequency.WEEKLY, label: 'Weekly' },
-									{ value: PaymentFrequency.BI_WEEKLY, label: 'Bi-Weekly' },
-									{ value: PaymentFrequency.MONTHLY, label: 'Monthly' },
-									{ value: PaymentFrequency.QUARTERLY, label: 'Quarterly' },
-								]}
-								value={formData.payment_frequency}
-								onChange={(v) => setFormData({ ...formData, payment_frequency: String(v) })}
-								required
-								fullWidth
-							/>
-							{estimatedPayments && (
-								<span style={{ color: 'var(--text-secondary)' }}>
-									Estimated payments: {estimatedPayments} installments
-								</span>
-							)}
-						</>
-					)}
-
-					{/* Settled By - required when settlement_amount is provided (edit mode only since settlement_amount is edit-only) */}
-					{hasSettlementAmount && (
+				<Input
+					label="Demand Amount"
+					type="number"
+					value={formData.demand_amount}
+					onChange={(e) => setFormData({ ...formData, demand_amount: e.target.value })}
+					fullWidth
+					required
+					placeholder="0.00"
+					step="0.01"
+					min="0"
+				/>
+				<DateField
+					label="Demand Date"
+					value={formData.demand_date || null}
+					onChange={(val) => setFormData({ ...formData, demand_date: val ?? '' })}
+					fullWidth
+				/>
+				{/* Edit-only fields: Status, Agreed Liability, Settlement Amount, Settlement Date */}
+				{isEditing && (
+					<>
 						<Dropdown
-							label="Settled By"
+							label="Status"
 							options={[
-								{ value: DROP_CHECK_VALUE, label: 'Drop Check (No Direct Contact)' },
-								...adminUsers.map((user) => ({
-									value: user.id,
-									label: `${user.first} ${user.last}`,
-								})),
+								{ value: SettlementStatus.SENT, label: 'Sent' },
+								{ value: SettlementStatus.SETTLED, label: 'Settled' },
+								{ value: SettlementStatus.CLOSED, label: 'Closed' },
 							]}
-							value={formData.settled_by}
-							onChange={(v) => setFormData({ ...formData, settled_by: String(v) })}
+							value={formData.status}
+							onChange={(v) => setFormData({ ...formData, status: String(v) })}
+							fullWidth
+						/>
+						<Input
+							label="Agreed Liability %"
+							type="number"
+							value={formData.agreed_liability_percentage}
+							onChange={(e) =>
+								setFormData({
+									...formData,
+									agreed_liability_percentage: e.target.value,
+								})
+							}
+							fullWidth
+							placeholder="0-100"
+							step="0.01"
+							min="0"
+							max="100"
+						/>
+						<Input
+							label="Settlement Amount"
+							type="number"
+							value={formData.settlement_amount}
+							onChange={(e) => setFormData({ ...formData, settlement_amount: e.target.value })}
+							fullWidth
+							placeholder="0.00"
+							step="0.01"
+							min="0"
+						/>
+						<DateField
+							label="Settlement Date"
+							value={formData.settlement_date || null}
+							onChange={(val) => setFormData({ ...formData, settlement_date: val ?? '' })}
+							fullWidth
+						/>
+					</>
+				)}
+
+				{/* Settlement Structure - available on both create and edit */}
+				<Dropdown
+					label="Settlement Structure"
+					options={[
+						{ value: SettlementStructure.LUMP_SUM, label: 'Lump Sum' },
+						{ value: SettlementStructure.PAYMENT_PLAN, label: 'Payment Plan' },
+					]}
+					value={formData.settlement_structure || SettlementStructure.LUMP_SUM}
+					onChange={(v) =>
+						setFormData({
+							...formData,
+							settlement_structure: String(v),
+							// Clear payment fields if switching to lump sum
+							...(String(v) === SettlementStructure.LUMP_SUM && {
+								payment_amount: '',
+								payment_frequency: '',
+							}),
+						})
+					}
+					fullWidth
+				/>
+
+				{/* Payment Plan Fields - available on both create and edit when payment plan is selected */}
+				{isPaymentPlan && (
+					<>
+						<Input
+							label="Payment Amount (per installment)"
+							type="number"
+							value={formData.payment_amount}
+							onChange={(e) => setFormData({ ...formData, payment_amount: e.target.value })}
+							fullWidth
+							required
+							placeholder="0.00"
+							step="0.01"
+							min="0"
+						/>
+						<Dropdown
+							label="Payment Frequency"
+							options={[
+								{ value: PaymentFrequency.WEEKLY, label: 'Weekly' },
+								{ value: PaymentFrequency.BI_WEEKLY, label: 'Bi-Weekly' },
+								{ value: PaymentFrequency.MONTHLY, label: 'Monthly' },
+								{ value: PaymentFrequency.QUARTERLY, label: 'Quarterly' },
+							]}
+							value={formData.payment_frequency}
+							onChange={(v) => setFormData({ ...formData, payment_frequency: String(v) })}
 							required
 							fullWidth
 						/>
-					)}
-					<Textarea
-						label="Notes"
-						value={formData.notes}
-						onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+						{estimatedPayments && (
+							<span style={{ color: 'var(--text-secondary)' }}>
+								Estimated payments: {estimatedPayments} installments
+							</span>
+						)}
+					</>
+				)}
+
+				{/* Settled By - required when settlement_amount is provided (edit mode only since settlement_amount is edit-only) */}
+				{hasSettlementAmount && (
+					<Dropdown
+						label="Settled By"
+						options={[
+							{ value: DROP_CHECK_VALUE, label: 'Drop Check (No Direct Contact)' },
+							...adminUsers.map((user) => ({
+								value: user.id,
+								label: `${user.first} ${user.last}`,
+							})),
+						]}
+						value={formData.settled_by}
+						onChange={(v) => setFormData({ ...formData, settled_by: String(v) })}
+						required
 						fullWidth
-						rows={3}
-						placeholder="Additional details about this settlement demand..."
 					/>
-				</div>
+				)}
+				<Textarea
+					label="Notes"
+					value={formData.notes}
+					onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+					fullWidth
+					rows={3}
+					placeholder="Additional details about this settlement demand..."
+				/>
+			</div>
 		</Dialog>
 	);
 }

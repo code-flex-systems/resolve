@@ -49,21 +49,17 @@ export const workflowAnalyticsRouter = router({
 	 * Get desk location workload and utilization metrics.
 	 * Available to all authenticated users.
 	 */
-	getDeskWorkLoad: protectedProcedure
-		.input(getDeskWorkLoadInput)
-		.query(async ({ input, ctx }) => {
-			return workflowAnalyticsController.getDeskLocationWorkLoad(ctx, input);
-		}),
+	getDeskWorkLoad: protectedProcedure.input(getDeskWorkLoadInput).query(async ({ input, ctx }) => {
+		return workflowAnalyticsController.getDeskLocationWorkLoad(ctx, input);
+	}),
 
 	/**
 	 * Get user workload and capacity metrics.
 	 * Available to all authenticated users.
 	 */
-	getUserWorkload: protectedProcedure
-		.input(getUserWorkloadInput)
-		.query(async ({ input, ctx }) => {
-			return workflowAnalyticsController.getUserWorkloadAndCapacity(ctx, input);
-		}),
+	getUserWorkload: protectedProcedure.input(getUserWorkloadInput).query(async ({ input, ctx }) => {
+		return workflowAnalyticsController.getUserWorkloadAndCapacity(ctx, input);
+	}),
 
 	/**
 	 * Get claims approaching or past SLA breach.
@@ -136,11 +132,10 @@ export const workflowAnalyticsRouter = router({
 	 * Execute all pending workflow suggestions.
 	 * Runs in a single transaction — all-or-nothing.
 	 */
-	executeAllSuggestions: protectedProcedure
-		.mutation(async ({ ctx }) => {
-			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-			return workflowAnalyticsController.executeAllSuggestions(ctx);
-		}),
+	executeAllSuggestions: protectedProcedure.mutation(async ({ ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return workflowAnalyticsController.executeAllSuggestions(ctx);
+	}),
 
 	/**
 	 * Update a workflow suggestion status.

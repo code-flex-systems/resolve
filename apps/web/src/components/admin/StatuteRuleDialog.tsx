@@ -12,7 +12,12 @@ import { useStatuteTrpc } from '@/hooks/trpc/useStatuteTrpc';
 import { useAdminStore } from '@/stores/useAdminStore';
 import { STATUTE_TORT_TYPES, STATUTE_LOB_TYPES } from '@/config/statuteConfig';
 import { getJurisdictionName } from '@/config/usJurisdictions';
-import type { StatuteRules, TortTypeConfig, ConditionalRule, NegligenceType } from '@/schemas/statuteSchemas';
+import type {
+	StatuteRules,
+	TortTypeConfig,
+	ConditionalRule,
+	NegligenceType,
+} from '@/schemas/statuteSchemas';
 import { getBarPercentForType, getNegligenceTypeLabel } from '@/schemas/statuteSchemas';
 
 export default function StatuteRuleDialog() {
@@ -102,7 +107,11 @@ export default function StatuteRuleDialog() {
 		});
 	};
 
-	const updateConditionalRule = (tortType: string, index: number, updates: Partial<ConditionalRule>) => {
+	const updateConditionalRule = (
+		tortType: string,
+		index: number,
+		updates: Partial<ConditionalRule>
+	) => {
 		const config = getTortConfig(tortType);
 		const newRules = [...config.rules];
 		newRules[index] = { ...newRules[index], ...updates };
@@ -197,11 +206,9 @@ export default function StatuteRuleDialog() {
 
 								{/* Conditional Rules */}
 								<div>
-									<span>
-										Conditional Rules
-									</span>
+									<span>Conditional Rules</span>
 									<span
-										style={{  color: 'var(--text-secondary)' ,  display: 'block', marginBottom: 8  }}
+										style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: 8 }}
 									>
 										Add rules for specific LOB or date ranges. First matching rule wins.
 									</span>
@@ -270,7 +277,9 @@ export default function StatuteRuleDialog() {
 												style={{ width: 80 }}
 												min={0}
 											/>
-											<Button variant="icon" size="sm"
+											<Button
+												variant="icon"
+												size="sm"
 												color="error"
 												onClick={() => removeConditionalRule(tort.value, idx)}
 											>

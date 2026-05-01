@@ -17,7 +17,9 @@
 	border-radius: 12px;
 	font-size: 14px;
 	font-weight: 500;
-	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(0, 0, 0, 0.08);
+	box-shadow:
+		0 4px 16px rgba(0, 0, 0, 0.12),
+		0 1px 4px rgba(0, 0, 0, 0.08);
 	animation: slideUp 0.3s ease forwards;
 }
 

@@ -36,7 +36,8 @@ export function ChecklistQuestion(props: {
 			className="flex-col-left"
 			style={{
 				...styles.container,
-				backgroundColor: highlightedQuestion === question.id ? 'rgba(50, 174, 153, 0.1)' : undefined,
+				backgroundColor:
+					highlightedQuestion === question.id ? 'rgba(50, 174, 153, 0.1)' : undefined,
 			}}
 		>
 			<ChecklistFormLabel

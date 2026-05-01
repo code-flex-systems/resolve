@@ -1,6 +1,12 @@
 'use client';
 
-import { IconArchive, IconChevronDown, IconChevronUp, IconEdit, IconUserPlus } from '@tabler/icons-react';
+import {
+	IconArchive,
+	IconChevronDown,
+	IconChevronUp,
+	IconEdit,
+	IconUserPlus,
+} from '@tabler/icons-react';
 import Collapse from '@/components/ui/Collapse';
 import Chip from '@/components/ui/Chip';
 import Button from '@/components/ui/Button';
@@ -94,7 +100,9 @@ export default function PartyCard({
 				)}
 
 				<div style={{ flex: 1 }}>
-					<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+					<div
+						style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}
+					>
 						<div style={{ flex: 1 }}>
 							{/* Party Name and Role */}
 							<div
@@ -151,12 +159,12 @@ export default function PartyCard({
 								{isManageMode && (
 									<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
 										<Button variant="icon" size="sm" color="neutral">
-							<IconEdit size={16} />
-						</Button>
+											<IconEdit size={16} />
+										</Button>
 										{onArchiveParty && (
 											<Button variant="icon" size="sm" color="neutral">
-							<IconArchive size={16} />
-						</Button>
+												<IconArchive size={16} />
+											</Button>
 										)}
 									</div>
 								)}
@@ -164,7 +172,14 @@ export default function PartyCard({
 
 							{/* Party Organization */}
 							{claimParty.party?.organization && (
-								<span style={{ fontSize: 13, marginBottom: 4, color: 'var(--text-secondary)', display: 'block' }}>
+								<span
+									style={{
+										fontSize: 13,
+										marginBottom: 4,
+										color: 'var(--text-secondary)',
+										display: 'block',
+									}}
+								>
 									Organization: <Highlight>{claimParty.party.organization}</Highlight>
 								</span>
 							)}
@@ -227,12 +242,17 @@ export default function PartyCard({
 
 							{/* Address */}
 							{claimParty.address && (
-								<span style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>
+								<span
+									style={{
+										fontSize: 12,
+										color: 'var(--text-secondary)',
+										marginBottom: 4,
+										display: 'block',
+									}}
+								>
 									📍{' '}
 									{claimParty.address.name && (
-										<span style={{ fontWeight: 500 }}>
-											{claimParty.address.name}:{' '}
-										</span>
+										<span style={{ fontWeight: 500 }}>{claimParty.address.name}: </span>
 									)}
 									{formatAddressInline(claimParty.address)}
 								</span>
@@ -289,7 +309,15 @@ export default function PartyCard({
 											)}
 
 											{facilitators.length > 0 && (
-												<div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8, marginLeft: 16 }}>
+												<div
+													style={{
+														display: 'flex',
+														flexDirection: 'column',
+														gap: 12,
+														marginTop: 8,
+														marginLeft: 16,
+													}}
+												>
 													{facilitators.map((facilitator: any) => (
 														<PartyCard
 															key={facilitator.id}
@@ -318,13 +346,22 @@ export default function PartyCard({
 
 							{/* Notes */}
 							{claimParty.notes && (
-								<span style={{ fontSize: 13, color: 'var(--text-secondary)', marginTop: 8, display: 'block' }}>
+								<span
+									style={{
+										fontSize: 13,
+										color: 'var(--text-secondary)',
+										marginTop: 8,
+										display: 'block',
+									}}
+								>
 									Notes: {claimParty.notes}
 								</span>
 							)}
 
 							{/* Metadata */}
-							<span style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 8, display: 'block' }}>
+							<span
+								style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 8, display: 'block' }}
+							>
 								Linked {dayjs(claimParty.created_at).format('MMM D, YYYY')} (
 								{dayjs(claimParty.created_at).fromNow()})
 							</span>

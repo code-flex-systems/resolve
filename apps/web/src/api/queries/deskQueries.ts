@@ -62,9 +62,7 @@ export async function getDeskLocationTypes(
 
 	// Apply search filter if provided (prefix search for index usage)
 	if (searchTerm) {
-		query = query.where(
-			sql<boolean>`desk_location_type.name ILIKE ${`${searchTerm}%`}`
-		);
+		query = query.where(sql<boolean>`desk_location_type.name ILIKE ${`${searchTerm}%`}`);
 	}
 
 	// Single query with COUNT(*) OVER() for total count
@@ -177,10 +175,7 @@ export async function getDeskLocationTypeLocations(
  * Archive desk location type (soft delete)
  * Prevents archival if type has active (non-archived) locations
  */
-export async function archiveDeskLocationType(
-	ctx: ProtectedContext,
-	id: string
-) {
+export async function archiveDeskLocationType(ctx: ProtectedContext, id: string) {
 	const deskLocationType = await getDeskLocationType(ctx, id);
 	if (!deskLocationType) {
 		throw new Error('Desk location type not found');
@@ -214,10 +209,7 @@ export async function archiveDeskLocationType(
 /**
  * Restore archived desk location type
  */
-export async function restoreDeskLocationType(
-	ctx: ProtectedContext,
-	id: string
-) {
+export async function restoreDeskLocationType(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.updateTable('desk_location_type')
 		.set({
@@ -253,11 +245,7 @@ export async function getDeskLocations(
 	// Uses pre-aggregated subquery for user_count to avoid row expansion and DISTINCT ON
 	let query = ctx.db
 		.selectFrom('desk_location')
-		.leftJoin(
-			'desk_location_type',
-			'desk_location.desk_location_type_id',
-			'desk_location_type.id'
-		)
+		.leftJoin('desk_location_type', 'desk_location.desk_location_type_id', 'desk_location_type.id')
 		.leftJoin(
 			(eb) =>
 				eb
@@ -285,20 +273,14 @@ export async function getDeskLocations(
 			'desk_location.deleted_at',
 			'desk_location_type.name as desk_location_type_name',
 		])
-		.select(
-			sql<number>`COALESCE(udl_counts.user_count, 0)`.as('user_count')
-		)
+		.select(sql<number>`COALESCE(udl_counts.user_count, 0)`.as('user_count'))
 		.where('desk_location.client_id', '=', ctx.session.user.client_id)
 		.orderBy('desk_location_type.name asc')
 		.orderBy('desk_location.name asc');
 
 	// Filter by desk location type if provided
 	if (deskLocationTypeId !== undefined) {
-		query = query.where(
-			'desk_location.desk_location_type_id',
-			'=',
-			deskLocationTypeId
-		);
+		query = query.where('desk_location.desk_location_type_id', '=', deskLocationTypeId);
 	}
 
 	// Filter by deleted status
@@ -317,9 +299,7 @@ export async function getDeskLocations(
 
 	// Apply search filter if provided (prefix search for index usage)
 	if (searchTerm) {
-		query = query.where(
-			sql<boolean>`desk_location.name ILIKE ${`${searchTerm}%`}`
-		);
+		query = query.where(sql<boolean>`desk_location.name ILIKE ${`${searchTerm}%`}`);
 	}
 
 	// Single query with COUNT(*) OVER() for total count
@@ -341,11 +321,7 @@ export async function getDeskLocations(
 export async function getDeskLocation(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.selectFrom('desk_location')
-		.leftJoin(
-			'desk_location_type',
-			'desk_location.desk_location_type_id',
-			'desk_location_type.id'
-		)
+		.leftJoin('desk_location_type', 'desk_location.desk_location_type_id', 'desk_location_type.id')
 		.select([
 			'desk_location.id',
 			'desk_location.name',
@@ -523,16 +499,8 @@ export async function restoreDeskLocation(ctx: ProtectedContext, id: string) {
 export async function getUserDeskLocations(ctx: ProtectedContext, userId: string) {
 	return await ctx.db
 		.selectFrom('user_desk_location')
-		.leftJoin(
-			'desk_location',
-			'user_desk_location.desk_location_id',
-			'desk_location.id'
-		)
-		.leftJoin(
-			'desk_location_type',
-			'desk_location.desk_location_type_id',
-			'desk_location_type.id'
-		)
+		.leftJoin('desk_location', 'user_desk_location.desk_location_id', 'desk_location.id')
+		.leftJoin('desk_location_type', 'desk_location.desk_location_type_id', 'desk_location_type.id')
 		.select([
 			'user_desk_location.id',
 			'user_desk_location.user_id',
@@ -563,14 +531,8 @@ export async function getUserDeskLocations(ctx: ProtectedContext, userId: string
 export async function getAllUserDeskAssignmentCounts(ctx: ProtectedContext) {
 	const results = await ctx.db
 		.selectFrom('user_desk_location')
-		.leftJoin(
-			'desk_location',
-			'user_desk_location.desk_location_id',
-			'desk_location.id'
-		)
-		.select([
-			'user_desk_location.user_id',
-		])
+		.leftJoin('desk_location', 'user_desk_location.desk_location_id', 'desk_location.id')
+		.select(['user_desk_location.user_id'])
 		.select((eb) => eb.fn.count('user_desk_location.id').as('assignment_count'))
 		.where('user_desk_location.removed_at', 'is', null)
 		.where('desk_location.deleted_at', 'is', null)
@@ -579,10 +541,13 @@ export async function getAllUserDeskAssignmentCounts(ctx: ProtectedContext) {
 		.execute();
 
 	// Convert to a map for easy lookup
-	return results.reduce((acc, row) => {
-		acc[row.user_id] = Number(row.assignment_count);
-		return acc;
-	}, {} as Record<string, number>);
+	return results.reduce(
+		(acc, row) => {
+			acc[row.user_id] = Number(row.assignment_count);
+			return acc;
+		},
+		{} as Record<string, number>
+	);
 }
 
 /**
@@ -735,11 +700,7 @@ export async function bulkAssignUsersToDeskLocation(
 			assigned_by: ctx.session.user.id,
 		}));
 
-		return await db
-			.insertInto('user_desk_location')
-			.values(insertValues)
-			.returningAll()
-			.execute();
+		return await db.insertInto('user_desk_location').values(insertValues).returningAll().execute();
 	};
 
 	// Check if we're already in a transaction
@@ -817,10 +778,7 @@ export async function updateUserDeskLocationPriority(
 /**
  * Remove user from desk location (soft delete)
  */
-export async function removeUserFromDeskLocation(
-	ctx: ProtectedContext,
-	id: string
-) {
+export async function removeUserFromDeskLocation(ctx: ProtectedContext, id: string) {
 	return await ctx.db
 		.updateTable('user_desk_location')
 		.set({
@@ -886,11 +844,7 @@ export async function updateUserDeskLocationPriorities(
 		}
 
 		// Batch insert all new records
-		return await db
-			.insertInto('user_desk_location')
-			.values(insertValues)
-			.returningAll()
-			.execute();
+		return await db.insertInto('user_desk_location').values(insertValues).returningAll().execute();
 	};
 
 	// Check if we're already in a transaction

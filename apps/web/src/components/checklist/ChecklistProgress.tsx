@@ -22,15 +22,29 @@ export default function ChecklistProgress({
 	showInfo?: boolean;
 }) {
 	const isAssigned = useIsAssigned();
-	const { data: progress = { answerCount: 0, totalQuestionCount: 0 }, isFetching: isFetchingProgress } =
-		useChecklistTrpc().progress({ checklistId, claimId }, { enabled: !!checklistId && !!claimId });
+	const {
+		data: progress = { answerCount: 0, totalQuestionCount: 0 },
+		isFetching: isFetchingProgress,
+	} = useChecklistTrpc().progress(
+		{ checklistId, claimId },
+		{ enabled: !!checklistId && !!claimId }
+	);
 
 	const progressPercentage =
-		progress.totalQuestionCount > 0 ? Math.floor((progress.answerCount / progress.totalQuestionCount) * 100) : 0;
+		progress.totalQuestionCount > 0
+			? Math.floor((progress.answerCount / progress.totalQuestionCount) * 100)
+			: 0;
 
 	return (
 		<>
-			<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', paddingBottom: '15px' }}>
+			<div
+				style={{
+					display: 'flex',
+					justifyContent: 'center',
+					alignItems: 'center',
+					paddingBottom: '15px',
+				}}
+			>
 				{showInfo && (
 					<Tooltip
 						content="isAssigned
@@ -57,7 +71,9 @@ export default function ChecklistProgress({
 					)}
 				</span>
 			</div>
-			<div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+			<div
+				style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+			>
 				<ProgressBar value={isFetchingProgress ? undefined : progressPercentage} color="success" />
 			</div>
 		</>

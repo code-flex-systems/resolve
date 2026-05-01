@@ -85,7 +85,8 @@ async function createSettlementChain(
 		client_id,
 		created_by,
 		role: ['adverse_carrier'],
-		policy_limit: policy_limit !== undefined && policy_limit !== null ? policy_limit.toString() : null,
+		policy_limit:
+			policy_limit !== undefined && policy_limit !== null ? policy_limit.toString() : null,
 	});
 	const coverage = await createTestCoverage(db, {
 		client_id,
@@ -974,7 +975,11 @@ describe('financialReportingQueries integration', () => {
 			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const claim1 = await createTestClaim(db, { client_id: client1.id });
-			await db.updateTable('claim').set({ line_of_business: 'auto' }).where('id', '=', claim1.id).execute();
+			await db
+				.updateTable('claim')
+				.set({ line_of_business: 'auto' })
+				.where('id', '=', claim1.id)
+				.execute();
 			await createSettlementChain(db, {
 				client_id: client1.id,
 				claim_id: claim1.id,
@@ -998,7 +1003,11 @@ describe('financialReportingQueries integration', () => {
 
 			// Control - client 2 data
 			const claim2 = await createTestClaim(db, { client_id: client2.id });
-			await db.updateTable('claim').set({ line_of_business: 'auto' }).where('id', '=', claim2.id).execute();
+			await db
+				.updateTable('claim')
+				.set({ line_of_business: 'auto' })
+				.where('id', '=', claim2.id)
+				.execute();
 			await createSettlementChain(db, {
 				client_id: client2.id,
 				claim_id: claim2.id,
@@ -1764,9 +1773,21 @@ describe('financialReportingQueries integration', () => {
 			const client = await createTestClient(db);
 
 			// Insert in reverse order
-			await createTestClaimWithCreatedAt(db, { client_id: client.id, substatus: 'litigation', expected_recovery: 1 });
-			await createTestClaimWithCreatedAt(db, { client_id: client.id, substatus: 'investigation', expected_recovery: 1 });
-			await createTestClaimWithCreatedAt(db, { client_id: client.id, substatus: 'demand_sent', expected_recovery: 1 });
+			await createTestClaimWithCreatedAt(db, {
+				client_id: client.id,
+				substatus: 'litigation',
+				expected_recovery: 1,
+			});
+			await createTestClaimWithCreatedAt(db, {
+				client_id: client.id,
+				substatus: 'investigation',
+				expected_recovery: 1,
+			});
+			await createTestClaimWithCreatedAt(db, {
+				client_id: client.id,
+				substatus: 'demand_sent',
+				expected_recovery: 1,
+			});
 
 			const result = await getSettlementFunnel(db, client.id, fullRange());
 			expect(result.map((r) => r.stage)).toEqual(['investigation', 'demand_sent', 'litigation']);

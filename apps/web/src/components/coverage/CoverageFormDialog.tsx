@@ -98,15 +98,15 @@ export default function CoverageFormDialog({
 
 	const isValidCoverageAmount =
 		!formData.coverage_amount ||
-		(!isNaN(parseFloat(formData.coverage_amount)) && parseFloat(formData.coverage_amount)> 0);
+		(!isNaN(parseFloat(formData.coverage_amount)) && parseFloat(formData.coverage_amount) > 0);
 
 	const isValidReservedAmount =
 		!formData.amount_reserved ||
-		(!isNaN(parseFloat(formData.amount_reserved)) && parseFloat(formData.amount_reserved)>= 0);
+		(!isNaN(parseFloat(formData.amount_reserved)) && parseFloat(formData.amount_reserved) >= 0);
 
 	const isValidDeductibleAmount =
 		!formData.deductible_amount ||
-		(!isNaN(parseFloat(formData.deductible_amount)) && parseFloat(formData.deductible_amount)>= 0);
+		(!isNaN(parseFloat(formData.deductible_amount)) && parseFloat(formData.deductible_amount) >= 0);
 
 	if (!open) return null;
 
@@ -130,7 +130,8 @@ export default function CoverageFormDialog({
 				},
 			]}
 			onClose={onClose}
-			width={600}>
+			width={600}
+		>
 			<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16, paddingTop: 1 }}>
 				<CoverageTypeSelect
 					value={formData.loss_type}
@@ -163,13 +164,13 @@ export default function CoverageFormDialog({
 					startAdornment={<span style={{ color: 'var(--text-muted)' }}>$</span>}
 					error={!isValidReservedAmount}
 					errorText={!isValidReservedAmount ? 'Must be 0 or greater' : undefined}
-					helperText={isValidReservedAmount ? 'Amount reserved for potential claim payments' : undefined}
+					helperText={
+						isValidReservedAmount ? 'Amount reserved for potential claim payments' : undefined
+					}
 				/>
 
 				{/* Deductible Section */}
-				<span style={{ marginTop: 8, marginBottom: -8 }}>
-					Deductible Information
-				</span>
+				<span style={{ marginTop: 8, marginBottom: -8 }}>Deductible Information</span>
 
 				<Input
 					label="Deductible Amount"
@@ -200,9 +201,7 @@ export default function CoverageFormDialog({
 				/>
 
 				{/* Subrogation & Statute Section */}
-				<span style={{ marginTop: 8, marginBottom: -8 }}>
-					Subrogation & Statute Tracking
-				</span>
+				<span style={{ marginTop: 8, marginBottom: -8 }}>Subrogation & Statute Tracking</span>
 
 				<Dropdown
 					label="Subrogation Applicable"

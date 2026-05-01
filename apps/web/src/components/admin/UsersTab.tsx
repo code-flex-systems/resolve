@@ -70,7 +70,9 @@ const getColumns = (isManageMode: boolean): ColumnDef<any, any>[] => [
 			return (
 				<div style={{ display: 'flex', flexDirection: 'column' }}>
 					<span style={{ fontSize: 14 }}>{statusText}</span>
-					{statusDate && <span style={{ color: 'var(--text-muted)', fontSize: 12 }}>{statusDate}</span>}
+					{statusDate && (
+						<span style={{ color: 'var(--text-muted)', fontSize: 12 }}>{statusDate}</span>
+					)}
 				</div>
 			);
 		},
@@ -133,9 +135,16 @@ export default function UsersTab() {
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading users...">
 			<div style={styles.container}>
 				<Card variant="beveled" padding="md" style={styles.paper}>
-					<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
-						Manage user accounts and permissions. Invite new users by email — they'll create their own
-						account when they accept.
+					<p
+						style={{
+							color: 'var(--text-secondary)',
+							fontSize: 13,
+							margin: '0 0 12px',
+							lineHeight: 1.5,
+						}}
+					>
+						Manage user accounts and permissions. Invite new users by email — they'll create their
+						own account when they accept.
 					</p>
 					<Toolbar
 						left={

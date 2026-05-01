@@ -9,7 +9,10 @@ import { useState } from 'react';
 import Card from '@/components/ui/Card';
 import SuggestionCard from './SuggestionCard';
 import SuggestionDetailDialog from './SuggestionDetailDialog';
-import { WorkflowSuggestionsResult, useWorkflowAnalyticsTrpc } from '@/hooks/trpc/useWorkflowAnalyticsTrpc';
+import {
+	WorkflowSuggestionsResult,
+	useWorkflowAnalyticsTrpc,
+} from '@/hooks/trpc/useWorkflowAnalyticsTrpc';
 import { useAlertStore } from '@/stores/useAlertStore';
 import { getSeverityLabel, getSeverityColor } from '@/lib/workflow/suggestions';
 import { SuggestionStatus } from '@/config/enums';
@@ -76,7 +79,10 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 	const { executeSuggestion, executeAllSuggestions, updateSuggestion } = useWorkflowAnalyticsTrpc();
 
 	const isBusy =
-		isFetching || executeSuggestion.isPending || executeAllSuggestions.isPending || updateSuggestion.isPending;
+		isFetching ||
+		executeSuggestion.isPending ||
+		executeAllSuggestions.isPending ||
+		updateSuggestion.isPending;
 
 	const resolutions = data?.resolutions ?? [];
 
@@ -188,14 +194,26 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 		return (
 			<Card variant="beveled" padding="lg">
 				<div
-					style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'space-between',
+						marginBottom: 16,
+					}}
 				>
 					<span style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)' }}>
 						Suggested Actions
 					</span>
 					<Chip size="sm">0 recommendations</Chip>
 				</div>
-				<p style={{ fontSize: 14, color: 'var(--text-secondary)', textAlign: 'center', padding: '32px 0' }}>
+				<p
+					style={{
+						fontSize: 14,
+						color: 'var(--text-secondary)',
+						textAlign: 'center',
+						padding: '32px 0',
+					}}
+				>
 					All desk locations are within capacity. No bottlenecks detected.
 				</p>
 			</Card>
@@ -230,7 +248,14 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 	return (
 		<Card variant="beveled" padding="lg">
 			{/* Header */}
-			<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'space-between',
+					marginBottom: 20,
+				}}
+			>
 				<div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
 					<span style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)' }}>
 						Suggested Actions
@@ -283,7 +308,12 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 						}}
 					>
 						<span
-							style={{ fontSize: 13, color: 'var(--text-secondary)', display: 'block', marginBottom: 12 }}
+							style={{
+								fontSize: 13,
+								color: 'var(--text-secondary)',
+								display: 'block',
+								marginBottom: 12,
+							}}
 						>
 							Last analysis: {new Date(data.generatedAt).toLocaleString()}
 						</span>
@@ -420,9 +450,9 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 							Team Capacity Strain
 						</span>
 						<span style={{ fontSize: 13, color: '#92400e' }}>
-							{data.summary.totalUnresolved} breach{data.summary.totalUnresolved !== 1 ? 'es' : ''} could
-							not be fully resolved due to limited team availability. Consider adjusting workload or
-							capacity thresholds.
+							{data.summary.totalUnresolved} breach{data.summary.totalUnresolved !== 1 ? 'es' : ''}{' '}
+							could not be fully resolved due to limited team availability. Consider adjusting
+							workload or capacity thresholds.
 						</span>
 					</div>
 				</div>
@@ -458,8 +488,9 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 				footer={executeAllFooter}
 			>
 				<p style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 16 }}>
-					The following {pendingResolutions.length} suggestion{pendingResolutions.length !== 1 ? 's' : ''}{' '}
-					will be executed, applying priority changes to user desk assignments:
+					The following {pendingResolutions.length} suggestion
+					{pendingResolutions.length !== 1 ? 's' : ''} will be executed, applying priority changes
+					to user desk assignments:
 				</p>
 				<div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
 					{pendingResolutions.map((res, idx) => (

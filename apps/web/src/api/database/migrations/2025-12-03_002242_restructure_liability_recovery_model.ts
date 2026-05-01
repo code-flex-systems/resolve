@@ -40,7 +40,9 @@ export async function up(db: Kysely<any>): Promise<void> {
 	await db.schema.alterTable('claim_liability').dropColumn('reserved_recovery').execute();
 
 	// 4. Drop liability_percentage from claim_liability (data already migrated)
-	await sql`ALTER TABLE claim_liability DROP CONSTRAINT IF EXISTS claim_liability_liability_check`.execute(db);
+	await sql`ALTER TABLE claim_liability DROP CONSTRAINT IF EXISTS claim_liability_liability_check`.execute(
+		db
+	);
 	await db.schema.alterTable('claim_liability').dropColumn('liability_percentage').execute();
 
 	// 5. Add amount_reserved to claim_coverage
@@ -78,6 +80,8 @@ export async function down(db: Kysely<any>): Promise<void> {
 	await sql`ALTER TABLE claim_liability RENAME COLUMN amount_paid TO paid_recovery`.execute(db);
 
 	// 1. Remove liability_percentage from claim_party
-	await sql`ALTER TABLE claim_party DROP CONSTRAINT IF EXISTS claim_party_liability_percentage_check`.execute(db);
+	await sql`ALTER TABLE claim_party DROP CONSTRAINT IF EXISTS claim_party_liability_percentage_check`.execute(
+		db
+	);
 	await db.schema.alterTable('claim_party').dropColumn('liability_percentage').execute();
 }

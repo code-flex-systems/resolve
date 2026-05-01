@@ -53,7 +53,10 @@ export const actionParams = z.discriminatedUnion('type', [
 ]);
 export type ActionInput = z.infer<typeof actionParams>;
 
-export const createActionInput = z.intersection(z.object({ answerId: z.string().uuid() }), actionParams);
+export const createActionInput = z.intersection(
+	z.object({ answerId: z.string().uuid() }),
+	actionParams
+);
 
 export const getActionInput = z.object({ answerId: z.string().uuid() });
 

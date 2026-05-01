@@ -104,7 +104,9 @@ export async function getUsersWithDeskAssignments(
 		.selectAll('users')
 		.select([
 			sql<number>`COUNT(udl.id) FILTER (WHERE dl.id IS NOT NULL)`.as('assignment_count'),
-			sql<number>`COALESCE(SUM(dl.capacity_threshold) FILTER (WHERE dl.id IS NOT NULL), 0)`.as('capacity'),
+			sql<number>`COALESCE(SUM(dl.capacity_threshold) FILTER (WHERE dl.id IS NOT NULL), 0)`.as(
+				'capacity'
+			),
 			sql`COALESCE(
 				jsonb_agg(
 					jsonb_build_object(
@@ -199,7 +201,10 @@ export async function getUsers(ctx: ProtectedContext, searchTerm?: string, role?
 		.selectFrom('users')
 		.select(['id', 'first', 'last', 'email', 'phone'])
 		.where((eb) => {
-			const andClause = [eb('disabled', '=', false), eb('client_id', '=', ctx.session.user.client_id)];
+			const andClause = [
+				eb('disabled', '=', false),
+				eb('client_id', '=', ctx.session.user.client_id),
+			];
 			if (searchTerm) {
 				andClause.push(
 					eb(
@@ -286,7 +291,12 @@ export async function getUserActivityDetail(ctx: ProtectedContext, date: string)
  * @param searchTerm - optional search term
  * @returns number of users
  */
-export async function getUserCount(ctx: ProtectedContext, disabled?: boolean, inactive?: boolean, searchTerm?: string) {
+export async function getUserCount(
+	ctx: ProtectedContext,
+	disabled?: boolean,
+	inactive?: boolean,
+	searchTerm?: string
+) {
 	const query = ctx.db
 		.selectFrom('users')
 		.select(({ fn }) => fn.countAll().as('count'))
@@ -397,7 +407,11 @@ export async function updateUser(
  * @param id - user identifier to delete
  */
 export async function deleteUser(ctx: ProtectedContext, id: string) {
-	await ctx.db.deleteFrom('users').where('id', '=', id).where('client_id', '=', ctx.session.user.client_id).execute();
+	await ctx.db
+		.deleteFrom('users')
+		.where('id', '=', id)
+		.where('client_id', '=', ctx.session.user.client_id)
+		.execute();
 }
 
 /**
@@ -471,7 +485,9 @@ export async function getUserManagementStats(ctx: ProtectedContext) {
 				fn.countAll<number>().as('total'),
 				sql<number>`count(*) filter (where not disabled)`.as('active'),
 				sql<number>`count(*) filter (where disabled)`.as('disabled'),
-				sql<number>`count(*) filter (where created_at >= now() - interval '30 days')`.as('recent_signups'),
+				sql<number>`count(*) filter (where created_at >= now() - interval '30 days')`.as(
+					'recent_signups'
+				),
 			])
 			.executeTakeFirstOrThrow(),
 		ctx.db
@@ -479,10 +495,7 @@ export async function getUserManagementStats(ctx: ProtectedContext) {
 			.where('client_id', '=', clientId)
 			.where('disabled', '=', false)
 			.groupBy('role')
-			.select(({ fn }) => [
-				'role',
-				fn.countAll<number>().as('count'),
-			])
+			.select(({ fn }) => ['role', fn.countAll<number>().as('count')])
 			.execute(),
 	]);
 
@@ -491,6 +504,6 @@ export async function getUserManagementStats(ctx: ProtectedContext) {
 		active: Number(counts.active),
 		disabled: Number(counts.disabled),
 		recentSignups: Number(counts.recent_signups),
-		byRole: byRole.map(r => ({ role: r.role ?? 'unknown', count: Number(r.count) })),
+		byRole: byRole.map((r) => ({ role: r.role ?? 'unknown', count: Number(r.count) })),
 	};
 }

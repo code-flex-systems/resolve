@@ -13,11 +13,24 @@ export default function RecentComments() {
 	const { data: session } = useClerkSession();
 	const userId = session?.user.id;
 
-	const { data: comments = { rows: [], count: 0 } } = useCommentTrpc().list({ filters: { userId } });
+	const { data: comments = { rows: [], count: 0 } } = useCommentTrpc().list({
+		filters: { userId },
+	});
 
 	return (
 		<Card variant="beveled" padding="none" style={{ ...styles.container, overflow: 'hidden' }}>
-			<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					padding: '12px 16px',
+					fontSize: 13,
+					fontWeight: 600,
+					color: 'var(--text-primary)',
+					backgroundColor: 'var(--bg-secondary)',
+					borderBottom: '1px solid var(--border)',
+				}}
+			>
 				<IconMessage style={{ fontSize: 16, marginRight: 8, verticalAlign: 'text-bottom' }} />
 				Recent Comments
 			</div>
@@ -39,7 +52,13 @@ export default function RecentComments() {
 						onNavigate={({ checklistId, claimId, instanceId, questionId }) => {
 							if (!checklistId || !claimId) return;
 							router.push(
-								buildChecklistUrl({ checklistId, claimId, instanceId, questionId, focus: 'comments' })
+								buildChecklistUrl({
+									checklistId,
+									claimId,
+									instanceId,
+									questionId,
+									focus: 'comments',
+								})
 							);
 						}}
 					/>

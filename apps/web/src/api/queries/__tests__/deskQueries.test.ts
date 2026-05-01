@@ -91,17 +91,20 @@ describe('assignUserToDeskLocation', () => {
 	describe('Desk Location Validation', () => {
 		it('should throw error if desk location not found', async () => {
 			// Mock: getDeskLocation returns null
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				leftJoin: vi.fn().mockReturnThis(),
-				select: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirst: vi.fn().mockResolvedValue(null),
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						leftJoin: vi.fn().mockReturnThis(),
+						select: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						executeTakeFirst: vi.fn().mockResolvedValue(null),
+					}) as any
+			);
 
 			await expect(
 				assignUserToDeskLocation(mockContext, {
 					userId: 'user-456',
-					deskLocationId: 999,
+					deskLocationId: 'desk-999',
 					priority: 1,
 				})
 			).rejects.toThrow('Desk location not found');
@@ -110,12 +113,15 @@ describe('assignUserToDeskLocation', () => {
 		it('should proceed when desk location exists', async () => {
 			const mockDeskLocation = createMockDeskLocation();
 
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				leftJoin: vi.fn().mockReturnThis(),
-				select: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirst: vi.fn().mockResolvedValue(mockDeskLocation),
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						leftJoin: vi.fn().mockReturnThis(),
+						select: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						executeTakeFirst: vi.fn().mockResolvedValue(mockDeskLocation),
+					}) as any
+			);
 
 			(vi.spyOn(db, 'updateTable') as any).mockReturnValue({
 				set: vi.fn().mockReturnThis(),
@@ -123,21 +129,27 @@ describe('assignUserToDeskLocation', () => {
 				execute: vi.fn().mockResolvedValue([]),
 			});
 
-			vi.spyOn(db, 'insertInto').mockImplementation(() => ({
-				values: vi.fn().mockReturnThis(),
-				returningAll: vi.fn().mockReturnThis(),
-				executeTakeFirstOrThrow: vi.fn().mockResolvedValue(createMockAssignment()),
-			}) as any);
+			vi.spyOn(db, 'insertInto').mockImplementation(
+				() =>
+					({
+						values: vi.fn().mockReturnThis(),
+						returningAll: vi.fn().mockReturnThis(),
+						executeTakeFirstOrThrow: vi.fn().mockResolvedValue(createMockAssignment()),
+					}) as any
+			);
 
-			vi.spyOn(db, 'transaction').mockImplementation(() => ({
-				execute: vi.fn().mockImplementation(async (callback) => {
-					return callback(db);
-				}),
-			}) as any);
+			vi.spyOn(db, 'transaction').mockImplementation(
+				() =>
+					({
+						execute: vi.fn().mockImplementation(async (callback) => {
+							return callback(db);
+						}),
+					}) as any
+			);
 
 			const result = await assignUserToDeskLocation(mockContext, {
 				userId: 'user-456',
-				deskLocationId: 10,
+				deskLocationId: 'desk-10',
 				priority: 1,
 			});
 
@@ -149,12 +161,15 @@ describe('assignUserToDeskLocation', () => {
 		it('should soft-delete existing assignment at same priority', async () => {
 			const mockDeskLocation = createMockDeskLocation();
 
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				leftJoin: vi.fn().mockReturnThis(),
-				select: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirst: vi.fn().mockResolvedValue(mockDeskLocation),
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						leftJoin: vi.fn().mockReturnThis(),
+						select: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						executeTakeFirst: vi.fn().mockResolvedValue(mockDeskLocation),
+					}) as any
+			);
 
 			const mockUpdateTable = (vi.spyOn(db, 'updateTable') as any).mockReturnValue({
 				set: vi.fn().mockReturnThis(),
@@ -162,21 +177,27 @@ describe('assignUserToDeskLocation', () => {
 				execute: vi.fn().mockResolvedValue([]),
 			});
 
-			vi.spyOn(db, 'insertInto').mockImplementation(() => ({
-				values: vi.fn().mockReturnThis(),
-				returningAll: vi.fn().mockReturnThis(),
-				executeTakeFirstOrThrow: vi.fn().mockResolvedValue(createMockAssignment()),
-			}) as any);
+			vi.spyOn(db, 'insertInto').mockImplementation(
+				() =>
+					({
+						values: vi.fn().mockReturnThis(),
+						returningAll: vi.fn().mockReturnThis(),
+						executeTakeFirstOrThrow: vi.fn().mockResolvedValue(createMockAssignment()),
+					}) as any
+			);
 
-			vi.spyOn(db, 'transaction').mockImplementation(() => ({
-				execute: vi.fn().mockImplementation(async (callback) => {
-					return callback(db);
-				}),
-			}) as any);
+			vi.spyOn(db, 'transaction').mockImplementation(
+				() =>
+					({
+						execute: vi.fn().mockImplementation(async (callback) => {
+							return callback(db);
+						}),
+					}) as any
+			);
 
 			await assignUserToDeskLocation(mockContext, {
 				userId: 'user-456',
-				deskLocationId: 10,
+				deskLocationId: 'desk-10',
 				priority: 2,
 			});
 
@@ -187,12 +208,15 @@ describe('assignUserToDeskLocation', () => {
 		it('should soft-delete existing assignment for same user-desk at any priority', async () => {
 			const mockDeskLocation = createMockDeskLocation();
 
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				leftJoin: vi.fn().mockReturnThis(),
-				select: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirst: vi.fn().mockResolvedValue(mockDeskLocation),
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						leftJoin: vi.fn().mockReturnThis(),
+						select: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						executeTakeFirst: vi.fn().mockResolvedValue(mockDeskLocation),
+					}) as any
+			);
 
 			let updateCount = 0;
 			(vi.spyOn(db, 'updateTable') as any).mockImplementation(() => {
@@ -204,21 +228,27 @@ describe('assignUserToDeskLocation', () => {
 				};
 			});
 
-			vi.spyOn(db, 'insertInto').mockImplementation(() => ({
-				values: vi.fn().mockReturnThis(),
-				returningAll: vi.fn().mockReturnThis(),
-				executeTakeFirstOrThrow: vi.fn().mockResolvedValue(createMockAssignment()),
-			}) as any);
+			vi.spyOn(db, 'insertInto').mockImplementation(
+				() =>
+					({
+						values: vi.fn().mockReturnThis(),
+						returningAll: vi.fn().mockReturnThis(),
+						executeTakeFirstOrThrow: vi.fn().mockResolvedValue(createMockAssignment()),
+					}) as any
+			);
 
-			vi.spyOn(db, 'transaction').mockImplementation(() => ({
-				execute: vi.fn().mockImplementation(async (callback) => {
-					return callback(db);
-				}),
-			}) as any);
+			vi.spyOn(db, 'transaction').mockImplementation(
+				() =>
+					({
+						execute: vi.fn().mockImplementation(async (callback) => {
+							return callback(db);
+						}),
+					}) as any
+			);
 
 			await assignUserToDeskLocation(mockContext, {
 				userId: 'user-456',
-				deskLocationId: 10,
+				deskLocationId: 'desk-10',
 				priority: 1,
 			});
 
@@ -236,12 +266,15 @@ describe('assignUserToDeskLocation', () => {
 				priority: 3,
 			});
 
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				leftJoin: vi.fn().mockReturnThis(),
-				select: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirst: vi.fn().mockResolvedValue(mockDeskLocation),
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						leftJoin: vi.fn().mockReturnThis(),
+						select: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						executeTakeFirst: vi.fn().mockResolvedValue(mockDeskLocation),
+					}) as any
+			);
 
 			(vi.spyOn(db, 'updateTable') as any).mockReturnValue({
 				set: vi.fn().mockReturnThis(),
@@ -249,21 +282,27 @@ describe('assignUserToDeskLocation', () => {
 				execute: vi.fn().mockResolvedValue([]),
 			});
 
-			const mockInsertInto = vi.spyOn(db, 'insertInto').mockImplementation(() => ({
-				values: vi.fn().mockReturnThis(),
-				returningAll: vi.fn().mockReturnThis(),
-				executeTakeFirstOrThrow: vi.fn().mockResolvedValue(mockAssignment),
-			}) as any);
+			const mockInsertInto = vi.spyOn(db, 'insertInto').mockImplementation(
+				() =>
+					({
+						values: vi.fn().mockReturnThis(),
+						returningAll: vi.fn().mockReturnThis(),
+						executeTakeFirstOrThrow: vi.fn().mockResolvedValue(mockAssignment),
+					}) as any
+			);
 
-			vi.spyOn(db, 'transaction').mockImplementation(() => ({
-				execute: vi.fn().mockImplementation(async (callback) => {
-					return callback(db);
-				}),
-			}) as any);
+			vi.spyOn(db, 'transaction').mockImplementation(
+				() =>
+					({
+						execute: vi.fn().mockImplementation(async (callback) => {
+							return callback(db);
+						}),
+					}) as any
+			);
 
 			const result = await assignUserToDeskLocation(mockContext, {
 				userId: 'user-456',
-				deskLocationId: 10,
+				deskLocationId: 'desk-10',
 				priority: 3,
 			});
 
@@ -278,12 +317,15 @@ describe('assignUserToDeskLocation', () => {
 		it('should wrap operations in transaction when not already in one', async () => {
 			const mockDeskLocation = createMockDeskLocation();
 
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				leftJoin: vi.fn().mockReturnThis(),
-				select: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirst: vi.fn().mockResolvedValue(mockDeskLocation),
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						leftJoin: vi.fn().mockReturnThis(),
+						select: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						executeTakeFirst: vi.fn().mockResolvedValue(mockDeskLocation),
+					}) as any
+			);
 
 			(vi.spyOn(db, 'updateTable') as any).mockReturnValue({
 				set: vi.fn().mockReturnThis(),
@@ -291,21 +333,27 @@ describe('assignUserToDeskLocation', () => {
 				execute: vi.fn().mockResolvedValue([]),
 			});
 
-			vi.spyOn(db, 'insertInto').mockImplementation(() => ({
-				values: vi.fn().mockReturnThis(),
-				returningAll: vi.fn().mockReturnThis(),
-				executeTakeFirstOrThrow: vi.fn().mockResolvedValue(createMockAssignment()),
-			}) as any);
+			vi.spyOn(db, 'insertInto').mockImplementation(
+				() =>
+					({
+						values: vi.fn().mockReturnThis(),
+						returningAll: vi.fn().mockReturnThis(),
+						executeTakeFirstOrThrow: vi.fn().mockResolvedValue(createMockAssignment()),
+					}) as any
+			);
 
-			const mockTransaction = vi.spyOn(db, 'transaction').mockImplementation(() => ({
-				execute: vi.fn().mockImplementation(async (callback) => {
-					return callback(db);
-				}),
-			}) as any);
+			const mockTransaction = vi.spyOn(db, 'transaction').mockImplementation(
+				() =>
+					({
+						execute: vi.fn().mockImplementation(async (callback) => {
+							return callback(db);
+						}),
+					}) as any
+			);
 
 			await assignUserToDeskLocation(mockContext, {
 				userId: 'user-456',
-				deskLocationId: 10,
+				deskLocationId: 'desk-10',
 				priority: 1,
 			});
 
@@ -321,12 +369,15 @@ describe('assignUserToDeskLocation', () => {
 				user_id: 'user-789',
 			});
 
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				leftJoin: vi.fn().mockReturnThis(),
-				select: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirst: vi.fn().mockResolvedValue(mockDeskLocation),
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						leftJoin: vi.fn().mockReturnThis(),
+						select: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						executeTakeFirst: vi.fn().mockResolvedValue(mockDeskLocation),
+					}) as any
+			);
 
 			(vi.spyOn(db, 'updateTable') as any).mockReturnValue({
 				set: vi.fn().mockReturnThis(),
@@ -334,21 +385,27 @@ describe('assignUserToDeskLocation', () => {
 				execute: vi.fn().mockResolvedValue([]),
 			});
 
-			vi.spyOn(db, 'insertInto').mockImplementation(() => ({
-				values: vi.fn().mockReturnThis(),
-				returningAll: vi.fn().mockReturnThis(),
-				executeTakeFirstOrThrow: vi.fn().mockResolvedValue(mockAssignment),
-			}) as any);
+			vi.spyOn(db, 'insertInto').mockImplementation(
+				() =>
+					({
+						values: vi.fn().mockReturnThis(),
+						returningAll: vi.fn().mockReturnThis(),
+						executeTakeFirstOrThrow: vi.fn().mockResolvedValue(mockAssignment),
+					}) as any
+			);
 
-			vi.spyOn(db, 'transaction').mockImplementation(() => ({
-				execute: vi.fn().mockImplementation(async (callback) => {
-					return callback(db);
-				}),
-			}) as any);
+			vi.spyOn(db, 'transaction').mockImplementation(
+				() =>
+					({
+						execute: vi.fn().mockImplementation(async (callback) => {
+							return callback(db);
+						}),
+					}) as any
+			);
 
 			const result = await assignUserToDeskLocation(mockContext, {
 				userId: 'user-789',
-				deskLocationId: 10,
+				deskLocationId: 'desk-10',
 				priority: 1,
 			});
 
@@ -372,17 +429,20 @@ describe('bulkAssignUsersToDeskLocation', () => {
 
 	describe('Desk Location Validation', () => {
 		it('should throw error if desk location not found', async () => {
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				leftJoin: vi.fn().mockReturnThis(),
-				select: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirst: vi.fn().mockResolvedValue(null),
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						leftJoin: vi.fn().mockReturnThis(),
+						select: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						executeTakeFirst: vi.fn().mockResolvedValue(null),
+					}) as any
+			);
 
 			await expect(
 				bulkAssignUsersToDeskLocation(mockContext, {
 					userIds: ['user-1', 'user-2', 'user-3'],
-					deskLocationId: 999,
+					deskLocationId: 'desk-999',
 					priority: 1,
 				})
 			).rejects.toThrow('Desk location not found');
@@ -394,12 +454,15 @@ describe('bulkAssignUsersToDeskLocation', () => {
 			const mockDeskLocation = createMockDeskLocation();
 			const userIds = ['user-1', 'user-2', 'user-3'];
 
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				leftJoin: vi.fn().mockReturnThis(),
-				select: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirst: vi.fn().mockResolvedValue(mockDeskLocation),
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						leftJoin: vi.fn().mockReturnThis(),
+						select: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						executeTakeFirst: vi.fn().mockResolvedValue(mockDeskLocation),
+					}) as any
+			);
 
 			(vi.spyOn(db, 'updateTable') as any).mockReturnValue({
 				set: vi.fn().mockReturnThis(),
@@ -414,21 +477,26 @@ describe('bulkAssignUsersToDeskLocation', () => {
 				return {
 					values: vi.fn().mockReturnThis(),
 					returningAll: vi.fn().mockReturnThis(),
-					execute: vi.fn().mockResolvedValue(
-						userIds.map((userId, idx) => createMockAssignment({ id: idx + 1, user_id: userId }))
-					),
+					execute: vi
+						.fn()
+						.mockResolvedValue(
+							userIds.map((userId, idx) => createMockAssignment({ id: idx + 1, user_id: userId }))
+						),
 				} as any;
 			});
 
-			vi.spyOn(db, 'transaction').mockImplementation(() => ({
-				execute: vi.fn().mockImplementation(async (callback) => {
-					return callback(db);
-				}),
-			}) as any);
+			vi.spyOn(db, 'transaction').mockImplementation(
+				() =>
+					({
+						execute: vi.fn().mockImplementation(async (callback) => {
+							return callback(db);
+						}),
+					}) as any
+			);
 
 			const result = await bulkAssignUsersToDeskLocation(mockContext, {
 				userIds,
-				deskLocationId: 10,
+				deskLocationId: 'desk-10',
 				priority: 1,
 			});
 
@@ -440,12 +508,15 @@ describe('bulkAssignUsersToDeskLocation', () => {
 		it('should use same priority for all users in batch insert', async () => {
 			const mockDeskLocation = createMockDeskLocation();
 
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				leftJoin: vi.fn().mockReturnThis(),
-				select: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirst: vi.fn().mockResolvedValue(mockDeskLocation),
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						leftJoin: vi.fn().mockReturnThis(),
+						select: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						executeTakeFirst: vi.fn().mockResolvedValue(mockDeskLocation),
+					}) as any
+			);
 
 			(vi.spyOn(db, 'updateTable') as any).mockReturnValue({
 				set: vi.fn().mockReturnThis(),
@@ -460,23 +531,28 @@ describe('bulkAssignUsersToDeskLocation', () => {
 						capturedValues = values;
 						return {
 							returningAll: vi.fn().mockReturnThis(),
-							execute: vi.fn().mockResolvedValue(
-								values.map((v: any, idx: number) => createMockAssignment({ id: idx + 1, ...v }))
-							),
+							execute: vi
+								.fn()
+								.mockResolvedValue(
+									values.map((v: any, idx: number) => createMockAssignment({ id: idx + 1, ...v }))
+								),
 						};
 					}),
 				} as any;
 			});
 
-			vi.spyOn(db, 'transaction').mockImplementation(() => ({
-				execute: vi.fn().mockImplementation(async (callback) => {
-					return callback(db);
-				}),
-			}) as any);
+			vi.spyOn(db, 'transaction').mockImplementation(
+				() =>
+					({
+						execute: vi.fn().mockImplementation(async (callback) => {
+							return callback(db);
+						}),
+					}) as any
+			);
 
 			await bulkAssignUsersToDeskLocation(mockContext, {
 				userIds: ['user-1', 'user-2'],
-				deskLocationId: 10,
+				deskLocationId: 'desk-10',
 				priority: 5,
 			});
 
@@ -492,12 +568,15 @@ describe('bulkAssignUsersToDeskLocation', () => {
 		it('should wrap all assignments in single transaction', async () => {
 			const mockDeskLocation = createMockDeskLocation();
 
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				leftJoin: vi.fn().mockReturnThis(),
-				select: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirst: vi.fn().mockResolvedValue(mockDeskLocation),
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						leftJoin: vi.fn().mockReturnThis(),
+						select: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						executeTakeFirst: vi.fn().mockResolvedValue(mockDeskLocation),
+					}) as any
+			);
 
 			(vi.spyOn(db, 'updateTable') as any).mockReturnValue({
 				set: vi.fn().mockReturnThis(),
@@ -505,21 +584,27 @@ describe('bulkAssignUsersToDeskLocation', () => {
 				execute: vi.fn().mockResolvedValue([]),
 			});
 
-			vi.spyOn(db, 'insertInto').mockImplementation(() => ({
-				values: vi.fn().mockReturnThis(),
-				returningAll: vi.fn().mockReturnThis(),
-				execute: vi.fn().mockResolvedValue([createMockAssignment()]),
-			}) as any);
+			vi.spyOn(db, 'insertInto').mockImplementation(
+				() =>
+					({
+						values: vi.fn().mockReturnThis(),
+						returningAll: vi.fn().mockReturnThis(),
+						execute: vi.fn().mockResolvedValue([createMockAssignment()]),
+					}) as any
+			);
 
-			const mockTransaction = vi.spyOn(db, 'transaction').mockImplementation(() => ({
-				execute: vi.fn().mockImplementation(async (callback) => {
-					return callback(db);
-				}),
-			}) as any);
+			const mockTransaction = vi.spyOn(db, 'transaction').mockImplementation(
+				() =>
+					({
+						execute: vi.fn().mockImplementation(async (callback) => {
+							return callback(db);
+						}),
+					}) as any
+			);
 
 			await bulkAssignUsersToDeskLocation(mockContext, {
 				userIds: ['user-1', 'user-2', 'user-3'],
-				deskLocationId: 10,
+				deskLocationId: 'desk-10',
 				priority: 1,
 			});
 
@@ -533,12 +618,15 @@ describe('bulkAssignUsersToDeskLocation', () => {
 			const mockDeskLocation = createMockDeskLocation();
 			const userIds = ['user-1', 'user-2'];
 
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				leftJoin: vi.fn().mockReturnThis(),
-				select: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirst: vi.fn().mockResolvedValue(mockDeskLocation),
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						leftJoin: vi.fn().mockReturnThis(),
+						select: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						executeTakeFirst: vi.fn().mockResolvedValue(mockDeskLocation),
+					}) as any
+			);
 
 			let updateCount = 0;
 			(vi.spyOn(db, 'updateTable') as any).mockImplementation(() => {
@@ -550,23 +638,31 @@ describe('bulkAssignUsersToDeskLocation', () => {
 				};
 			});
 
-			vi.spyOn(db, 'insertInto').mockImplementation(() => ({
-				values: vi.fn().mockReturnThis(),
-				returningAll: vi.fn().mockReturnThis(),
-				execute: vi.fn().mockResolvedValue(
-					userIds.map((userId, idx) => createMockAssignment({ id: idx + 1, user_id: userId }))
-				),
-			}) as any);
+			vi.spyOn(db, 'insertInto').mockImplementation(
+				() =>
+					({
+						values: vi.fn().mockReturnThis(),
+						returningAll: vi.fn().mockReturnThis(),
+						execute: vi
+							.fn()
+							.mockResolvedValue(
+								userIds.map((userId, idx) => createMockAssignment({ id: idx + 1, user_id: userId }))
+							),
+					}) as any
+			);
 
-			vi.spyOn(db, 'transaction').mockImplementation(() => ({
-				execute: vi.fn().mockImplementation(async (callback) => {
-					return callback(db);
-				}),
-			}) as any);
+			vi.spyOn(db, 'transaction').mockImplementation(
+				() =>
+					({
+						execute: vi.fn().mockImplementation(async (callback) => {
+							return callback(db);
+						}),
+					}) as any
+			);
 
 			await bulkAssignUsersToDeskLocation(mockContext, {
 				userIds,
-				deskLocationId: 10,
+				deskLocationId: 'desk-10',
 				priority: 1,
 			});
 
@@ -580,12 +676,15 @@ describe('bulkAssignUsersToDeskLocation', () => {
 			const mockDeskLocation = createMockDeskLocation();
 			const userIds = ['user-a', 'user-b'];
 
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				leftJoin: vi.fn().mockReturnThis(),
-				select: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirst: vi.fn().mockResolvedValue(mockDeskLocation),
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						leftJoin: vi.fn().mockReturnThis(),
+						select: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						executeTakeFirst: vi.fn().mockResolvedValue(mockDeskLocation),
+					}) as any
+			);
 
 			(vi.spyOn(db, 'updateTable') as any).mockReturnValue({
 				set: vi.fn().mockReturnThis(),
@@ -597,21 +696,26 @@ describe('bulkAssignUsersToDeskLocation', () => {
 				return {
 					values: vi.fn().mockReturnThis(),
 					returningAll: vi.fn().mockReturnThis(),
-					execute: vi.fn().mockResolvedValue(
-						userIds.map((userId, idx) => createMockAssignment({ id: idx + 1, user_id: userId }))
-					),
+					execute: vi
+						.fn()
+						.mockResolvedValue(
+							userIds.map((userId, idx) => createMockAssignment({ id: idx + 1, user_id: userId }))
+						),
 				} as any;
 			});
 
-			vi.spyOn(db, 'transaction').mockImplementation(() => ({
-				execute: vi.fn().mockImplementation(async (callback) => {
-					return callback(db);
-				}),
-			}) as any);
+			vi.spyOn(db, 'transaction').mockImplementation(
+				() =>
+					({
+						execute: vi.fn().mockImplementation(async (callback) => {
+							return callback(db);
+						}),
+					}) as any
+			);
 
 			const result = await bulkAssignUsersToDeskLocation(mockContext, {
 				userIds,
-				deskLocationId: 10,
+				deskLocationId: 'desk-10',
 				priority: 1,
 			});
 
@@ -626,7 +730,7 @@ describe('bulkAssignUsersToDeskLocation', () => {
 			// With empty array, should return early without validating desk location
 			const result = await bulkAssignUsersToDeskLocation(mockContext, {
 				userIds: [],
-				deskLocationId: 10,
+				deskLocationId: 'desk-10',
 				priority: 1,
 			});
 
@@ -637,12 +741,15 @@ describe('bulkAssignUsersToDeskLocation', () => {
 			const mockDeskLocation = createMockDeskLocation();
 			const userIds = Array.from({ length: 50 }, (_, i) => `user-${i + 1}`);
 
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				leftJoin: vi.fn().mockReturnThis(),
-				select: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirst: vi.fn().mockResolvedValue(mockDeskLocation),
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						leftJoin: vi.fn().mockReturnThis(),
+						select: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						executeTakeFirst: vi.fn().mockResolvedValue(mockDeskLocation),
+					}) as any
+			);
 
 			(vi.spyOn(db, 'updateTable') as any).mockReturnValue({
 				set: vi.fn().mockReturnThis(),
@@ -656,21 +763,26 @@ describe('bulkAssignUsersToDeskLocation', () => {
 				return {
 					values: vi.fn().mockReturnThis(),
 					returningAll: vi.fn().mockReturnThis(),
-					execute: vi.fn().mockResolvedValue(
-						userIds.map((userId, idx) => createMockAssignment({ id: idx + 1, user_id: userId }))
-					),
+					execute: vi
+						.fn()
+						.mockResolvedValue(
+							userIds.map((userId, idx) => createMockAssignment({ id: idx + 1, user_id: userId }))
+						),
 				} as any;
 			});
 
-			vi.spyOn(db, 'transaction').mockImplementation(() => ({
-				execute: vi.fn().mockImplementation(async (callback) => {
-					return callback(db);
-				}),
-			}) as any);
+			vi.spyOn(db, 'transaction').mockImplementation(
+				() =>
+					({
+						execute: vi.fn().mockImplementation(async (callback) => {
+							return callback(db);
+						}),
+					}) as any
+			);
 
 			const result = await bulkAssignUsersToDeskLocation(mockContext, {
 				userIds,
-				deskLocationId: 10,
+				deskLocationId: 'desk-10',
 				priority: 1,
 			});
 

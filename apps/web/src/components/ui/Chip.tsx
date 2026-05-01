@@ -13,7 +13,13 @@ export interface ChipProps extends HTMLAttributes<HTMLSpanElement> {
 
 const Chip = forwardRef<HTMLSpanElement, ChipProps>(
 	({ variant = 'filled', color = 'neutral', size = 'md', className, children, ...props }, ref) => {
-		const classNames = [styles.chip, styles[variant], styles[size], styles[`color-${color}`], className]
+		const classNames = [
+			styles.chip,
+			styles[variant],
+			styles[size],
+			styles[`color-${color}`],
+			className,
+		]
 			.filter(Boolean)
 			.join(' ');
 

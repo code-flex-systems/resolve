@@ -22,13 +22,20 @@ interface PageInstanceOption {
 	position: number;
 }
 
-function getPageInstancesFromTreeForDialog(tree: TreeNode[], currentInstanceId: string): PageInstanceOption[] {
+function getPageInstancesFromTreeForDialog(
+	tree: TreeNode[],
+	currentInstanceId: string
+): PageInstanceOption[] {
 	const instances: PageInstanceOption[] = [];
 	collectInstances(tree, currentInstanceId, instances);
 	return instances;
 }
 
-function collectInstances(tree: TreeNode[], currentInstanceId: string, instances: PageInstanceOption[]) {
+function collectInstances(
+	tree: TreeNode[],
+	currentInstanceId: string,
+	instances: PageInstanceOption[]
+) {
 	tree.forEach((node) => {
 		if (node.instanceId !== currentInstanceId) {
 			instances.push({
@@ -46,7 +53,16 @@ function collectInstances(tree: TreeNode[], currentInstanceId: string, instances
 }
 
 export default function CopyPageDialog(props: CopyPageDialogProps) {
-	const { onClose, onCopy, title, tree, currentInstanceId, currentParentId, currentPosition, isPending } = props;
+	const {
+		onClose,
+		onCopy,
+		title,
+		tree,
+		currentInstanceId,
+		currentParentId,
+		currentPosition,
+		isPending,
+	} = props;
 	const [selectedParentId, setSelectedParentId] = useState<string | null>(currentParentId);
 
 	const pageInstanceOptions = getPageInstancesFromTreeForDialog(tree, currentInstanceId);
@@ -83,21 +99,22 @@ export default function CopyPageDialog(props: CopyPageDialogProps) {
 			]}
 			showCloseButton={false}
 		>
-			<span    style={{ fontSize: 15, color: 'primary', paddingBottom: '10px' }}>
+			<span style={{ fontSize: 15, color: 'primary', paddingBottom: '10px' }}>
 				Select parent page:
 			</span>
 			<Dropdown
 				options={[
 					{ value: '__sibling__', label: 'Copy as sibling' },
 					{ value: '__root__', label: 'Root level' },
-					...pageInstanceOptions
-						.map((o) => ({
-							value: o.instanceId,
-							label: `${o.title} (p${o.position + 1})`,
-						})),
+					...pageInstanceOptions.map((o) => ({
+						value: o.instanceId,
+						label: `${o.title} (p${o.position + 1})`,
+					})),
 				]}
 				value={selectedParentId ?? '__sibling__'}
-				onChange={(v) => setSelectedParentId(v === '__sibling__' ? null : v === '__root__' ? null : String(v))}
+				onChange={(v) =>
+					setSelectedParentId(v === '__sibling__' ? null : v === '__root__' ? null : String(v))
+				}
 				placeholder="Choose a parent"
 			/>
 		</BasicDialog>

@@ -57,7 +57,8 @@ export default function DeskLocationFilter({
 	];
 
 	return (
-		<Dropdown inlineLabel
+		<Dropdown
+			inlineLabel
 			label="Desk Location"
 			options={dropdownOptions}
 			value={value ?? ''}

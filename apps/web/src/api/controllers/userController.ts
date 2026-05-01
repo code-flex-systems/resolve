@@ -20,7 +20,10 @@ import {
 	getClerkUserIdByEmail,
 } from '@/lib/clerk/clerk-admin';
 
-export async function getUsers(ctx: ProtectedContext, { searchTerm, role }: { searchTerm?: string; role?: string }) {
+export async function getUsers(
+	ctx: ProtectedContext,
+	{ searchTerm, role }: { searchTerm?: string; role?: string }
+) {
 	const results = await userQueries.getUsers(ctx, searchTerm, role);
 	return results;
 }
@@ -44,7 +47,13 @@ export async function getUsersPaginated(
 		limit,
 		offset,
 		searchTerm,
-	}: { disabled?: boolean; inactive?: boolean; limit?: number; offset?: number; searchTerm?: string }
+	}: {
+		disabled?: boolean;
+		inactive?: boolean;
+		limit?: number;
+		offset?: number;
+		searchTerm?: string;
+	}
 ) {
 	const [rows, count] = await Promise.all([
 		userQueries.getUsersPaginated(ctx, disabled, inactive, limit, offset, searchTerm),
@@ -354,8 +363,15 @@ export async function getManagementStats(ctx: ProtectedContext) {
 	return userQueries.getUserManagementStats(ctx);
 }
 
-export function getAccountActivationTemplate(type: 'deactivation' | 'reactivation', email: string): string {
-	const filePath = path.join(process.cwd(), 'src/api/email-templates', `account-${type}-template.html`);
+export function getAccountActivationTemplate(
+	type: 'deactivation' | 'reactivation',
+	email: string
+): string {
+	const filePath = path.join(
+		process.cwd(),
+		'src/api/email-templates',
+		`account-${type}-template.html`
+	);
 	const template = readFileSync(filePath, 'utf-8');
 	return template
 		.replace('{{AppName}}', config.APP_NAME)

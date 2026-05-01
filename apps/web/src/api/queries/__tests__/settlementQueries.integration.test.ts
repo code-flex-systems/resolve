@@ -44,7 +44,7 @@ async function createSettlementDependencies(
 		created_by,
 	}: {
 		client_id: string;
-		claim_id: number;
+		claim_id: string;
 		created_by: string;
 	}
 ) {
@@ -367,16 +367,22 @@ describe('settlementQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim1 = await createTestClaim(db, { client_id: client.id });
 			const claim2 = await createTestClaim(db, { client_id: client.id });
-			const { claimParty: claimParty1, coverage: coverage1 } = await createSettlementDependencies(db, {
-				client_id: client.id,
-				claim_id: claim1.id,
-				created_by: user.id,
-			});
-			const { claimParty: claimParty2, coverage: coverage2 } = await createSettlementDependencies(db, {
-				client_id: client.id,
-				claim_id: claim2.id,
-				created_by: user.id,
-			});
+			const { claimParty: claimParty1, coverage: coverage1 } = await createSettlementDependencies(
+				db,
+				{
+					client_id: client.id,
+					claim_id: claim1.id,
+					created_by: user.id,
+				}
+			);
+			const { claimParty: claimParty2, coverage: coverage2 } = await createSettlementDependencies(
+				db,
+				{
+					client_id: client.id,
+					claim_id: claim2.id,
+					created_by: user.id,
+				}
+			);
 
 			await createTestSettlement(db, {
 				client_id: client.id,

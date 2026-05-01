@@ -29,10 +29,15 @@ export async function down(db: Kysely<any>): Promise<void> {
 	await sql`ALTER TABLE claim_party RENAME COLUMN role TO role_old`.execute(db);
 
 	// Add scalar column back
-	await db.schema.alterTable('claim_party').addColumn('role', 'text', (col) => col.notNull()).execute();
+	await db.schema
+		.alterTable('claim_party')
+		.addColumn('role', 'text', (col) => col.notNull())
+		.execute();
 
 	// Migrate first element of array back to scalar
-	await sql`UPDATE claim_party SET role = role_old[1] WHERE array_length(role_old, 1) > 0`.execute(db);
+	await sql`UPDATE claim_party SET role = role_old[1] WHERE array_length(role_old, 1) > 0`.execute(
+		db
+	);
 
 	// Drop the array column
 	await db.schema.alterTable('claim_party').dropColumn('role_old').execute();

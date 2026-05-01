@@ -1,12 +1,6 @@
 'use client';
 
-import {
-	useState,
-	useMemo,
-	useCallback,
-	type ReactNode,
-	type CSSProperties,
-} from 'react';
+import { useState, useMemo, useCallback, type ReactNode, type CSSProperties } from 'react';
 import {
 	useReactTable,
 	getCoreRowModel,
@@ -141,9 +135,7 @@ export default function DataTable<T extends Record<string, any>>({
 	const handleRowSelectionChange: OnChangeFn<RowSelectionState> = useCallback(
 		(updaterOrValue) => {
 			const newValue =
-				typeof updaterOrValue === 'function'
-					? updaterOrValue(activeRowSelection)
-					: updaterOrValue;
+				typeof updaterOrValue === 'function' ? updaterOrValue(activeRowSelection) : updaterOrValue;
 			setInternalRowSelection(newValue);
 			onRowSelectionChange?.(newValue);
 		},
@@ -174,7 +166,9 @@ export default function DataTable<T extends Record<string, any>>({
 		getCoreRowModel: getCoreRowModel(),
 		...(sortable ? { getSortedRowModel: getSortedRowModel() } : {}),
 		...(paginationMode === 'client' ? { getPaginationRowModel: getPaginationRowModel() } : {}),
-		...(paginationMode === 'server' && rowCount != null ? { rowCount, manualPagination: true } : {}),
+		...(paginationMode === 'server' && rowCount != null
+			? { rowCount, manualPagination: true }
+			: {}),
 		enableRowSelection: checkboxSelection,
 		enableColumnResizing: true,
 		getRowId: getRowId ? (row) => getRowId(row) : (row) => String(row.id),
@@ -213,9 +207,10 @@ export default function DataTable<T extends Record<string, any>>({
 		return count === 0 && rows.length > 0 ? 1 : count;
 	}, [paginationMode, rowCount, paginationModel, table, rows.length]);
 
-	const currentPage = paginationMode === 'server' && paginationModel
-		? paginationModel.page
-		: table.getState().pagination.pageIndex;
+	const currentPage =
+		paginationMode === 'server' && paginationModel
+			? paginationModel.page
+			: table.getState().pagination.pageIndex;
 
 	const handlePrevPage = useCallback(() => {
 		if (paginationMode === 'server' && paginationModel && onPaginationModelChange) {
@@ -318,124 +313,112 @@ export default function DataTable<T extends Record<string, any>>({
 						))}
 					</thead>
 					<tbody>
-						{loading
-							? Array.from({ length: pageSize }).map((_, i) => (
-									<tr key={`skeleton-${i}`}>
+						{loading ? (
+							Array.from({ length: pageSize }).map((_, i) => (
+								<tr key={`skeleton-${i}`}>
+									{checkboxSelection && (
+										<td style={{ height: rowHeight }}>
+											<div className={styles.skeleton} style={{ width: 16, height: 16 }} />
+										</td>
+									)}
+									{columns.map((_, j) => (
+										<td key={j} style={{ height: rowHeight }}>
+											<div
+												className={styles.skeleton}
+												style={{ width: `${55 + Math.random() * 40}%`, height: 14 }}
+											/>
+										</td>
+									))}
+								</tr>
+							))
+						) : displayRows.length === 0 ? (
+							<tr>
+								<td
+									colSpan={columns.length + (checkboxSelection ? 1 : 0)}
+									className={styles.emptyCell}
+								>
+									{emptyState ?? (
+										<div className={styles.emptyContent}>
+											<span>{emptyText}</span>
+										</div>
+									)}
+								</td>
+							</tr>
+						) : (
+							displayRows.map((row, rowIndex) => {
+								const rowData = row.original;
+								const rowClass = getRowClassName?.(rowData, rowIndex) ?? '';
+								const isClickable = !!onRowClick || !!onRowDoubleClick;
+
+								return (
+									<tr
+										key={row.id}
+										className={`${rowClass} ${isClickable ? styles.clickableRow : ''} ${row.getIsSelected() ? styles.selectedRow : ''}`}
+										onClick={onRowClick ? () => onRowClick(rowData) : undefined}
+										onDoubleClick={onRowDoubleClick ? () => onRowDoubleClick(rowData) : undefined}
+									>
 										{checkboxSelection && (
-											<td style={{ height: rowHeight }}>
-												<div className={styles.skeleton} style={{ width: 16, height: 16 }} />
-											</td>
-										)}
-										{columns.map((_, j) => (
-											<td key={j} style={{ height: rowHeight }}>
-												<div
-													className={styles.skeleton}
-													style={{ width: `${55 + Math.random() * 40}%`, height: 14 }}
+											<td className={styles.checkboxCell} style={{ height: rowHeight }}>
+												<input
+													type="checkbox"
+													checked={row.getIsSelected()}
+													onChange={row.getToggleSelectedHandler()}
+													onClick={(e) => e.stopPropagation()}
+													style={{ accentColor: 'var(--text-accent)' }}
 												/>
 											</td>
-										))}
-									</tr>
-								))
-							: displayRows.length === 0
-								? (
-									<tr>
-										<td
-											colSpan={columns.length + (checkboxSelection ? 1 : 0)}
-											className={styles.emptyCell}
-										>
-											{emptyState ?? (
-												<div className={styles.emptyContent}>
-													<span>{emptyText}</span>
-												</div>
-											)}
-										</td>
-									</tr>
-								)
-								: displayRows.map((row, rowIndex) => {
-									const rowData = row.original;
-									const rowClass = getRowClassName?.(rowData, rowIndex) ?? '';
-									const isClickable = !!onRowClick || !!onRowDoubleClick;
+										)}
+										{row.getVisibleCells().map((cell) => {
+											const pinLeft = isPinnedLeft(cell.column.id);
+											const pinRight = isPinnedRight(cell.column.id);
+											const pinStyle: CSSProperties = {};
 
-									return (
-										<tr
-											key={row.id}
-											className={`${rowClass} ${isClickable ? styles.clickableRow : ''} ${row.getIsSelected() ? styles.selectedRow : ''}`}
-											onClick={onRowClick ? () => onRowClick(rowData) : undefined}
-											onDoubleClick={onRowDoubleClick ? () => onRowDoubleClick(rowData) : undefined}
-										>
-											{checkboxSelection && (
-												<td className={styles.checkboxCell} style={{ height: rowHeight }}>
-													<input
-														type="checkbox"
-														checked={row.getIsSelected()}
-														onChange={row.getToggleSelectedHandler()}
-														onClick={(e) => e.stopPropagation()}
-														style={{ accentColor: 'var(--text-accent)' }}
-													/>
+											if (pinLeft) {
+												pinStyle.position = 'sticky';
+												pinStyle.left = getPinnedLeftOffset(cell.column.id);
+												pinStyle.zIndex = 1;
+												pinStyle.background = 'var(--bg-white)';
+											}
+											if (pinRight) {
+												pinStyle.position = 'sticky';
+												pinStyle.right = 0;
+												pinStyle.zIndex = 1;
+												pinStyle.background = 'var(--bg-white)';
+											}
+
+											return (
+												<td
+													key={cell.id}
+													style={{
+														height: rowHeight,
+														width: cell.column.getSize(),
+														...pinStyle,
+													}}
+													className={`${pinLeft ? styles.pinnedLeft : ''} ${pinRight ? styles.pinnedRight : ''}`}
+												>
+													{flexRender(cell.column.columnDef.cell, cell.getContext())}
 												</td>
-											)}
-											{row.getVisibleCells().map((cell) => {
-												const pinLeft = isPinnedLeft(cell.column.id);
-												const pinRight = isPinnedRight(cell.column.id);
-												const pinStyle: CSSProperties = {};
-
-												if (pinLeft) {
-													pinStyle.position = 'sticky';
-													pinStyle.left = getPinnedLeftOffset(cell.column.id);
-													pinStyle.zIndex = 1;
-													pinStyle.background = 'var(--bg-white)';
-												}
-												if (pinRight) {
-													pinStyle.position = 'sticky';
-													pinStyle.right = 0;
-													pinStyle.zIndex = 1;
-													pinStyle.background = 'var(--bg-white)';
-												}
-
-												return (
-													<td
-														key={cell.id}
-														style={{
-															height: rowHeight,
-															width: cell.column.getSize(),
-															...pinStyle,
-														}}
-														className={`${pinLeft ? styles.pinnedLeft : ''} ${pinRight ? styles.pinnedRight : ''}`}
-													>
-														{flexRender(cell.column.columnDef.cell, cell.getContext())}
-													</td>
-												);
-											})}
-										</tr>
-									);
-								})}
+											);
+										})}
+									</tr>
+								);
+							})
+						)}
 					</tbody>
 				</table>
 			</div>
 
 			{!hideFooter && !loading && displayRows.length > 0 && (
 				<div className={styles.footer}>
-					{rowCount != null && (
-						<span className={styles.rowCountText}>
-							{rowCount} total
-						</span>
-					)}
+					{rowCount != null && <span className={styles.rowCountText}>{rowCount} total</span>}
 					<div className={styles.pagination}>
-						<button
-							className={styles.pageBtn}
-							onClick={handlePrevPage}
-							disabled={!canPrevPage}
-						>
+						<button className={styles.pageBtn} onClick={handlePrevPage} disabled={!canPrevPage}>
 							Previous
 						</button>
 						<span className={styles.pageInfo}>
 							Page {currentPage + 1} of {totalPages}
 						</span>
-						<button
-							className={styles.pageBtn}
-							onClick={handleNextPage}
-							disabled={!canNextPage}
-						>
+						<button className={styles.pageBtn} onClick={handleNextPage} disabled={!canNextPage}>
 							Next
 						</button>
 					</div>

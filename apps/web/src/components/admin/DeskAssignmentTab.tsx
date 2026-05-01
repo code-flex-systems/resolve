@@ -62,10 +62,16 @@ export default function DeskAssignmentTab() {
 			{
 				accessorKey: 'user',
 				cell: ({ row: { original: row } }) => (
-					<StackedHeaderCell primary={`${row.first} ${row.last}`} secondary={row.email.toLowerCase()} />
+					<StackedHeaderCell
+						primary={`${row.first} ${row.last}`}
+						secondary={row.email.toLowerCase()}
+					/>
 				),
 				header: (params) => (
-					<IconHeaderCell {...params} icon={<IconUserCircle style={{ color: 'var(--text-muted)' }} />} />
+					<IconHeaderCell
+						{...params}
+						icon={<IconUserCircle style={{ color: 'var(--text-muted)' }} />}
+					/>
 				),
 			},
 			{
@@ -86,7 +92,9 @@ export default function DeskAssignmentTab() {
 				accessorKey: 'desk_assignments',
 				cell: ({ row: { original: row } }) => {
 					const count = Number(row.assignment_count ?? 0);
-					const assignments: AssignmentDetail[] = Array.isArray(row.assignments) ? row.assignments : [];
+					const assignments: AssignmentDetail[] = Array.isArray(row.assignments)
+						? row.assignments
+						: [];
 					return (
 						<div
 							style={{
@@ -107,7 +115,8 @@ export default function DeskAssignmentTab() {
 											key={a.id}
 											style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.4 }}
 										>
-											{a.desk_location_type_name ?? 'Unknown type'} — {a.desk_location_name ?? 'Unknown location'}
+											{a.desk_location_type_name ?? 'Unknown type'} —{' '}
+											{a.desk_location_name ?? 'Unknown location'}
 										</span>
 									))}
 								</div>
@@ -147,9 +156,16 @@ export default function DeskAssignmentTab() {
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading desk assignments...">
 			<div style={styles.container}>
 				<Card variant="beveled" padding="md" style={styles.paper}>
-					<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
-						Assign users to desk locations with priority levels. Lower priority numbers mean the user is
-						assigned to that location first.
+					<p
+						style={{
+							color: 'var(--text-secondary)',
+							fontSize: 13,
+							margin: '0 0 12px',
+							lineHeight: 1.5,
+						}}
+					>
+						Assign users to desk locations with priority levels. Lower priority numbers mean the
+						user is assigned to that location first.
 					</p>
 					<div
 						style={{
@@ -160,7 +176,14 @@ export default function DeskAssignmentTab() {
 							padding: '5px 0px',
 						}}
 					>
-						<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: 8 }}>
+						<div
+							style={{
+								display: 'flex',
+								justifyContent: 'flex-start',
+								alignItems: 'center',
+								gap: 8,
+							}}
+						>
 							<DeskLocationTypeFilter
 								value={deskLocationTypeId}
 								onChange={(id: string | null) => {
@@ -190,7 +213,9 @@ export default function DeskAssignmentTab() {
 								placeholder="Search users..."
 							/>
 						</div>
-						<div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8 }}>
+						<div
+							style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8 }}
+						>
 							<Button
 								variant="contained"
 								startIcon={<IconClipboard size={20} />}
@@ -230,7 +255,10 @@ export default function DeskAssignmentTab() {
 				)}
 
 				{editingUserId && (
-					<EditUserDeskAssignmentsDialog userId={editingUserId} onClose={() => setEditingUserId(null)} />
+					<EditUserDeskAssignmentsDialog
+						userId={editingUserId}
+						onClose={() => setEditingUserId(null)}
+					/>
 				)}
 			</div>
 		</PageTransitionWrapper>

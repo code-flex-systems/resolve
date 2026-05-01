@@ -99,8 +99,8 @@ describe('getChecklistSummaryDetail()', () => {
 			createMockQueryChain(mockRows);
 
 			const result = await getChecklistSummaryDetail(ctx, {
-				checklistId: 1,
-				claimId: 100,
+				checklistId: 'checklist-1',
+				claimId: 'claim-100',
 				segment: SummarySegment.ANSWERED,
 			});
 
@@ -120,8 +120,8 @@ describe('getChecklistSummaryDetail()', () => {
 			createMockQueryChain(mockRows);
 
 			const result = await getChecklistSummaryDetail(ctx, {
-				checklistId: 1,
-				claimId: 100,
+				checklistId: 'checklist-1',
+				claimId: 'claim-100',
 				segment: SummarySegment.ANSWERED,
 			});
 
@@ -134,8 +134,8 @@ describe('getChecklistSummaryDetail()', () => {
 			createMockQueryChain([]);
 
 			const result = await getChecklistSummaryDetail(ctx, {
-				checklistId: 1,
-				claimId: 100,
+				checklistId: 'checklist-1',
+				claimId: 'claim-100',
 				segment: SummarySegment.UNANSWERED,
 			});
 
@@ -150,8 +150,8 @@ describe('getChecklistSummaryDetail()', () => {
 			const { mockWhere } = createMockQueryChain([]);
 
 			await getChecklistSummaryDetail(ctx, {
-				checklistId: 1,
-				claimId: 100,
+				checklistId: 'checklist-1',
+				claimId: 'claim-100',
 				segment: SummarySegment.ANSWERED,
 			});
 
@@ -163,12 +163,12 @@ describe('getChecklistSummaryDetail()', () => {
 			const { mockWhere } = createMockQueryChain([]);
 
 			await getChecklistSummaryDetail(ctx, {
-				checklistId: 42,
-				claimId: 100,
+				checklistId: 'checklist-42',
+				claimId: 'claim-100',
 				segment: SummarySegment.ANSWERED,
 			});
 
-			expect(mockWhere).toHaveBeenCalledWith('page_instance.checklist_id', '=', 42);
+			expect(mockWhere).toHaveBeenCalledWith('page_instance.checklist_id', '=', 'checklist-42');
 		});
 	});
 
@@ -178,8 +178,8 @@ describe('getChecklistSummaryDetail()', () => {
 			const { mockLimit } = createMockQueryChain([]);
 
 			await getChecklistSummaryDetail(ctx, {
-				checklistId: 1,
-				claimId: 100,
+				checklistId: 'checklist-1',
+				claimId: 'claim-100',
 				segment: SummarySegment.ANSWERED,
 			});
 
@@ -191,8 +191,8 @@ describe('getChecklistSummaryDetail()', () => {
 			const { mockOffset } = createMockQueryChain([]);
 
 			await getChecklistSummaryDetail(ctx, {
-				checklistId: 1,
-				claimId: 100,
+				checklistId: 'checklist-1',
+				claimId: 'claim-100',
 				segment: SummarySegment.ANSWERED,
 			});
 
@@ -204,8 +204,8 @@ describe('getChecklistSummaryDetail()', () => {
 			const { mockLimit, mockOffset } = createMockQueryChain([]);
 
 			await getChecklistSummaryDetail(ctx, {
-				checklistId: 1,
-				claimId: 100,
+				checklistId: 'checklist-1',
+				claimId: 'claim-100',
 				segment: SummarySegment.ANSWERED,
 				limit: 100,
 				offset: 200,
@@ -222,8 +222,8 @@ describe('getChecklistSummaryDetail()', () => {
 			const { mockLeftJoin } = createMockQueryChain([]);
 
 			await getChecklistSummaryDetail(ctx, {
-				checklistId: 1,
-				claimId: 100,
+				checklistId: 'checklist-1',
+				claimId: 'claim-100',
 				segment: SummarySegment.ANSWERED,
 			});
 
@@ -232,7 +232,11 @@ describe('getChecklistSummaryDetail()', () => {
 				'question_response_answer.response_id',
 				'question_response.id'
 			);
-			expect(mockLeftJoin).toHaveBeenCalledWith('answer', 'answer.id', 'question_response_answer.answer_id');
+			expect(mockLeftJoin).toHaveBeenCalledWith(
+				'answer',
+				'answer.id',
+				'question_response_answer.answer_id'
+			);
 		});
 
 		it('should NOT join answer tables for UNANSWERED segment', async () => {
@@ -240,8 +244,8 @@ describe('getChecklistSummaryDetail()', () => {
 			const { mockLeftJoin } = createMockQueryChain([]);
 
 			await getChecklistSummaryDetail(ctx, {
-				checklistId: 1,
-				claimId: 100,
+				checklistId: 'checklist-1',
+				claimId: 'claim-100',
 				segment: SummarySegment.UNANSWERED,
 			});
 
@@ -250,7 +254,11 @@ describe('getChecklistSummaryDetail()', () => {
 				'question_response_answer.response_id',
 				'question_response.id'
 			);
-			expect(mockLeftJoin).not.toHaveBeenCalledWith('answer', 'answer.id', 'question_response_answer.answer_id');
+			expect(mockLeftJoin).not.toHaveBeenCalledWith(
+				'answer',
+				'answer.id',
+				'question_response_answer.answer_id'
+			);
 		});
 
 		it('should join answer and action tables for ACTION_REQUIRED segment', async () => {
@@ -258,8 +266,8 @@ describe('getChecklistSummaryDetail()', () => {
 			const { mockLeftJoin } = createMockQueryChain([]);
 
 			await getChecklistSummaryDetail(ctx, {
-				checklistId: 1,
-				claimId: 100,
+				checklistId: 'checklist-1',
+				claimId: 'claim-100',
 				segment: SummarySegment.ACTION_REQUIRED,
 			});
 
@@ -268,7 +276,11 @@ describe('getChecklistSummaryDetail()', () => {
 				'question_response_answer.response_id',
 				'question_response.id'
 			);
-			expect(mockLeftJoin).toHaveBeenCalledWith('answer', 'answer.id', 'question_response_answer.answer_id');
+			expect(mockLeftJoin).toHaveBeenCalledWith(
+				'answer',
+				'answer.id',
+				'question_response_answer.answer_id'
+			);
 			expect(mockLeftJoin).toHaveBeenCalledWith('action', expect.any(Function));
 		});
 
@@ -277,8 +289,8 @@ describe('getChecklistSummaryDetail()', () => {
 			const { mockLeftJoin } = createMockQueryChain([]);
 
 			await getChecklistSummaryDetail(ctx, {
-				checklistId: 1,
-				claimId: 100,
+				checklistId: 'checklist-1',
+				claimId: 'claim-100',
 				segment: SummarySegment.NO_ACTION_REQUIRED,
 			});
 
@@ -287,7 +299,11 @@ describe('getChecklistSummaryDetail()', () => {
 				'question_response_answer.response_id',
 				'question_response.id'
 			);
-			expect(mockLeftJoin).toHaveBeenCalledWith('answer', 'answer.id', 'question_response_answer.answer_id');
+			expect(mockLeftJoin).toHaveBeenCalledWith(
+				'answer',
+				'answer.id',
+				'question_response_answer.answer_id'
+			);
 			expect(mockLeftJoin).toHaveBeenCalledWith('action', expect.any(Function));
 		});
 
@@ -296,8 +312,8 @@ describe('getChecklistSummaryDetail()', () => {
 			const { mockLeftJoin } = createMockQueryChain([]);
 
 			await getChecklistSummaryDetail(ctx, {
-				checklistId: 1,
-				claimId: 100,
+				checklistId: 'checklist-1',
+				claimId: 'claim-100',
 				segment: SummarySegment.UNKNOWN,
 			});
 
@@ -306,7 +322,11 @@ describe('getChecklistSummaryDetail()', () => {
 				'question_response_answer.response_id',
 				'question_response.id'
 			);
-			expect(mockLeftJoin).toHaveBeenCalledWith('answer', 'answer.id', 'question_response_answer.answer_id');
+			expect(mockLeftJoin).toHaveBeenCalledWith(
+				'answer',
+				'answer.id',
+				'question_response_answer.answer_id'
+			);
 			expect(mockLeftJoin).toHaveBeenCalledWith('action', expect.any(Function));
 		});
 	});
@@ -317,8 +337,8 @@ describe('getChecklistSummaryDetail()', () => {
 			const { mockWhere } = createMockQueryChain([]);
 
 			await getChecklistSummaryDetail(ctx, {
-				checklistId: 1,
-				claimId: 100,
+				checklistId: 'checklist-1',
+				claimId: 'claim-100',
 				segment: SummarySegment.UNANSWERED,
 			});
 
@@ -331,8 +351,8 @@ describe('getChecklistSummaryDetail()', () => {
 			const { mockWhere } = createMockQueryChain(mockRows);
 
 			const result = await getChecklistSummaryDetail(ctx, {
-				checklistId: 1,
-				claimId: 100,
+				checklistId: 'checklist-1',
+				claimId: 'claim-100',
 				segment: SummarySegment.ANSWERED,
 			});
 
@@ -346,8 +366,8 @@ describe('getChecklistSummaryDetail()', () => {
 			const { mockWhere } = createMockQueryChain(mockRows);
 
 			const result = await getChecklistSummaryDetail(ctx, {
-				checklistId: 1,
-				claimId: 100,
+				checklistId: 'checklist-1',
+				claimId: 'claim-100',
 				segment: SummarySegment.ACTION_REQUIRED,
 			});
 
@@ -361,8 +381,8 @@ describe('getChecklistSummaryDetail()', () => {
 			const { mockWhere } = createMockQueryChain(mockRows);
 
 			const result = await getChecklistSummaryDetail(ctx, {
-				checklistId: 1,
-				claimId: 100,
+				checklistId: 'checklist-1',
+				claimId: 'claim-100',
 				segment: SummarySegment.NO_ACTION_REQUIRED,
 			});
 
@@ -376,8 +396,8 @@ describe('getChecklistSummaryDetail()', () => {
 			const { mockWhere } = createMockQueryChain(mockRows);
 
 			const result = await getChecklistSummaryDetail(ctx, {
-				checklistId: 1,
-				claimId: 100,
+				checklistId: 'checklist-1',
+				claimId: 'claim-100',
 				segment: SummarySegment.UNKNOWN,
 			});
 

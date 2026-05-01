@@ -41,16 +41,17 @@ export default function PageTransitionWrapper({
 	});
 
 	return (
-		<div className={styles.wrapper} style={{ '--fade-timeout': `${fadeTimeout}ms` } as React.CSSProperties}>
+		<div
+			className={styles.wrapper}
+			style={{ '--fade-timeout': `${fadeTimeout}ms` } as React.CSSProperties}
+		>
 			{/* Loading State */}
 			<div className={`${styles.loading} ${isLoading ? styles.loadingVisible : ''}`}>
 				{loadingComponent ?? <CardioLoadingIndicator message={loadingMessage} />}
 			</div>
 
 			{/* Content */}
-			<div className={`${styles.content} ${isReady ? styles.contentVisible : ''}`}>
-				{children}
-			</div>
+			<div className={`${styles.content} ${isReady ? styles.contentVisible : ''}`}>{children}</div>
 		</div>
 	);
 }

@@ -19,7 +19,9 @@ export default function DocumentsPage() {
 
 	// Find the Shared folder
 	const sharedFolder = useMemo(() => {
-		return allGroups.find((g) => g.name === 'Shared' && g.system === true && g.parent_group_id === null);
+		return allGroups.find(
+			(g) => g.name === 'Shared' && g.system === true && g.parent_group_id === null
+		);
 	}, [allGroups]);
 
 	// Initialize currentFolderId to Shared folder when it loads
@@ -97,12 +99,19 @@ export default function DocumentsPage() {
 
 	return (
 		<div style={{ width: '100%', height: '100%', padding: 20 }}>
-			<Card variant="beveled" padding="md" style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', minHeight: 0, overflow: 'hidden' }}>
-				<Toolbar
-					left={<span>Shared Documents</span>}
-					height={50}
-					padding={'0px 10px'}
-				/>
+			<Card
+				variant="beveled"
+				padding="md"
+				style={{
+					display: 'flex',
+					flexDirection: 'column',
+					width: '100%',
+					height: '100%',
+					minHeight: 0,
+					overflow: 'hidden',
+				}}
+			>
+				<Toolbar left={<span>Shared Documents</span>} height={50} padding={'0px 10px'} />
 
 				<div style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
 					<DocumentNavigationTable
@@ -118,7 +127,10 @@ export default function DocumentsPage() {
 				</div>
 
 				{previewDocument && (
-					<DocumentPreviewDialog onClose={() => setPreviewDocument(null)} document={previewDocument} />
+					<DocumentPreviewDialog
+						onClose={() => setPreviewDocument(null)}
+						document={previewDocument}
+					/>
 				)}
 			</Card>
 		</div>

@@ -7,7 +7,12 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { getTestDb, createTestContext } from '@/__tests__/integration/testDb';
-import { createTestClient, createTestUser, createTestClaim, createTestDeadline } from '@/__tests__/integration/fixtures';
+import {
+	createTestClient,
+	createTestUser,
+	createTestClaim,
+	createTestDeadline,
+} from '@/__tests__/integration/fixtures';
 import * as deadlineController from '../deadlineController';
 import { DeadlineStatus } from '@/config/enums';
 
@@ -170,7 +175,7 @@ describe('deadlineController integration tests', () => {
 
 				await expect(
 					deadlineController.updateDeadlineStatus(ctx, {
-						deadlineId: 999999,
+						deadlineId: '00000000-0000-0000-0000-000000000000',
 						status: DeadlineStatus.MET,
 					})
 				).rejects.toThrow();

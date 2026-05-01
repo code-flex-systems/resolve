@@ -12,25 +12,13 @@ import { Kysely, sql } from 'kysely';
 
 export async function up(db: Kysely<any>): Promise<void> {
 	// 1. Add new columns to claim_party table
-	await db.schema
-		.alterTable('claim_party')
-		.addColumn('line_of_business', 'text')
-		.execute();
+	await db.schema.alterTable('claim_party').addColumn('line_of_business', 'text').execute();
 
-	await db.schema
-		.alterTable('claim_party')
-		.addColumn('coverage_type', 'text')
-		.execute();
+	await db.schema.alterTable('claim_party').addColumn('coverage_type', 'text').execute();
 
-	await db.schema
-		.alterTable('claim_party')
-		.addColumn('paid_recovery', 'numeric')
-		.execute();
+	await db.schema.alterTable('claim_party').addColumn('paid_recovery', 'numeric').execute();
 
-	await db.schema
-		.alterTable('claim_party')
-		.addColumn('reserved_recovery', 'numeric')
-		.execute();
+	await db.schema.alterTable('claim_party').addColumn('reserved_recovery', 'numeric').execute();
 
 	// 2. Add CHECK constraints for enums
 	await sql`
@@ -75,10 +63,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 	await sql`ALTER TABLE claim DROP CONSTRAINT IF EXISTS claim_line_of_business_check`.execute(db);
 
 	// Drop column
-	await db.schema
-		.alterTable('claim')
-		.dropColumn('line_of_business')
-		.execute();
+	await db.schema.alterTable('claim').dropColumn('line_of_business').execute();
 
 	// 5. Add indexes on claim_party for filtering
 	await db.schema
@@ -94,18 +79,23 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.execute();
 
 	// 6. Add column comments
-	await sql`COMMENT ON COLUMN claim_party.line_of_business IS 'Line of business for this liability (LineOfBusiness enum)'`.execute(db);
-	await sql`COMMENT ON COLUMN claim_party.coverage_type IS 'Coverage type category for this liability (LiabilityCoverageType enum)'`.execute(db);
-	await sql`COMMENT ON COLUMN claim_party.paid_recovery IS 'Paid recovery tracked for this specific liability'`.execute(db);
-	await sql`COMMENT ON COLUMN claim_party.reserved_recovery IS 'Reserved recovery tracked for this specific liability'`.execute(db);
+	await sql`COMMENT ON COLUMN claim_party.line_of_business IS 'Line of business for this liability (LineOfBusiness enum)'`.execute(
+		db
+	);
+	await sql`COMMENT ON COLUMN claim_party.coverage_type IS 'Coverage type category for this liability (LiabilityCoverageType enum)'`.execute(
+		db
+	);
+	await sql`COMMENT ON COLUMN claim_party.paid_recovery IS 'Paid recovery tracked for this specific liability'`.execute(
+		db
+	);
+	await sql`COMMENT ON COLUMN claim_party.reserved_recovery IS 'Reserved recovery tracked for this specific liability'`.execute(
+		db
+	);
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
 	// 1. Restore line_of_business to claim table
-	await db.schema
-		.alterTable('claim')
-		.addColumn('line_of_business', 'text')
-		.execute();
+	await db.schema.alterTable('claim').addColumn('line_of_business', 'text').execute();
 
 	// 2. Migrate line_of_business back to claim (take first alphabetically if multiple distinct values)
 	await sql`
@@ -146,27 +136,19 @@ export async function down(db: Kysely<any>): Promise<void> {
 	await db.schema.dropIndex('idx_claim_party_line_of_business').execute();
 
 	// 6. Drop CHECK constraints from claim_party
-	await sql`ALTER TABLE claim_party DROP CONSTRAINT IF EXISTS claim_party_coverage_type_check`.execute(db);
-	await sql`ALTER TABLE claim_party DROP CONSTRAINT IF EXISTS claim_party_line_of_business_check`.execute(db);
+	await sql`ALTER TABLE claim_party DROP CONSTRAINT IF EXISTS claim_party_coverage_type_check`.execute(
+		db
+	);
+	await sql`ALTER TABLE claim_party DROP CONSTRAINT IF EXISTS claim_party_line_of_business_check`.execute(
+		db
+	);
 
 	// 7. Drop columns from claim_party
-	await db.schema
-		.alterTable('claim_party')
-		.dropColumn('reserved_recovery')
-		.execute();
+	await db.schema.alterTable('claim_party').dropColumn('reserved_recovery').execute();
 
-	await db.schema
-		.alterTable('claim_party')
-		.dropColumn('paid_recovery')
-		.execute();
+	await db.schema.alterTable('claim_party').dropColumn('paid_recovery').execute();
 
-	await db.schema
-		.alterTable('claim_party')
-		.dropColumn('coverage_type')
-		.execute();
+	await db.schema.alterTable('claim_party').dropColumn('coverage_type').execute();
 
-	await db.schema
-		.alterTable('claim_party')
-		.dropColumn('line_of_business')
-		.execute();
+	await db.schema.alterTable('claim_party').dropColumn('line_of_business').execute();
 }

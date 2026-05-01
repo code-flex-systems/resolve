@@ -181,15 +181,16 @@ export async function listAdminConfigLogs(ctx: ProtectedContext, input: ListAdmi
 	const hasNextPage = rows.length > limit;
 	const trimmedRows = hasNextPage ? rows.slice(0, limit) : rows;
 	const lastRow = trimmedRows[trimmedRows.length - 1];
-	const nextCursor = hasNextPage && lastRow
-		? {
-				createdAt:
-					lastRow.created_at instanceof Date
-						? lastRow.created_at.toISOString()
-						: new Date(lastRow.created_at).toISOString(),
-				id: lastRow.id,
-			}
-		: null;
+	const nextCursor =
+		hasNextPage && lastRow
+			? {
+					createdAt:
+						lastRow.created_at instanceof Date
+							? lastRow.created_at.toISOString()
+							: new Date(lastRow.created_at).toISOString(),
+					id: lastRow.id,
+				}
+			: null;
 
 	return {
 		rows: trimmedRows,
@@ -205,24 +206,26 @@ export async function listAdminConfigLogs(ctx: ProtectedContext, input: ListAdmi
 export async function getSystemStats(ctx: ProtectedContext) {
 	const clientId = ctx.session.user.client_id!;
 
-	const counts = await ctx.db.selectNoFrom(({ selectFrom }) => [
-		// Admin config actions today
-		selectFrom('admin_config_logs')
-			.where('client_id', '=', clientId)
-			.where('created_at', '>=', sql<Date>`current_date`)
-			.select(({ fn }) => fn.countAll<number>().as('c'))
-			.as('admin_actions_today'),
-		// Reference data lists (client-scoped)
-		selectFrom('reference_list')
-			.where('client_id', '=', clientId)
-			.where('deleted_at', 'is', null)
-			.select(({ fn }) => fn.countAll<number>().as('c'))
-			.as('reference_data_entities'),
-		// Statute rules (global table, no client_id)
-		selectFrom('statute_rule')
-			.select(({ fn }) => fn.countAll<number>().as('c'))
-			.as('active_statute_rules'),
-	]).executeTakeFirstOrThrow();
+	const counts = await ctx.db
+		.selectNoFrom(({ selectFrom }) => [
+			// Admin config actions today
+			selectFrom('admin_config_logs')
+				.where('client_id', '=', clientId)
+				.where('created_at', '>=', sql<Date>`current_date`)
+				.select(({ fn }) => fn.countAll<number>().as('c'))
+				.as('admin_actions_today'),
+			// Reference data lists (client-scoped)
+			selectFrom('reference_list')
+				.where('client_id', '=', clientId)
+				.where('deleted_at', 'is', null)
+				.select(({ fn }) => fn.countAll<number>().as('c'))
+				.as('reference_data_entities'),
+			// Statute rules (global table, no client_id)
+			selectFrom('statute_rule')
+				.select(({ fn }) => fn.countAll<number>().as('c'))
+				.as('active_statute_rules'),
+		])
+		.executeTakeFirstOrThrow();
 
 	return {
 		adminActionsToday: Number(counts.admin_actions_today),

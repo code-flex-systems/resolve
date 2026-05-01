@@ -113,7 +113,14 @@ export default function WorkflowHealthCard({
 
 	return (
 		<Card variant="beveled" padding="md" style={{ maxWidth: 700 }}>
-			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+			<div
+				style={{
+					display: 'flex',
+					justifyContent: 'space-between',
+					alignItems: 'center',
+					marginBottom: 12,
+				}}
+			>
 				<span style={{ fontSize: 16, fontWeight: 600 }}>Workflow Health</span>
 				<Link
 					href="/admin/workflow-management/overview"
@@ -207,7 +214,14 @@ export default function WorkflowHealthCard({
 			{/* Actionable items */}
 			{actionableItems.length > 0 && (
 				<div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-					<span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 4 }}>
+					<span
+						style={{
+							fontSize: 12,
+							fontWeight: 600,
+							color: 'var(--text-secondary)',
+							marginBottom: 4,
+						}}
+					>
 						Action Items
 					</span>
 					{actionableItems.map((item, i) => (

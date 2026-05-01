@@ -51,11 +51,7 @@ export default function TeamRecoveryChart() {
 							<Tooltip
 								formatter={(value: any, name: any) => [formatTooltipValue(value as number), name]}
 							/>
-							<Legend
-								verticalAlign="top"
-								align="left"
-								layout="vertical"
-							/>
+							<Legend verticalAlign="top" align="left" layout="vertical" />
 							<Line
 								type="linear"
 								dataKey="expected"

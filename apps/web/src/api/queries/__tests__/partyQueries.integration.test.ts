@@ -90,8 +90,16 @@ describe('partyQueries integration', () => {
 		it('should return parties for the client', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Test Party A' });
-			await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Test Party B' });
+			await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: 'Test Party A',
+			});
+			await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: 'Test Party B',
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -107,8 +115,16 @@ describe('partyQueries integration', () => {
 			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 
-			await createTestParty(db, { client_id: client1.id, created_by: user1.id, name: 'Client 1 Party' });
-			await createTestParty(db, { client_id: client2.id, created_by: user2.id, name: 'Client 2 Party' });
+			await createTestParty(db, {
+				client_id: client1.id,
+				created_by: user1.id,
+				name: 'Client 1 Party',
+			});
+			await createTestParty(db, {
+				client_id: client2.id,
+				created_by: user2.id,
+				name: 'Client 2 Party',
+			});
 
 			const ctx1 = createTestContext(db, { id: user1.id, client_id: client1.id, role: 'Admin' });
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
@@ -128,7 +144,11 @@ describe('partyQueries integration', () => {
 		it('should filter by search term', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Acme Insurance' });
+			await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: 'Acme Insurance',
+			});
 			await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Beta Corp' });
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -276,7 +296,11 @@ describe('partyQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 
-			await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Searchable Insurance Co' });
+			await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: 'Searchable Insurance Co',
+			});
 			await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Other Corp' });
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -516,7 +540,10 @@ describe('partyQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const party = await createTestParty(db, { client_id: client.id, created_by: user.id });
 			const address = await createTestPartyAddress(db, { party_id: party.id, created_by: user.id });
-			const rep = await createTestPartyRepresentative(db, { party_id: party.id, created_by: user.id });
+			const rep = await createTestPartyRepresentative(db, {
+				party_id: party.id,
+				created_by: user.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -555,7 +582,9 @@ describe('partyQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(archiveParty(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow('no result');
+			await expect(archiveParty(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow(
+				'no result'
+			);
 		});
 	});
 
@@ -620,7 +649,9 @@ describe('partyQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(restoreParty(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow('no result');
+			await expect(restoreParty(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow(
+				'no result'
+			);
 		});
 	});
 
@@ -728,11 +759,27 @@ describe('partyQueries integration', () => {
 		it('should return addresses across all parties', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Party A' });
-			const party2 = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Party B' });
+			const party1 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: 'Party A',
+			});
+			const party2 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: 'Party B',
+			});
 
-			await createTestPartyAddress(db, { party_id: party1.id, created_by: user.id, name: 'Office A' });
-			await createTestPartyAddress(db, { party_id: party2.id, created_by: user.id, name: 'Office B' });
+			await createTestPartyAddress(db, {
+				party_id: party1.id,
+				created_by: user.id,
+				name: 'Office A',
+			});
+			await createTestPartyAddress(db, {
+				party_id: party2.id,
+				created_by: user.id,
+				name: 'Office B',
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -785,7 +832,11 @@ describe('partyQueries integration', () => {
 			// Create 5 addresses for different parties to avoid unique valid constraint
 			const parties: Awaited<ReturnType<typeof createTestParty>>[] = [];
 			for (let i = 0; i < 5; i++) {
-				const party = await createTestParty(db, { client_id: client.id, created_by: user.id, name: `Pagination Party ${i}` });
+				const party = await createTestParty(db, {
+					client_id: client.id,
+					created_by: user.id,
+					name: `Pagination Party ${i}`,
+				});
 				parties.push(party);
 				await createTestPartyAddress(db, {
 					party_id: party.id,
@@ -1043,7 +1094,9 @@ describe('partyQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(archivePartyAddress(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow('no result');
+			await expect(
+				archivePartyAddress(ctx, '00000000-0000-0000-0000-000000000000')
+			).rejects.toThrow('no result');
 		});
 
 		it('should throw error when restoring non-existent address', async () => {
@@ -1052,7 +1105,9 @@ describe('partyQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(restorePartyAddress(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow('no result');
+			await expect(
+				restorePartyAddress(ctx, '00000000-0000-0000-0000-000000000000')
+			).rejects.toThrow('no result');
 		});
 	});
 
@@ -1084,8 +1139,16 @@ describe('partyQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const party = await createTestParty(db, { client_id: client.id, created_by: user.id });
-			const address1 = await createTestPartyAddress(db, { party_id: party.id, created_by: user.id, address_status: 'valid' });
-			const address2 = await createTestPartyAddress(db, { party_id: party.id, created_by: user.id, address_status: 'mailing' });
+			const address1 = await createTestPartyAddress(db, {
+				party_id: party.id,
+				created_by: user.id,
+				address_status: 'valid',
+			});
+			const address2 = await createTestPartyAddress(db, {
+				party_id: party.id,
+				created_by: user.id,
+				address_status: 'mailing',
+			});
 
 			await createTestPartyRepresentative(db, {
 				party_id: party.id,
@@ -1492,7 +1555,9 @@ describe('partyQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(archivePartyRepresentative(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow('Representative not found');
+			await expect(
+				archivePartyRepresentative(ctx, '00000000-0000-0000-0000-000000000000')
+			).rejects.toThrow('Representative not found');
 		});
 
 		it('should throw error when restoring non-existent representative', async () => {
@@ -1501,7 +1566,9 @@ describe('partyQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(restorePartyRepresentative(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow('Representative not found');
+			await expect(
+				restorePartyRepresentative(ctx, '00000000-0000-0000-0000-000000000000')
+			).rejects.toThrow('Representative not found');
 		});
 	});
 
@@ -1760,7 +1827,9 @@ describe('partyQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(archiveClaimParty(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow('Claim party not found');
+			await expect(archiveClaimParty(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow(
+				'Claim party not found'
+			);
 		});
 	});
 
@@ -1815,7 +1884,10 @@ describe('partyQueries integration', () => {
 				created_by: user.id,
 				party_type: 'entity',
 			});
-			const facilitatorParty = await createTestParty(db, { client_id: client.id, created_by: user.id });
+			const facilitatorParty = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const deletedEntityParty = await createTestParty(db, {
 				client_id: client.id,
 				created_by: user.id,
@@ -1975,13 +2047,13 @@ describe('partyQueries integration', () => {
 				created_by: user.id,
 				name: 'SearchFilterEntity Corp',
 				party_type: 'entity',
-				});
+			});
 			await createTestParty(db, {
 				client_id: client.id,
 				created_by: user.id,
 				name: 'SearchFilterFacilitator Inc',
 				party_type: 'facilitator',
-				});
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -2001,13 +2073,13 @@ describe('partyQueries integration', () => {
 				created_by: user.id,
 				name: 'SearchFilter2Entity Corp',
 				party_type: 'entity',
-				});
+			});
 			await createTestParty(db, {
 				client_id: client.id,
 				created_by: user.id,
 				name: 'SearchFilter2Facilitator Inc',
 				party_type: 'facilitator',
-				});
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -2027,13 +2099,13 @@ describe('partyQueries integration', () => {
 				created_by: user.id,
 				name: 'SearchFilter3Entity Corp',
 				party_type: 'entity',
-				});
+			});
 			await createTestParty(db, {
 				client_id: client.id,
 				created_by: user.id,
 				name: 'SearchFilter3Facilitator Inc',
 				party_type: 'facilitator',
-				});
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -2054,13 +2126,13 @@ describe('partyQueries integration', () => {
 				created_by: user.id,
 				name: 'Entity Party For Filter',
 				party_type: 'entity',
-				});
+			});
 			const facilitatorParty = await createTestParty(db, {
 				client_id: client.id,
 				created_by: user.id,
 				name: 'Facilitator Party For Filter',
 				party_type: 'facilitator',
-				});
+			});
 
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
@@ -2093,13 +2165,13 @@ describe('partyQueries integration', () => {
 				created_by: user.id,
 				name: 'Entity Party For Filter 2',
 				party_type: 'entity',
-				});
+			});
 			const facilitatorParty = await createTestParty(db, {
 				client_id: client.id,
 				created_by: user.id,
 				name: 'Facilitator Party For Filter 2',
 				party_type: 'facilitator',
-				});
+			});
 
 			await createTestClaimParty(db, {
 				claim_id: claim.id,
@@ -2611,7 +2683,9 @@ describe('partyQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Filter by claimant_party_role
-			const result = await getClaimParties(ctx, claim.id, { roleListEntity: 'claimant_party_role' });
+			const result = await getClaimParties(ctx, claim.id, {
+				roleListEntity: 'claimant_party_role',
+			});
 
 			expect(result).toHaveLength(1);
 			expect(result[0].party.name).toBe('Claimant Entity');
@@ -2710,7 +2784,9 @@ describe('partyQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Filter by claimant_party_role - should return nothing
-			const result = await getClaimParties(ctx, claim.id, { roleListEntity: 'claimant_party_role' });
+			const result = await getClaimParties(ctx, claim.id, {
+				roleListEntity: 'claimant_party_role',
+			});
 
 			expect(result).toHaveLength(0);
 		});
@@ -2765,7 +2841,9 @@ describe('partyQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			const result = await getClaimParties(ctx, claim.id, { roleListEntity: 'claimant_party_role' });
+			const result = await getClaimParties(ctx, claim.id, {
+				roleListEntity: 'claimant_party_role',
+			});
 
 			// Only the party with the active role should be returned
 			expect(result).toHaveLength(1);
@@ -3055,11 +3133,15 @@ describe('partyQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Should match when filtering by claimant roles (has 'claimant')
-			const claimantResult = await getClaimParties(ctx, claim.id, { roleListEntity: 'claimant_party_role' });
+			const claimantResult = await getClaimParties(ctx, claim.id, {
+				roleListEntity: 'claimant_party_role',
+			});
 			expect(claimantResult).toHaveLength(1);
 
 			// Should also match when filtering by adverse roles (has 'adverse_carrier')
-			const adverseResult = await getClaimParties(ctx, claim.id, { roleListEntity: 'adverse_party_role' });
+			const adverseResult = await getClaimParties(ctx, claim.id, {
+				roleListEntity: 'adverse_party_role',
+			});
 			expect(adverseResult).toHaveLength(1);
 		});
 	});
@@ -3523,7 +3605,11 @@ describe('partyQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
-			const party = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
+			const party = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+			});
 			const claimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
 				party_id: party.id,
@@ -3553,8 +3639,18 @@ describe('partyQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
-			const parentParty = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity', name: `CascadeParent ${Date.now()}` });
-			const childParty = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'facilitator', name: `CascadeChild ${Date.now()}` });
+			const parentParty = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+				name: `CascadeParent ${Date.now()}`,
+			});
+			const childParty = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'facilitator',
+				name: `CascadeChild ${Date.now()}`,
+			});
 
 			const parentClaimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
@@ -3576,8 +3672,16 @@ describe('partyQueries integration', () => {
 
 			// Both parent and child should be archived
 			const [archivedParent, archivedChild] = await Promise.all([
-				db.selectFrom('claim_party').select(['id', 'deleted_at']).where('id', '=', parentClaimParty.id).executeTakeFirstOrThrow(),
-				db.selectFrom('claim_party').select(['id', 'deleted_at']).where('id', '=', childClaimParty.id).executeTakeFirstOrThrow(),
+				db
+					.selectFrom('claim_party')
+					.select(['id', 'deleted_at'])
+					.where('id', '=', parentClaimParty.id)
+					.executeTakeFirstOrThrow(),
+				db
+					.selectFrom('claim_party')
+					.select(['id', 'deleted_at'])
+					.where('id', '=', childClaimParty.id)
+					.executeTakeFirstOrThrow(),
 			]);
 			expect(archivedParent.deleted_at).not.toBeNull();
 			expect(archivedChild.deleted_at).not.toBeNull();
@@ -3587,7 +3691,11 @@ describe('partyQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
-			const party = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
+			const party = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+			});
 			const claimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
 				party_id: party.id,
@@ -3623,7 +3731,11 @@ describe('partyQueries integration', () => {
 			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client1.id });
-			const party = await createTestParty(db, { client_id: client1.id, created_by: user1.id, party_type: 'entity' });
+			const party = await createTestParty(db, {
+				client_id: client1.id,
+				created_by: user1.id,
+				party_type: 'entity',
+			});
 			const claimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
 				party_id: party.id,
@@ -3647,16 +3759,32 @@ describe('partyQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
-			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity', name: 'Entity A' });
-			const party2 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity', name: 'Entity B' });
+			const party1 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+				name: 'Entity A',
+			});
+			const party2 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+				name: 'Entity B',
+			});
 
 			await createTestClaimParty(db, {
-				claim_id: claim.id, party_id: party1.id, client_id: client.id,
-				created_by: user.id, liability_percentage: '30',
+				claim_id: claim.id,
+				party_id: party1.id,
+				client_id: client.id,
+				created_by: user.id,
+				liability_percentage: '30',
 			});
 			await createTestClaimParty(db, {
-				claim_id: claim.id, party_id: party2.id, client_id: client.id,
-				created_by: user.id, liability_percentage: '25',
+				claim_id: claim.id,
+				party_id: party2.id,
+				client_id: client.id,
+				created_by: user.id,
+				liability_percentage: '25',
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -3668,16 +3796,34 @@ describe('partyQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
-			const activeParty = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity', name: 'Active' });
-			const deletedParty = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity', name: 'Deleted' });
+			const activeParty = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+				name: 'Active',
+			});
+			const deletedParty = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+				name: 'Deleted',
+			});
 
 			await createTestClaimParty(db, {
-				claim_id: claim.id, party_id: activeParty.id, client_id: client.id,
-				created_by: user.id, liability_percentage: '40',
+				claim_id: claim.id,
+				party_id: activeParty.id,
+				client_id: client.id,
+				created_by: user.id,
+				liability_percentage: '40',
 			});
 			await createTestClaimParty(db, {
-				claim_id: claim.id, party_id: deletedParty.id, client_id: client.id,
-				created_by: user.id, liability_percentage: '20', deleted_at: new Date(), deleted_by: user.id,
+				claim_id: claim.id,
+				party_id: deletedParty.id,
+				client_id: client.id,
+				created_by: user.id,
+				liability_percentage: '20',
+				deleted_at: new Date(),
+				deleted_by: user.id,
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -3690,16 +3836,32 @@ describe('partyQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
-			const entityParty = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity', name: 'Entity' });
-			const facilitatorParty = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'facilitator', name: 'Facilitator' });
+			const entityParty = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+				name: 'Entity',
+			});
+			const facilitatorParty = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'facilitator',
+				name: 'Facilitator',
+			});
 
 			await createTestClaimParty(db, {
-				claim_id: claim.id, party_id: entityParty.id, client_id: client.id,
-				created_by: user.id, liability_percentage: '50',
+				claim_id: claim.id,
+				party_id: entityParty.id,
+				client_id: client.id,
+				created_by: user.id,
+				liability_percentage: '50',
 			});
 			await createTestClaimParty(db, {
-				claim_id: claim.id, party_id: facilitatorParty.id, client_id: client.id,
-				created_by: user.id, liability_percentage: '30',
+				claim_id: claim.id,
+				party_id: facilitatorParty.id,
+				client_id: client.id,
+				created_by: user.id,
+				liability_percentage: '30',
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -3712,16 +3874,30 @@ describe('partyQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
-			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
-			const party2 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
+			const party1 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+			});
+			const party2 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+			});
 
 			const cp1 = await createTestClaimParty(db, {
-				claim_id: claim.id, party_id: party1.id, client_id: client.id,
-				created_by: user.id, liability_percentage: '30',
+				claim_id: claim.id,
+				party_id: party1.id,
+				client_id: client.id,
+				created_by: user.id,
+				liability_percentage: '30',
 			});
 			await createTestClaimParty(db, {
-				claim_id: claim.id, party_id: party2.id, client_id: client.id,
-				created_by: user.id, liability_percentage: '20',
+				claim_id: claim.id,
+				party_id: party2.id,
+				client_id: client.id,
+				created_by: user.id,
+				liability_percentage: '20',
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -3750,7 +3926,11 @@ describe('partyQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
-			const party = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
+			const party = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -3772,8 +3952,18 @@ describe('partyQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
-			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity', name: 'P1' });
-			const party2 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity', name: 'P2' });
+			const party1 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+				name: 'P1',
+			});
+			const party2 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+				name: 'P2',
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -3800,8 +3990,18 @@ describe('partyQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
-			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity', name: 'P1' });
-			const party2 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity', name: 'P2' });
+			const party1 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+				name: 'P1',
+			});
+			const party2 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+				name: 'P2',
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -3830,18 +4030,32 @@ describe('partyQueries integration', () => {
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const claim1 = await createTestClaim(db, { client_id: client1.id });
 			const claim2 = await createTestClaim(db, { client_id: client2.id });
-			const party1 = await createTestParty(db, { client_id: client1.id, created_by: user1.id, party_type: 'entity' });
-			const party2 = await createTestParty(db, { client_id: client2.id, created_by: user2.id, party_type: 'entity' });
+			const party1 = await createTestParty(db, {
+				client_id: client1.id,
+				created_by: user1.id,
+				party_type: 'entity',
+			});
+			const party2 = await createTestParty(db, {
+				client_id: client2.id,
+				created_by: user2.id,
+				party_type: 'entity',
+			});
 
 			const ctx1 = createTestContext(db, { id: user1.id, client_id: client1.id, role: 'Admin' });
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
 			// Both clients add 80% to their own claims -- should work independently
 			await linkPartyToClaim(ctx1, {
-				claim_id: claim1.id, party_id: party1.id, role: ['insured'], liability_percentage: 80,
+				claim_id: claim1.id,
+				party_id: party1.id,
+				role: ['insured'],
+				liability_percentage: 80,
 			});
 			const { claimParty: cp2 } = await linkPartyToClaim(ctx2, {
-				claim_id: claim2.id, party_id: party2.id, role: ['insured'], liability_percentage: 80,
+				claim_id: claim2.id,
+				party_id: party2.id,
+				role: ['insured'],
+				liability_percentage: 80,
 			});
 
 			expect(cp2.liability_percentage).not.toBeNull();
@@ -3860,21 +4074,53 @@ describe('partyQueries integration', () => {
 			const party = await createTestParty(db, { client_id: client.id, created_by: user.id });
 
 			const address = await createTestPartyAddress(db, { party_id: party.id, created_by: user.id });
-			const phone = await createTestPartyPhone(db, { party_id: party.id, client_id: client.id, created_by: user.id });
-			const email = await createTestPartyEmail(db, { party_id: party.id, client_id: client.id, created_by: user.id });
-			const rep = await createTestPartyRepresentative(db, { party_id: party.id, created_by: user.id });
+			const phone = await createTestPartyPhone(db, {
+				party_id: party.id,
+				client_id: client.id,
+				created_by: user.id,
+			});
+			const email = await createTestPartyEmail(db, {
+				party_id: party.id,
+				client_id: client.id,
+				created_by: user.id,
+			});
+			const rep = await createTestPartyRepresentative(db, {
+				party_id: party.id,
+				created_by: user.id,
+			});
 
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin', email: 'test@test.com' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				role: 'Admin',
+				email: 'test@test.com',
+			});
 
 			const result = await archiveParty(ctx, party.id);
 			expect(result.deleted_at).not.toBeNull();
 
 			// Verify all sub-entities are soft-deleted
 			const [addrRow, phoneRow, emailRow, repRow] = await Promise.all([
-				db.selectFrom('party_address').select(['id', 'deleted_at']).where('id', '=', address.id).executeTakeFirstOrThrow(),
-				db.selectFrom('party_phone').select(['id', 'deleted_at']).where('id', '=', phone.id).executeTakeFirstOrThrow(),
-				db.selectFrom('party_email').select(['id', 'deleted_at']).where('id', '=', email.id).executeTakeFirstOrThrow(),
-				db.selectFrom('party_representative').select(['id', 'deleted_at']).where('id', '=', rep.id).executeTakeFirstOrThrow(),
+				db
+					.selectFrom('party_address')
+					.select(['id', 'deleted_at'])
+					.where('id', '=', address.id)
+					.executeTakeFirstOrThrow(),
+				db
+					.selectFrom('party_phone')
+					.select(['id', 'deleted_at'])
+					.where('id', '=', phone.id)
+					.executeTakeFirstOrThrow(),
+				db
+					.selectFrom('party_email')
+					.select(['id', 'deleted_at'])
+					.where('id', '=', email.id)
+					.executeTakeFirstOrThrow(),
+				db
+					.selectFrom('party_representative')
+					.select(['id', 'deleted_at'])
+					.where('id', '=', rep.id)
+					.executeTakeFirstOrThrow(),
 			]);
 			expect(addrRow.deleted_at).not.toBeNull();
 			expect(phoneRow.deleted_at).not.toBeNull();
@@ -3894,7 +4140,12 @@ describe('partyQueries integration', () => {
 				created_by: user.id,
 			});
 
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin', email: 'test@test.com' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				role: 'Admin',
+				email: 'test@test.com',
+			});
 
 			await expect(archiveParty(ctx, party.id)).rejects.toThrow(/active claim/i);
 		});
@@ -3907,7 +4158,12 @@ describe('partyQueries integration', () => {
 			const party = await createTestParty(db, { client_id: client1.id, created_by: user1.id });
 
 			// User from client2 should not be able to archive client1's party
-			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin', email: 'test2@test.com' });
+			const ctx2 = createTestContext(db, {
+				id: user2.id,
+				client_id: client2.id,
+				role: 'Admin',
+				email: 'test2@test.com',
+			});
 
 			// getActiveClaimAssociations scoped to client2 returns empty, so guard passes,
 			// but the update query scoped to client2 won't match client1's party -> throws
@@ -3923,20 +4179,50 @@ describe('partyQueries integration', () => {
 		it('should clear deleted_at on party and all 4 sub-entity tables', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin', email: 'test@test.com' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				role: 'Admin',
+				email: 'test@test.com',
+			});
 
 			// Create party with all 4 sub-entity types
-			const party = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Restore Full Test' });
-			const address = await createTestPartyAddress(db, { party_id: party.id, created_by: user.id, name: 'Office' });
-			const phone = await createTestPartyPhone(db, { party_id: party.id, client_id: client.id, created_by: user.id, phone_number: '555-1234' });
-			const email = await createTestPartyEmail(db, { party_id: party.id, client_id: client.id, created_by: user.id, email_address: 'test@example.com' });
-			const rep = await createTestPartyRepresentative(db, { party_id: party.id, created_by: user.id });
+			const party = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: 'Restore Full Test',
+			});
+			const address = await createTestPartyAddress(db, {
+				party_id: party.id,
+				created_by: user.id,
+				name: 'Office',
+			});
+			const phone = await createTestPartyPhone(db, {
+				party_id: party.id,
+				client_id: client.id,
+				created_by: user.id,
+				phone_number: '555-1234',
+			});
+			const email = await createTestPartyEmail(db, {
+				party_id: party.id,
+				client_id: client.id,
+				created_by: user.id,
+				email_address: 'test@example.com',
+			});
+			const rep = await createTestPartyRepresentative(db, {
+				party_id: party.id,
+				created_by: user.id,
+			});
 
 			// Archive the party (cascades to all sub-entities)
 			await archiveParty(ctx, party.id);
 
 			// Verify everything is archived
-			const archivedParty = await db.selectFrom('party').select(['deleted_at']).where('id', '=', party.id).executeTakeFirstOrThrow();
+			const archivedParty = await db
+				.selectFrom('party')
+				.select(['deleted_at'])
+				.where('id', '=', party.id)
+				.executeTakeFirstOrThrow();
 			expect(archivedParty.deleted_at).not.toBeNull();
 
 			// Act - restore the party

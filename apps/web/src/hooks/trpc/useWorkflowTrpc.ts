@@ -241,17 +241,11 @@ export function useWorkflowTrpc() {
  * Export types for use in components
  * These are derived from the tRPC router output types
  */
-export type WorkflowDefinition = NonNullable<
-	WorkflowOutput['getWorkflowDefinition']
->;
+export type WorkflowDefinition = NonNullable<WorkflowOutput['getWorkflowDefinition']>;
 export type WorkflowDefinitionList = WorkflowOutput['getWorkflowDefinitions'];
-export type WorkflowThreshold = NonNullable<
-	WorkflowOutput['getWorkflowThresholds']
->[number];
+export type WorkflowThreshold = NonNullable<WorkflowOutput['getWorkflowThresholds']>[number];
 export type WorkflowThresholdList = WorkflowOutput['getWorkflowThresholds'];
-export type WorkflowRule = NonNullable<
-	WorkflowOutput['getWorkflowRules']
->[number];
+export type WorkflowRule = NonNullable<WorkflowOutput['getWorkflowRules']>[number];
 export type WorkflowRuleList = WorkflowOutput['getWorkflowRules'];
 export type ResolvedWorkflow = WorkflowOutput['resolveWorkflowForLocation'];
 

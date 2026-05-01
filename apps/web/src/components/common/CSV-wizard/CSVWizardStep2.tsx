@@ -40,7 +40,8 @@ export const CSVStep2ColumnMapping = forwardRef<Step2RefHandle, Props>(
 		});
 		const watchedValues = watch();
 		const allRequiredFieldsAssigned = fields.every(
-			(field) => !field.required || (!!watchedValues[field.key] && watchedValues[field.key] !== 'Unassigned')
+			(field) =>
+				!field.required || (!!watchedValues[field.key] && watchedValues[field.key] !== 'Unassigned')
 		);
 
 		useEffect(() => {

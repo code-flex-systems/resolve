@@ -42,11 +42,6 @@ export async function down(db: Kysely<any>): Promise<void> {
 	// Add foreign key for cancelled_by
 	await db.schema
 		.alterTable('task')
-		.addForeignKeyConstraint(
-			'fk_task_cancelled_by',
-			['cancelled_by'],
-			'users',
-			['id']
-		)
+		.addForeignKeyConstraint('fk_task_cancelled_by', ['cancelled_by'], 'users', ['id'])
 		.execute();
 }

@@ -1,6 +1,13 @@
 'use client';
 
-import { IconArrowsMaximize, IconArrowsMinimize, IconBuilding, IconSettings, IconSquarePlus, IconUserPlus } from '@tabler/icons-react';
+import {
+	IconArrowsMaximize,
+	IconArrowsMinimize,
+	IconBuilding,
+	IconSettings,
+	IconSquarePlus,
+	IconUserPlus,
+} from '@tabler/icons-react';
 import Tooltip from '@/components/ui/Tooltip';
 import Card from '@/components/ui/Card';
 import Skeleton from '@/components/ui/Skeleton';
@@ -166,7 +173,8 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 
 		try {
 			await archiveClaimPartyMutation.mutateAsync({ id: archivingClaimParty.id });
-			const partyType = archivingClaimParty.party?.party_type === 'facilitator' ? 'Facilitator' : 'Entity';
+			const partyType =
+				archivingClaimParty.party?.party_type === 'facilitator' ? 'Facilitator' : 'Entity';
 			showAlert(`${partyType} archived successfully`, 'success');
 			setArchivingClaimParty(null);
 		} catch (error: any) {
@@ -178,13 +186,23 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 
 	// Calculate totals - liability_percentage is on claim_party for entities
 	const totalLiability = entities.reduce((sum, cp) => {
-		const partyLiability = cp.liability_percentage ? parseFloat(cp.liability_percentage.toString()) : 0;
+		const partyLiability = cp.liability_percentage
+			? parseFloat(cp.liability_percentage.toString())
+			: 0;
 		return sum + partyLiability;
 	}, 0);
 
 	return (
 		<div style={{ padding: 24 }}>
-			<div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 1000, margin: '0 auto' }}>
+			<div
+				style={{
+					display: 'flex',
+					flexDirection: 'column',
+					gap: 24,
+					maxWidth: 1000,
+					margin: '0 auto',
+				}}
+			>
 				{/* Summary */}
 				<Card variant="float" padding="lg">
 					<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
@@ -195,21 +213,19 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 							<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 								Adverse Parties
 							</span>
-							<span style={{ fontSize: 11,  color: 'var(--text-secondary)'  }}>
+							<span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
 								Number of adverse party entities
 							</span>
-							<span style={{ fontSize: 18,  color: 'var(--text-accent)'  }}>
-								{entities.length}
-							</span>
+							<span style={{ fontSize: 18, color: 'var(--text-accent)' }}>{entities.length}</span>
 						</div>
 						<div style={{ display: 'flex', flexDirection: 'column' as const }}>
 							<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 								Combined Liability
 							</span>
-							<span style={{ fontSize: 11,  color: 'var(--text-secondary)'  }}>
+							<span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
 								Sum of all entity liability percentages
 							</span>
-							<span style={{ fontSize: 18,  color: 'var(--status-warning)'  }}>
+							<span style={{ fontSize: 18, color: 'var(--status-warning)' }}>
 								{totalLiability.toFixed(2)}%
 							</span>
 						</div>
@@ -218,7 +234,14 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 
 				{/* Party List */}
 				<Card variant="beveled" padding="lg">
-					<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+					<div
+						style={{
+							display: 'flex',
+							justifyContent: 'space-between',
+							alignItems: 'center',
+							marginBottom: 16,
+						}}
+					>
 						<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
 							Adverse Parties ({entities.length})
 						</span>
@@ -242,17 +265,24 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 							{entities.length > 0 && (
 								<>
 									<Tooltip content="Manage">
-										<Button variant="icon" size="sm"
+										<Button
+											variant="icon"
+											size="sm"
 											onClick={() => setIsManageMode(!isManageMode)}
 											style={{
 												backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined,
 											}}
 										>
-											<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+											<IconSettings
+												size={20}
+												style={{ color: isManageMode ? 'primary.main' : undefined }}
+											/>
 										</Button>
 									</Tooltip>
 									<Tooltip content={allExpanded ? 'Collapse all' : 'Expand all'}>
-										<Button variant="icon" size="sm"
+										<Button
+											variant="icon"
+											size="sm"
 											onClick={() => setAllExpanded(!allExpanded)}
 											style={{ marginRight: 4 }}
 										>
@@ -276,7 +306,15 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 					)}
 
 					{!isLoading && entities.length === 0 && (
-						<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+						<div
+							style={{
+								display: 'flex',
+								flexDirection: 'column',
+								alignItems: 'center',
+								justifyContent: 'center',
+								padding: 32,
+							}}
+						>
 							<IconBuilding size={48} style={{ color: 'var(--text-muted)', marginBottom: 1 }} />
 							<span style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>
 								No adverse parties linked yet
@@ -343,9 +381,9 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 					onClose={() => setArchivingClaimParty(null)}
 					width={500}
 				>
-					<span style={{  fontStyle: 'italic' ,  fontWeight: 'bold'  }}>
+					<span style={{ fontStyle: 'italic', fontWeight: 'bold' }}>
 						Are you sure you want to archive{' '}
-						<span style={{  fontWeight: 'bold' ,  color: 'var(--text-accent)'  }}>
+						<span style={{ fontWeight: 'bold', color: 'var(--text-accent)' }}>
 							{archivingClaimParty.party?.name}
 						</span>
 						?
@@ -356,17 +394,18 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 							style={{
 								backgroundColor: 'rgba(237, 108, 2, 0.08)',
 								padding: 2,
-								marginTop: 16, marginBottom: 16,
+								marginTop: 16,
+								marginBottom: 16,
 								borderLeft: '4px solid',
 								borderColor: 'warning.main',
 							}}
 						>
-							<span style={{  fontSize: 13, fontWeight: 600 ,  color: 'var(--status-warning)'  }}>
+							<span style={{ fontSize: 13, fontWeight: 600, color: 'var(--status-warning)' }}>
 								This will also archive:
 							</span>
 							<div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
 								{archivePreview.facilitatorCount > 0 && (
-									<span style={{ fontSize: 13,  color: 'var(--status-warning)'  }}>
+									<span style={{ fontSize: 13, color: 'var(--status-warning)' }}>
 										• {archivePreview.facilitatorCount} facilitator
 										{archivePreview.facilitatorCount > 1 ? 's' : ''}
 									</span>
@@ -375,9 +414,10 @@ export default function PartyLiabilityTab({ claimId }: PartyLiabilityTabProps) {
 						</div>
 					)}
 
-					<span style={{  paddingTop: '10px', fontStyle: 'italic' ,  color: 'var(--text-secondary)'  }}>
-						The {archivingClaimParty.party?.party_type === 'facilitator' ? 'facilitator' : 'entity'} will be
-						archived and hidden from view, but all records will be preserved for traceability.
+					<span style={{ paddingTop: '10px', fontStyle: 'italic', color: 'var(--text-secondary)' }}>
+						The {archivingClaimParty.party?.party_type === 'facilitator' ? 'facilitator' : 'entity'}{' '}
+						will be archived and hidden from view, but all records will be preserved for
+						traceability.
 					</span>
 				</BasicDialog>
 			)}

@@ -36,10 +36,9 @@ const getColumns = (isAdminContext: boolean, isManageMode: boolean): ColumnDef<a
 		header: 'Type',
 		accessorKey: 'party_type',
 		cell: ({ row: { original: row } }) => (
-			<Chip
-				size="sm"
-				color={row.party_type === 'entity' ? 'info' : 'neutral'}
-				variant="outlined">{row.party_type === 'entity' ? 'Entity' : 'Facilitator'}</Chip>
+			<Chip size="sm" color={row.party_type === 'entity' ? 'info' : 'neutral'} variant="outlined">
+				{row.party_type === 'entity' ? 'Entity' : 'Facilitator'}
+			</Chip>
 		),
 		size: 110,
 	},
@@ -76,9 +75,12 @@ const getColumns = (isAdminContext: boolean, isManageMode: boolean): ColumnDef<a
 	{
 		header: '',
 		accessorKey: 'actions',
-		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return (
-			<PartyActionsCell {...params} isAdminContext={isAdminContext} isManageMode={isManageMode} />
-		); },
+		cell: (info: any) => {
+			const params = { row: info.row.original, value: info.getValue() };
+			return (
+				<PartyActionsCell {...params} isAdminContext={isAdminContext} isManageMode={isManageMode} />
+			);
+		},
 		size: isAdminContext ? 100 : 50,
 	},
 ];
@@ -141,7 +143,10 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 	};
 
 	// Memoize columns based on isAdminContext and isManageMode
-	const columns = useMemo(() => getColumns(isAdminContext, isManageMode), [isAdminContext, isManageMode]);
+	const columns = useMemo(
+		() => getColumns(isAdminContext, isManageMode),
+		[isAdminContext, isManageMode]
+	);
 	const pinnedColumns = useMemo<{ left?: string[]; right?: string[] }>(
 		() => (isManageMode ? { right: ['actions'] } : {}),
 		[isManageMode]
@@ -166,8 +171,16 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading parties...">
 			<div style={styles.container}>
 				<Card variant="beveled" padding="md" style={styles.paper}>
-					<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
-						Parties are individuals and organizations involved in claims — insureds, claimants, attorneys, contractors, and other entities.
+					<p
+						style={{
+							color: 'var(--text-secondary)',
+							fontSize: 13,
+							margin: '0 0 12px',
+							lineHeight: 1.5,
+						}}
+					>
+						Parties are individuals and organizations involved in claims — insureds, claimants,
+						attorneys, contractors, and other entities.
 					</p>
 					<Toolbar
 						left={
@@ -181,9 +194,7 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 											color="warning"
 											style={{ marginLeft: '10px' }}
 										/>
-										<span style={{ fontSize: 14, fontStyle: 'italic' }}>
-											Show Archived Only
-										</span>
+										<span style={{ fontSize: 14, fontStyle: 'italic' }}>Show Archived Only</span>
 									</>
 								)}
 							</>
@@ -211,11 +222,19 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 									Party
 								</Button>
 								<Tooltip content="Manage">
-									<Button variant="icon" size="sm"
+									<Button
+										variant="icon"
+										size="sm"
 										onClick={() => setIsManageMode(!isManageMode)}
-										style={{ marginLeft: 8, backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined }}
+										style={{
+											marginLeft: 8,
+											backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined,
+										}}
 									>
-										<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+										<IconSettings
+											size={20}
+											style={{ color: isManageMode ? 'primary.main' : undefined }}
+										/>
 									</Button>
 								</Tooltip>
 							</>
@@ -239,7 +258,9 @@ export default function PartiesTab({ isAdminContext = true }: PartiesTabProps) {
 					</div>
 
 					{showNewPartyDialog && <PartyDialog />}
-					{editingPartyFromUrl && <PartyDialog party={editingPartyFromUrl} onClose={handleCloseEditDialog} />}
+					{editingPartyFromUrl && (
+						<PartyDialog party={editingPartyFromUrl} onClose={handleCloseEditDialog} />
+					)}
 				</Card>
 			</div>
 		</PageTransitionWrapper>

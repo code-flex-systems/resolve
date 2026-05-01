@@ -24,9 +24,18 @@ export default function ClaimDetailView({ claimId }: { claimId: string }) {
 	const searchParams = useSearchParams();
 	const [currentTab, setCurrentTab] = useState(0);
 	const [showEditDialog, setShowEditDialog] = useState(false);
-	const { data: claimDetail } = trpc.claim.getClaimDetail.useQuery({ claimId }, { enabled: !!claimId });
+	const { data: claimDetail } = trpc.claim.getClaimDetail.useQuery(
+		{ claimId },
+		{ enabled: !!claimId }
+	);
 	const { setDynamicSegments } = useBreadcrumbs();
-	useTrackResource('claim', claimId, claimDetail?.claim_number ?? null, `/admin/claims/${claimId}`, !!claimId);
+	useTrackResource(
+		'claim',
+		claimId,
+		claimDetail?.claim_number ?? null,
+		`/admin/claims/${claimId}`,
+		!!claimId
+	);
 
 	useEffect(() => {
 		if (claimDetail?.claim_number) {
@@ -88,14 +97,14 @@ export default function ClaimDetailView({ claimId }: { claimId: string }) {
 				<div style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
 					<div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
 						<div style={{ width: '100%', maxWidth: 1400 }}>
-								{currentTab === 0 && <OverviewTab claimId={claimId} />}
-								{currentTab === 1 && <WorkflowTab claimId={claimId} />}
-								{currentTab === 2 && <ClaimantsCoverageTab claimId={claimId} />}
-								{currentTab === 3 && <PartyLiabilityTab claimId={claimId} />}
-								{currentTab === 4 && <PaymentsTab claimId={claimId} />}
-								{currentTab === 5 && <SettlementRecoveryTab claimId={claimId} />}
-							</div>
+							{currentTab === 0 && <OverviewTab claimId={claimId} />}
+							{currentTab === 1 && <WorkflowTab claimId={claimId} />}
+							{currentTab === 2 && <ClaimantsCoverageTab claimId={claimId} />}
+							{currentTab === 3 && <PartyLiabilityTab claimId={claimId} />}
+							{currentTab === 4 && <PaymentsTab claimId={claimId} />}
+							{currentTab === 5 && <SettlementRecoveryTab claimId={claimId} />}
 						</div>
+					</div>
 				</div>
 			</Card>
 

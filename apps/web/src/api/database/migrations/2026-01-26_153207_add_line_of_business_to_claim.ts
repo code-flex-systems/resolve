@@ -11,10 +11,7 @@ import { Kysely, sql } from 'kysely';
 
 export async function up(db: Kysely<any>): Promise<void> {
 	// Add line_of_business column to claim table
-	await db.schema
-		.alterTable('claim')
-		.addColumn('line_of_business', 'text')
-		.execute();
+	await db.schema.alterTable('claim').addColumn('line_of_business', 'text').execute();
 
 	// Add index for filtering
 	await db.schema
@@ -24,7 +21,9 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.execute();
 
 	// Add column comment
-	await sql`COMMENT ON COLUMN claim.line_of_business IS 'Line of business for this claim (values managed via reference_data)'`.execute(db);
+	await sql`COMMENT ON COLUMN claim.line_of_business IS 'Line of business for this claim (values managed via reference_data)'`.execute(
+		db
+	);
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
@@ -32,8 +31,5 @@ export async function down(db: Kysely<any>): Promise<void> {
 	await db.schema.dropIndex('idx_claim_line_of_business').ifExists().execute();
 
 	// Drop column
-	await db.schema
-		.alterTable('claim')
-		.dropColumn('line_of_business')
-		.execute();
+	await db.schema.alterTable('claim').dropColumn('line_of_business').execute();
 }

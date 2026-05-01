@@ -76,78 +76,74 @@ export default function PaymentFormDialog({
 		>
 			<div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 8 }}>
 				<Dropdown
-						label="Coverage"
-						options={coverages.map((coverage) => ({
-							value: coverage.id,
-							label: `${capitalize(coverage.loss_type)}${coverage.coverage_amount ? ` - ${formatCurrencyExact(Number(coverage.coverage_amount))}` : ''}`,
-						}))}
-						value={formData.coverage_id}
-						onChange={(v) => setFormData({ ...formData, coverage_id: String(v) })}
-						required
-						fullWidth
+					label="Coverage"
+					options={coverages.map((coverage) => ({
+						value: coverage.id,
+						label: `${capitalize(coverage.loss_type)}${coverage.coverage_amount ? ` - ${formatCurrencyExact(Number(coverage.coverage_amount))}` : ''}`,
+					}))}
+					value={formData.coverage_id}
+					onChange={(v) => setFormData({ ...formData, coverage_id: String(v) })}
+					required
+					fullWidth
+				/>
+				<DateField
+					label="Payment Date"
+					value={formData.payment_date || null}
+					onChange={(val) => setFormData({ ...formData, payment_date: val ?? '' })}
+					fullWidth
+					required
+				/>
+				<Input
+					label="Payment Amount"
+					type="number"
+					value={formData.payment_amount}
+					onChange={(e) => setFormData({ ...formData, payment_amount: e.target.value })}
+					fullWidth
+					required
+					placeholder="0.00"
+					helperText="Use negative values for credits or reversals"
+					startAdornment={<span style={{ color: 'var(--text-secondary)', marginRight: 4 }}>$</span>}
+					step="0.01"
+				/>
+				<div style={{ display: 'flex', gap: 16 }}>
+					<Checkbox
+						checked={formData.is_subrogable}
+						onChange={(checked) => setFormData({ ...formData, is_subrogable: checked })}
+						label="Subrogable"
 					/>
-					<DateField
-						label="Payment Date"
-						value={formData.payment_date || null}
-						onChange={(val) => setFormData({ ...formData, payment_date: val ?? '' })}
-						fullWidth
-						required
-					/>
-					<Input
-						label="Payment Amount"
-						type="number"
-						value={formData.payment_amount}
-						onChange={(e) => setFormData({ ...formData, payment_amount: e.target.value })}
-						fullWidth
-						required
-						placeholder="0.00"
-						helperText="Use negative values for credits or reversals"
-						startAdornment={<span style={{ color: 'var(--text-secondary)', marginRight: 4 }}>$</span>}
-						step="0.01"
-					/>
-					<div style={{ display: 'flex', gap: 16 }}>
-						<Checkbox
-							checked={formData.is_subrogable}
-							onChange={(checked) =>
-								setFormData({ ...formData, is_subrogable: checked })
-							}
-							label="Subrogable"
-						/>
-						<Checkbox
-							checked={formData.is_expense}
-							onChange={(checked) =>
-								setFormData({ ...formData, is_expense: checked })
-							}
-							label="Expense"
-						/>
-					</div>
-					<Dropdown
-						label="Payee (Optional)"
-						options={[
-							{ value: '', label: 'None' },
-							...claimParties.map((cp) => ({
-								value: cp.id,
-								label: cp.party?.name || '',
-							})),
-						]}
-						value={formData.payee_claim_party_id ?? ''}
-						onChange={(v) =>
-							setFormData({
-								...formData,
-								payee_claim_party_id: v === '' ? null : String(v),
-							})
-						}
-						fullWidth
-					/>
-					<Textarea
-						label="Description"
-						value={formData.description}
-						onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-						fullWidth
-						rows={3}
-						placeholder="Optional details about this payment..."
+					<Checkbox
+						checked={formData.is_expense}
+						onChange={(checked) => setFormData({ ...formData, is_expense: checked })}
+						label="Expense"
 					/>
 				</div>
+				<Dropdown
+					label="Payee (Optional)"
+					options={[
+						{ value: '', label: 'None' },
+						...claimParties.map((cp) => ({
+							value: cp.id,
+							label: cp.party?.name || '',
+						})),
+					]}
+					value={formData.payee_claim_party_id ?? ''}
+					onChange={(v) =>
+						setFormData({
+							...formData,
+							payee_claim_party_id: v === '' ? null : String(v),
+						})
+					}
+					fullWidth
+				/>
+				<Textarea
+					label="Description"
+					value={formData.description}
+					onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+					fullWidth
+					rows={3}
+					placeholder="Optional details about this payment..."
+				/>
+			</div>
 		</Dialog>
 	);
 }

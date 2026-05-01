@@ -46,8 +46,7 @@ export function useWorkflowAnalyticsTrpc() {
 		 * Ordered by hours remaining (most urgent first)
 		 * Configurable limit (default 20, max 100)
 		 */
-		getClaimsApproachingSLABreach:
-			trpc.workflowAnalytics.getClaimsApproachingSLABreach.useQuery,
+		getClaimsApproachingSLABreach: trpc.workflowAnalytics.getClaimsApproachingSLABreach.useQuery,
 
 		/**
 		 * Get task throughput for today
@@ -61,8 +60,7 @@ export function useWorkflowAnalyticsTrpc() {
 		 * Shows overdue, due today, next 7 days, completed, cancelled
 		 * Optional filters by deadline type, creator, or claim
 		 */
-		getDeadlineStatusOverview:
-			trpc.workflowAnalytics.getDeadlineStatusOverview.useQuery,
+		getDeadlineStatusOverview: trpc.workflowAnalytics.getDeadlineStatusOverview.useQuery,
 
 		// ====================================================================
 		// CONFIGURATION HEALTH CHECK (Admin Only)
@@ -76,8 +74,7 @@ export function useWorkflowAnalyticsTrpc() {
 		 * - Desk locations missing capacity configuration
 		 * - Users without desk assignments
 		 */
-		getConfigurationHealthCheck:
-			trpc.workflowAnalytics.getConfigurationHealthCheck.useQuery,
+		getConfigurationHealthCheck: trpc.workflowAnalytics.getConfigurationHealthCheck.useQuery,
 
 		// ====================================================================
 		// WORKFLOW SUGGESTIONS (Admin Only)
@@ -87,8 +84,7 @@ export function useWorkflowAnalyticsTrpc() {
 		 * Generate workflow suggestions based on current load and assignments
 		 * Returns priority reassignment suggestions for admin review
 		 */
-		getWorkflowSuggestions:
-			trpc.workflowAnalytics.getWorkflowSuggestions.useQuery,
+		getWorkflowSuggestions: trpc.workflowAnalytics.getWorkflowSuggestions.useQuery,
 
 		/**
 		 * Execute a workflow suggestion
@@ -135,8 +131,7 @@ export function useWorkflowAnalyticsTrpc() {
 		 * Required: startDate, endDate (YYYY-MM-DD format)
 		 * Optional: deskLocationTypeId (filter by phase), deskLocationId (filter by stage)
 		 */
-		getWorkflowStageMetrics:
-			trpc.workflowAnalytics.getWorkflowStageMetrics.useQuery,
+		getWorkflowStageMetrics: trpc.workflowAnalytics.getWorkflowStageMetrics.useQuery,
 	};
 }
 
@@ -162,21 +157,17 @@ export type ClaimSLABreachItem = ClaimsApproachingSLABreachResult[number];
 export type TaskThroughputResult = WorkflowAnalyticsOutput['getTaskThroughputToday'];
 export type TaskThroughputItem = TaskThroughputResult['rows'][number];
 
-export type DeadlineStatusOverviewResult =
-	WorkflowAnalyticsOutput['getDeadlineStatusOverview'];
+export type DeadlineStatusOverviewResult = WorkflowAnalyticsOutput['getDeadlineStatusOverview'];
 
 // Health check output type
-export type ConfigurationHealthCheckResult =
-	WorkflowAnalyticsOutput['getConfigurationHealthCheck'];
+export type ConfigurationHealthCheckResult = WorkflowAnalyticsOutput['getConfigurationHealthCheck'];
 
 // Workflow suggestions output type
-export type WorkflowSuggestionsResult =
-	WorkflowAnalyticsOutput['getWorkflowSuggestions'];
+export type WorkflowSuggestionsResult = WorkflowAnalyticsOutput['getWorkflowSuggestions'];
 export type UpdateSuggestionInput = WorkflowAnalyticsInput['updateSuggestion'];
 
 // Tier 1 output types
-export type WorkflowStageMetricsResult =
-	WorkflowAnalyticsOutput['getWorkflowStageMetrics'];
+export type WorkflowStageMetricsResult = WorkflowAnalyticsOutput['getWorkflowStageMetrics'];
 export type WorkflowStageMetricsItem = WorkflowStageMetricsResult[number];
 
 // Input types for components that need them
@@ -185,9 +176,6 @@ export type GetDeskWorkLoadInput = WorkflowAnalyticsInput['getDeskWorkLoad'];
 export type GetUserWorkloadInput = WorkflowAnalyticsInput['getUserWorkload'];
 export type GetClaimsApproachingSLABreachInput =
 	WorkflowAnalyticsInput['getClaimsApproachingSLABreach'];
-export type GetTaskThroughputTodayInput =
-	WorkflowAnalyticsInput['getTaskThroughputToday'];
-export type GetDeadlineStatusOverviewInput =
-	WorkflowAnalyticsInput['getDeadlineStatusOverview'];
-export type GetWorkflowStageMetricsInput =
-	WorkflowAnalyticsInput['getWorkflowStageMetrics'];
+export type GetTaskThroughputTodayInput = WorkflowAnalyticsInput['getTaskThroughputToday'];
+export type GetDeadlineStatusOverviewInput = WorkflowAnalyticsInput['getDeadlineStatusOverview'];
+export type GetWorkflowStageMetricsInput = WorkflowAnalyticsInput['getWorkflowStageMetrics'];

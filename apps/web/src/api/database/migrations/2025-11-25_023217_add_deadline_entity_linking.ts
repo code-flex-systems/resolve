@@ -33,12 +33,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 	// Add foreign key for completed_by
 	await db.schema
 		.alterTable('deadline')
-		.addForeignKeyConstraint(
-			'fk_deadline_completed_by',
-			['completed_by'],
-			'users',
-			['id']
-		)
+		.addForeignKeyConstraint('fk_deadline_completed_by', ['completed_by'], 'users', ['id'])
 		.execute();
 
 	// Add cancellation tracking
@@ -52,12 +47,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 	// Add foreign key for cancelled_by
 	await db.schema
 		.alterTable('deadline')
-		.addForeignKeyConstraint(
-			'fk_deadline_cancelled_by',
-			['cancelled_by'],
-			'users',
-			['id']
-		)
+		.addForeignKeyConstraint('fk_deadline_cancelled_by', ['cancelled_by'], 'users', ['id'])
 		.execute();
 
 	// Create index for polymorphic lookups (only when entity_type is set)
@@ -76,15 +66,9 @@ export async function down(db: Kysely<any>): Promise<void> {
 	await db.schema.dropIndex('idx_deadline_entity').execute();
 
 	// Remove foreign key constraints
-	await db.schema
-		.alterTable('deadline')
-		.dropConstraint('fk_deadline_completed_by')
-		.execute();
+	await db.schema.alterTable('deadline').dropConstraint('fk_deadline_completed_by').execute();
 
-	await db.schema
-		.alterTable('deadline')
-		.dropConstraint('fk_deadline_cancelled_by')
-		.execute();
+	await db.schema.alterTable('deadline').dropConstraint('fk_deadline_cancelled_by').execute();
 
 	// Drop the added columns
 	await db.schema

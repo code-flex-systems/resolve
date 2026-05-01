@@ -27,7 +27,12 @@ export default function Comments({
 	pageSize?: number;
 	width: number;
 	viewingInChecklist?: boolean;
-	onNavigate: (args: { checklistId?: string; claimId?: string; instanceId?: string; questionId?: string }) => void;
+	onNavigate: (args: {
+		checklistId?: string;
+		claimId?: string;
+		instanceId?: string;
+		questionId?: string;
+	}) => void;
 }) {
 	const router = useRouter();
 	const { data: session } = useClerkSession();
@@ -36,7 +41,8 @@ export default function Comments({
 	const { data: comments = { rows: [], count: 0 } } = useCommentTrpc().list(
 		{ filters, limit, offset },
 		{
-			enabled: (!filters.checklistId || !!filters.checklistId) && (!filters.claimId || !!filters.claimId),
+			enabled:
+				(!filters.checklistId || !!filters.checklistId) && (!filters.claimId || !!filters.claimId),
 		}
 	);
 
@@ -46,7 +52,9 @@ export default function Comments({
 	}, [comments.rows, page, pageSize]);
 
 	return !comments.rows.length ? (
-		<span style={{ fontSize: 13, color: 'var(--text-muted)', paddingTop: 10, display: 'block' }}>No comments</span>
+		<span style={{ fontSize: 13, color: 'var(--text-muted)', paddingTop: 10, display: 'block' }}>
+			No comments
+		</span>
 	) : (
 		<>
 			{pagedData.map((c, i) => {

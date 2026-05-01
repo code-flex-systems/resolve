@@ -49,7 +49,9 @@ export const answerRouter = router({
 		return deleteAnswer(ctx, input);
 	}),
 
-	getAnswerCallGraph: protectedProcedure.input(getAnswerCallGraphInput).query(async ({ input, ctx }) => {
-		return getAnswerCallGraph(ctx, input);
-	}),
+	getAnswerCallGraph: protectedProcedure
+		.input(getAnswerCallGraphInput)
+		.query(async ({ input, ctx }) => {
+			return getAnswerCallGraph(ctx, input);
+		}),
 });

@@ -3,8 +3,10 @@
 import { forwardRef, type InputHTMLAttributes } from 'react';
 import styles from './Switch.module.css';
 
-export interface SwitchProps
-	extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'size' | 'checked'> {
+export interface SwitchProps extends Omit<
+	InputHTMLAttributes<HTMLInputElement>,
+	'onChange' | 'size' | 'checked'
+> {
 	checked: boolean;
 	onChange: (checked: boolean) => void;
 	label?: string;
@@ -30,7 +32,11 @@ const Switch = forwardRef<HTMLInputElement, SwitchProps>(
 					onChange={(e) => onChange(e.target.checked)}
 					{...props}
 				/>
-				<span className={[styles.track, styles[size], checked && styles.checked].filter(Boolean).join(' ')}>
+				<span
+					className={[styles.track, styles[size], checked && styles.checked]
+						.filter(Boolean)
+						.join(' ')}
+				>
 					<span className={styles.thumb} />
 				</span>
 				{label && <span className={styles.label}>{label}</span>}

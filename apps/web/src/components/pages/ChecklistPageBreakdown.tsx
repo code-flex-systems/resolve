@@ -38,7 +38,10 @@ export default function ChecklistPageBreakdown() {
 	const [showPageSelect, setShowPageSelect] = useState(false);
 	const { setSegments } = useBreadcrumbs();
 
-	const { data: instances = [] } = usePageTrpc().listInstances({ checklistId }, { enabled: !!checklistId });
+	const { data: instances = [] } = usePageTrpc().listInstances(
+		{ checklistId },
+		{ enabled: !!checklistId }
+	);
 	const { data: checklists = [] } = useChecklistTrpc().list({});
 	const selectedChecklist = checklists.find((c) => c.id === checklistId);
 
@@ -113,7 +116,9 @@ export default function ChecklistPageBreakdown() {
 					<Collapse open={!!answerData}>
 						<CustomChip color="info" size="sm">
 							<IconQuote size={16} style={{ color: 'var(--text-accent)' }} />
-							<span style={{ color: 'var(--text-accent)' }}>{`${answerData?.answer_text ?? ''} (p${pagePosition})`}</span>
+							<span
+								style={{ color: 'var(--text-accent)' }}
+							>{`${answerData?.answer_text ?? ''} (p${pagePosition})`}</span>
 						</CustomChip>
 					</Collapse>
 				</div>

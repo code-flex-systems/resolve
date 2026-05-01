@@ -13,9 +13,25 @@ import { indexParty } from '@/api/utils/resourceIndexHelpers';
 /**
  * Check if address data has any meaningful content
  */
-function hasAddressData(address: { street_address?: string | null; city?: string | null; state?: string | null; postal_code?: string | null; country?: string | null } | undefined): boolean {
+function hasAddressData(
+	address:
+		| {
+				street_address?: string | null;
+				city?: string | null;
+				state?: string | null;
+				postal_code?: string | null;
+				country?: string | null;
+		  }
+		| undefined
+): boolean {
 	if (!address) return false;
-	return !!(address.street_address || address.city || address.state || address.postal_code || address.country);
+	return !!(
+		address.street_address ||
+		address.city ||
+		address.state ||
+		address.postal_code ||
+		address.country
+	);
 }
 
 // ============================================================================
@@ -247,7 +263,7 @@ export async function updateParty(
 
 			// Handle address - find existing valid address or create new
 			if (contact.address !== undefined) {
-				const validAddress = existingAddresses.find(a => a.address_status === 'valid');
+				const validAddress = existingAddresses.find((a) => a.address_status === 'valid');
 
 				if (hasAddressData(contact.address)) {
 					if (validAddress) {
@@ -289,7 +305,11 @@ export async function updateParty(
 	});
 
 	// Fire-and-forget: update resource index
-	indexParty(ctx.db, ctx.session.user.client_id!, { id, name: updated.name, is_business: updated.is_business });
+	indexParty(ctx.db, ctx.session.user.client_id!, {
+		id,
+		name: updated.name,
+		is_business: updated.is_business,
+	});
 
 	return updated;
 }
@@ -302,16 +322,19 @@ export async function archiveParty(ctx: ProtectedContext, { id }: { id: string }
 	const archived = await ctx.db.transaction().execute(async (trx) => {
 		const party = await partyQueries.archiveParty({ ...ctx, db: trx }, id);
 
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: id,
-			entityName: EntityName.PARTY,
-			action: AdminAction.DELETE,
-			value: {
-				name: party.name,
-				party_type: party.party_type,
-				organization: party.organization,
-			},
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: id,
+				entityName: EntityName.PARTY,
+				action: AdminAction.DELETE,
+				value: {
+					name: party.name,
+					party_type: party.party_type,
+					organization: party.organization,
+				},
+			}
+		);
 
 		return party;
 	});
@@ -326,17 +349,20 @@ export async function restoreParty(ctx: ProtectedContext, { id }: { id: string }
 	const restored = await ctx.db.transaction().execute(async (trx) => {
 		const party = await partyQueries.restoreParty({ ...ctx, db: trx }, id);
 
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: id,
-			entityName: EntityName.PARTY,
-			action: AdminAction.UPDATE,
-			value: {
-				restored: true,
-				name: party.name,
-				party_type: party.party_type,
-				organization: party.organization,
-			},
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: id,
+				entityName: EntityName.PARTY,
+				action: AdminAction.UPDATE,
+				value: {
+					restored: true,
+					name: party.name,
+					party_type: party.party_type,
+					organization: party.organization,
+				},
+			}
+		);
 
 		return party;
 	});
@@ -398,24 +424,24 @@ export async function createPartyAddress(
 	}
 ) {
 	const created = await ctx.db.transaction().execute(async (trx) => {
-		const address = await partyQueries.createPartyAddress(
-			{ ...ctx, db: trx },
-			input
-		);
+		const address = await partyQueries.createPartyAddress({ ...ctx, db: trx }, input);
 
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: address.id,
-			entityName: EntityName.PARTY_ADDRESS,
-			action: AdminAction.CREATE,
-			value: {
-				party_id: address.party_id,
-				name: address.name,
-				city: address.city,
-				state: address.state,
-				address_type: address.address_type,
-				address_status: address.address_status,
-			},
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: address.id,
+				entityName: EntityName.PARTY_ADDRESS,
+				action: AdminAction.CREATE,
+				value: {
+					party_id: address.party_id,
+					name: address.name,
+					city: address.city,
+					state: address.state,
+					address_type: address.address_type,
+					address_status: address.address_status,
+				},
+			}
+		);
 
 		return address;
 	});
@@ -453,18 +479,17 @@ export async function updatePartyAddress(
 	}
 
 	const updated = await ctx.db.transaction().execute(async (trx) => {
-		const address = await partyQueries.updatePartyAddress(
-			{ ...ctx, db: trx },
-			id,
-			params
-		);
+		const address = await partyQueries.updatePartyAddress({ ...ctx, db: trx }, id, params);
 
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: id,
-			entityName: EntityName.PARTY_ADDRESS,
-			action: AdminAction.UPDATE,
-			value: params,
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: id,
+				entityName: EntityName.PARTY_ADDRESS,
+				action: AdminAction.UPDATE,
+				value: params,
+			}
+		);
 
 		return address;
 	});
@@ -479,17 +504,20 @@ export async function archivePartyAddress(ctx: ProtectedContext, { id }: { id: s
 	const archived = await ctx.db.transaction().execute(async (trx) => {
 		const address = await partyQueries.archivePartyAddress({ ...ctx, db: trx }, id);
 
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: id,
-			entityName: EntityName.PARTY_ADDRESS,
-			action: AdminAction.DELETE,
-			value: {
-				party_id: address.party_id,
-				name: address.name,
-				city: address.city,
-				state: address.state,
-			},
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: id,
+				entityName: EntityName.PARTY_ADDRESS,
+				action: AdminAction.DELETE,
+				value: {
+					party_id: address.party_id,
+					name: address.name,
+					city: address.city,
+					state: address.state,
+				},
+			}
+		);
 
 		return address;
 	});
@@ -504,18 +532,21 @@ export async function restorePartyAddress(ctx: ProtectedContext, { id }: { id: s
 	const restored = await ctx.db.transaction().execute(async (trx) => {
 		const address = await partyQueries.restorePartyAddress({ ...ctx, db: trx }, id);
 
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: id,
-			entityName: EntityName.PARTY_ADDRESS,
-			action: AdminAction.UPDATE,
-			value: {
-				restored: true,
-				party_id: address.party_id,
-				name: address.name,
-				city: address.city,
-				state: address.state,
-			},
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: id,
+				entityName: EntityName.PARTY_ADDRESS,
+				action: AdminAction.UPDATE,
+				value: {
+					restored: true,
+					party_id: address.party_id,
+					name: address.name,
+					city: address.city,
+					state: address.state,
+				},
+			}
+		);
 
 		return address;
 	});
@@ -569,21 +600,21 @@ export async function createPartyPhone(
 	}
 ) {
 	const created = await ctx.db.transaction().execute(async (trx) => {
-		const phone = await partyQueries.createPartyPhone(
-			{ ...ctx, db: trx },
-			input
-		);
+		const phone = await partyQueries.createPartyPhone({ ...ctx, db: trx }, input);
 
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: phone.id,
-			entityName: EntityName.PARTY_PHONE,
-			action: AdminAction.CREATE,
-			value: {
-				party_id: phone.party_id,
-				phone_number: phone.phone_number,
-				phone_type: phone.phone_type,
-			},
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: phone.id,
+				entityName: EntityName.PARTY_PHONE,
+				action: AdminAction.CREATE,
+				value: {
+					party_id: phone.party_id,
+					phone_number: phone.phone_number,
+					phone_type: phone.phone_type,
+				},
+			}
+		);
 
 		return phone;
 	});
@@ -619,18 +650,17 @@ export async function updatePartyPhone(
 	}
 
 	const updated = await ctx.db.transaction().execute(async (trx) => {
-		const phone = await partyQueries.updatePartyPhone(
-			{ ...ctx, db: trx },
-			id,
-			params
-		);
+		const phone = await partyQueries.updatePartyPhone({ ...ctx, db: trx }, id, params);
 
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: id,
-			entityName: EntityName.PARTY_PHONE,
-			action: AdminAction.UPDATE,
-			value: params,
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: id,
+				entityName: EntityName.PARTY_PHONE,
+				action: AdminAction.UPDATE,
+				value: params,
+			}
+		);
 
 		return phone;
 	});
@@ -645,16 +675,19 @@ export async function archivePartyPhone(ctx: ProtectedContext, { id }: { id: str
 	const archived = await ctx.db.transaction().execute(async (trx) => {
 		const phone = await partyQueries.archivePartyPhone({ ...ctx, db: trx }, id);
 
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: id,
-			entityName: EntityName.PARTY_PHONE,
-			action: AdminAction.DELETE,
-			value: {
-				party_id: phone.party_id,
-				phone_number: phone.phone_number,
-				phone_type: phone.phone_type,
-			},
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: id,
+				entityName: EntityName.PARTY_PHONE,
+				action: AdminAction.DELETE,
+				value: {
+					party_id: phone.party_id,
+					phone_number: phone.phone_number,
+					phone_type: phone.phone_type,
+				},
+			}
+		);
 
 		return phone;
 	});
@@ -669,17 +702,20 @@ export async function restorePartyPhone(ctx: ProtectedContext, { id }: { id: str
 	const restored = await ctx.db.transaction().execute(async (trx) => {
 		const phone = await partyQueries.restorePartyPhone({ ...ctx, db: trx }, id);
 
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: id,
-			entityName: EntityName.PARTY_PHONE,
-			action: AdminAction.UPDATE,
-			value: {
-				restored: true,
-				party_id: phone.party_id,
-				phone_number: phone.phone_number,
-				phone_type: phone.phone_type,
-			},
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: id,
+				entityName: EntityName.PARTY_PHONE,
+				action: AdminAction.UPDATE,
+				value: {
+					restored: true,
+					party_id: phone.party_id,
+					phone_number: phone.phone_number,
+					phone_type: phone.phone_type,
+				},
+			}
+		);
 
 		return phone;
 	});
@@ -720,21 +756,21 @@ export async function createPartyEmail(
 	}
 ) {
 	const created = await ctx.db.transaction().execute(async (trx) => {
-		const email = await partyQueries.createPartyEmail(
-			{ ...ctx, db: trx },
-			input
-		);
+		const email = await partyQueries.createPartyEmail({ ...ctx, db: trx }, input);
 
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: email.id,
-			entityName: EntityName.PARTY_EMAIL,
-			action: AdminAction.CREATE,
-			value: {
-				party_id: email.party_id,
-				email_address: email.email_address,
-				email_type: email.email_type,
-			},
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: email.id,
+				entityName: EntityName.PARTY_EMAIL,
+				action: AdminAction.CREATE,
+				value: {
+					party_id: email.party_id,
+					email_address: email.email_address,
+					email_type: email.email_type,
+				},
+			}
+		);
 
 		return email;
 	});
@@ -766,18 +802,17 @@ export async function updatePartyEmail(
 	}
 
 	const updated = await ctx.db.transaction().execute(async (trx) => {
-		const email = await partyQueries.updatePartyEmail(
-			{ ...ctx, db: trx },
-			id,
-			params
-		);
+		const email = await partyQueries.updatePartyEmail({ ...ctx, db: trx }, id, params);
 
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: id,
-			entityName: EntityName.PARTY_EMAIL,
-			action: AdminAction.UPDATE,
-			value: params,
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: id,
+				entityName: EntityName.PARTY_EMAIL,
+				action: AdminAction.UPDATE,
+				value: params,
+			}
+		);
 
 		return email;
 	});
@@ -792,16 +827,19 @@ export async function archivePartyEmail(ctx: ProtectedContext, { id }: { id: str
 	const archived = await ctx.db.transaction().execute(async (trx) => {
 		const email = await partyQueries.archivePartyEmail({ ...ctx, db: trx }, id);
 
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: id,
-			entityName: EntityName.PARTY_EMAIL,
-			action: AdminAction.DELETE,
-			value: {
-				party_id: email.party_id,
-				email_address: email.email_address,
-				email_type: email.email_type,
-			},
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: id,
+				entityName: EntityName.PARTY_EMAIL,
+				action: AdminAction.DELETE,
+				value: {
+					party_id: email.party_id,
+					email_address: email.email_address,
+					email_type: email.email_type,
+				},
+			}
+		);
 
 		return email;
 	});
@@ -816,17 +854,20 @@ export async function restorePartyEmail(ctx: ProtectedContext, { id }: { id: str
 	const restored = await ctx.db.transaction().execute(async (trx) => {
 		const email = await partyQueries.restorePartyEmail({ ...ctx, db: trx }, id);
 
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: id,
-			entityName: EntityName.PARTY_EMAIL,
-			action: AdminAction.UPDATE,
-			value: {
-				restored: true,
-				party_id: email.party_id,
-				email_address: email.email_address,
-				email_type: email.email_type,
-			},
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: id,
+				entityName: EntityName.PARTY_EMAIL,
+				action: AdminAction.UPDATE,
+				value: {
+					restored: true,
+					party_id: email.party_id,
+					email_address: email.email_address,
+					email_type: email.email_type,
+				},
+			}
+		);
 
 		return email;
 	});
@@ -843,7 +884,11 @@ export async function restorePartyEmail(ctx: ProtectedContext, { id }: { id: str
  */
 export async function getPartyRepresentatives(
 	ctx: ProtectedContext,
-	{ partyId, addressId, showArchived }: { partyId: string; addressId?: string; showArchived?: boolean }
+	{
+		partyId,
+		addressId,
+		showArchived,
+	}: { partyId: string; addressId?: string; showArchived?: boolean }
 ) {
 	return await partyQueries.getPartyRepresentatives(ctx, partyId, addressId, showArchived);
 }
@@ -860,7 +905,13 @@ export async function getAllPartyRepresentatives(
 		showArchived,
 	}: { searchTerm?: string; limit?: number; offset?: number; showArchived?: boolean }
 ) {
-	return await partyQueries.getAllPartyRepresentatives(ctx, searchTerm, limit, offset, showArchived);
+	return await partyQueries.getAllPartyRepresentatives(
+		ctx,
+		searchTerm,
+		limit,
+		offset,
+		showArchived
+	);
 }
 
 /**
@@ -889,23 +940,23 @@ export async function createPartyRepresentative(
 	}
 ) {
 	const created = await ctx.db.transaction().execute(async (trx) => {
-		const representative = await partyQueries.createPartyRepresentative(
-			{ ...ctx, db: trx },
-			input
-		);
+		const representative = await partyQueries.createPartyRepresentative({ ...ctx, db: trx }, input);
 
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: representative.id,
-			entityName: EntityName.PARTY_REPRESENTATIVE,
-			action: AdminAction.CREATE,
-			value: {
-				party_id: representative.party_id,
-				first_name: representative.first_name,
-				last_name: representative.last_name,
-				title: representative.title,
-				email: representative.email,
-			},
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: representative.id,
+				entityName: EntityName.PARTY_REPRESENTATIVE,
+				action: AdminAction.CREATE,
+				value: {
+					party_id: representative.party_id,
+					first_name: representative.first_name,
+					last_name: representative.last_name,
+					title: representative.title,
+					email: representative.email,
+				},
+			}
+		);
 
 		return representative;
 	});
@@ -950,12 +1001,15 @@ export async function updatePartyRepresentative(
 			params
 		);
 
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: id,
-			entityName: EntityName.PARTY_REPRESENTATIVE,
-			action: AdminAction.UPDATE,
-			value: params,
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: id,
+				entityName: EntityName.PARTY_REPRESENTATIVE,
+				action: AdminAction.UPDATE,
+				value: params,
+			}
+		);
 
 		return representative;
 	});
@@ -970,18 +1024,21 @@ export async function archivePartyRepresentative(ctx: ProtectedContext, { id }: 
 	const archived = await ctx.db.transaction().execute(async (trx) => {
 		const representative = await partyQueries.archivePartyRepresentative({ ...ctx, db: trx }, id);
 
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: id,
-			entityName: EntityName.PARTY_REPRESENTATIVE,
-			action: AdminAction.DELETE,
-			value: {
-				party_id: representative.party_id,
-				first_name: representative.first_name,
-				last_name: representative.last_name,
-				title: representative.title,
-				email: representative.email,
-			},
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: id,
+				entityName: EntityName.PARTY_REPRESENTATIVE,
+				action: AdminAction.DELETE,
+				value: {
+					party_id: representative.party_id,
+					first_name: representative.first_name,
+					last_name: representative.last_name,
+					title: representative.title,
+					email: representative.email,
+				},
+			}
+		);
 
 		return representative;
 	});
@@ -996,19 +1053,22 @@ export async function restorePartyRepresentative(ctx: ProtectedContext, { id }: 
 	const restored = await ctx.db.transaction().execute(async (trx) => {
 		const representative = await partyQueries.restorePartyRepresentative({ ...ctx, db: trx }, id);
 
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: id,
-			entityName: EntityName.PARTY_REPRESENTATIVE,
-			action: AdminAction.UPDATE,
-			value: {
-				restored: true,
-				party_id: representative.party_id,
-				first_name: representative.first_name,
-				last_name: representative.last_name,
-				title: representative.title,
-				email: representative.email,
-			},
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: id,
+				entityName: EntityName.PARTY_REPRESENTATIVE,
+				action: AdminAction.UPDATE,
+				value: {
+					restored: true,
+					party_id: representative.party_id,
+					first_name: representative.first_name,
+					last_name: representative.last_name,
+					title: representative.title,
+					email: representative.email,
+				},
+			}
+		);
 
 		return representative;
 	});
@@ -1025,7 +1085,11 @@ export async function restorePartyRepresentative(ctx: ProtectedContext, { id }: 
  */
 export async function getClaimParties(
 	ctx: ProtectedContext,
-	{ claimId, partyType, roleListEntity }: {
+	{
+		claimId,
+		partyType,
+		roleListEntity,
+	}: {
 		claimId: string;
 		partyType?: 'entity' | 'facilitator';
 		roleListEntity?: 'claimant_party_role' | 'adverse_party_role';
@@ -1059,27 +1123,30 @@ export async function linkPartyToClaim(
 	}
 ) {
 	const result = await ctx.db.transaction().execute(async (trx) => {
-		const { claimParty } = await partyQueries.linkPartyToClaim(
-			{ ...ctx, db: trx },
-			input
-		);
+		const { claimParty } = await partyQueries.linkPartyToClaim({ ...ctx, db: trx }, input);
 
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: claimParty.id,
-			entityName: EntityName.CLAIM_PARTY,
-			action: AdminAction.CREATE,
-			value: {
-				claim_id: claimParty.claim_id,
-				party_id: claimParty.party_id,
-				role: claimParty.role,
-			},
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: claimParty.id,
+				entityName: EntityName.CLAIM_PARTY,
+				action: AdminAction.CREATE,
+				value: {
+					claim_id: claimParty.claim_id,
+					party_id: claimParty.party_id,
+					role: claimParty.role,
+				},
+			}
+		);
 
 		// Orchestrate recalculation if liability_percentage was provided
 		let expectedRecovery: number | null = null;
 		if (input.liability_percentage !== undefined) {
 			const { recalculateClaimExpectedRecovery } = await import('@/api/queries/claimQueries');
-			expectedRecovery = await recalculateClaimExpectedRecovery({ ...ctx, db: trx }, claimParty.claim_id);
+			expectedRecovery = await recalculateClaimExpectedRecovery(
+				{ ...ctx, db: trx },
+				claimParty.claim_id
+			);
 		}
 
 		return { claimParty, expectedRecovery };
@@ -1124,24 +1191,26 @@ export async function updateClaimParty(
 	}
 
 	const result = await ctx.db.transaction().execute(async (trx) => {
-		const { claimParty } = await partyQueries.updateClaimParty(
-			{ ...ctx, db: trx },
-			id,
-			params
-		);
+		const { claimParty } = await partyQueries.updateClaimParty({ ...ctx, db: trx }, id, params);
 
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: id,
-			entityName: EntityName.CLAIM_PARTY,
-			action: AdminAction.UPDATE,
-			value: params,
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: id,
+				entityName: EntityName.CLAIM_PARTY,
+				action: AdminAction.UPDATE,
+				value: params,
+			}
+		);
 
 		// Orchestrate recalculation if liability_percentage was updated
 		let expectedRecovery: number | null = null;
 		if (params.liability_percentage !== undefined) {
 			const { recalculateClaimExpectedRecovery } = await import('@/api/queries/claimQueries');
-			expectedRecovery = await recalculateClaimExpectedRecovery({ ...ctx, db: trx }, claimParty.claim_id);
+			expectedRecovery = await recalculateClaimExpectedRecovery(
+				{ ...ctx, db: trx },
+				claimParty.claim_id
+			);
 		}
 
 		return { claimParty, expectedRecovery };
@@ -1155,34 +1224,32 @@ export async function updateClaimParty(
  * Cascades to archive all nested facilitators and coverages
  * @returns expectedRecovery and claimId
  */
-export async function archiveClaimParty(
-	ctx: ProtectedContext,
-	{ id }: { id: string }
-) {
+export async function archiveClaimParty(ctx: ProtectedContext, { id }: { id: string }) {
 	const result = await ctx.db.transaction().execute(async (trx) => {
-		const claimPartyForLog = await partyQueries.getClaimPartyForDeletion(
-			{ ...ctx, db: trx },
-			id
-		);
+		const claimPartyForLog = await partyQueries.getClaimPartyForDeletion({ ...ctx, db: trx }, id);
 
 		const { claimId } = await partyQueries.archiveClaimParty({ ...ctx, db: trx }, id);
 
 		if (claimPartyForLog) {
-			await logAdminAction({ ...ctx, db: trx }, {
-				entityId: id,
-				entityName: EntityName.CLAIM_PARTY,
-				action: AdminAction.DELETE,
-				value: {
-					claim_id: claimPartyForLog.claim_id,
-					party_id: claimPartyForLog.party_id,
-					party_name: claimPartyForLog.party_name,
-					role: claimPartyForLog.role,
-				},
-			});
+			await logAdminAction(
+				{ ...ctx, db: trx },
+				{
+					entityId: id,
+					entityName: EntityName.CLAIM_PARTY,
+					action: AdminAction.DELETE,
+					value: {
+						claim_id: claimPartyForLog.claim_id,
+						party_id: claimPartyForLog.party_id,
+						party_name: claimPartyForLog.party_name,
+						role: claimPartyForLog.role,
+					},
+				}
+			);
 		}
 
 		// Orchestrate recalculation - archiving always affects both expected_recovery and total_incurred
-		const { recalculateClaimExpectedRecovery, recalculateTotalIncurred } = await import('@/api/queries/claimQueries');
+		const { recalculateClaimExpectedRecovery, recalculateTotalIncurred } =
+			await import('@/api/queries/claimQueries');
 		const expectedRecovery = await recalculateClaimExpectedRecovery({ ...ctx, db: trx }, claimId);
 		const totalIncurred = await recalculateTotalIncurred({ ...ctx, db: trx }, claimId);
 

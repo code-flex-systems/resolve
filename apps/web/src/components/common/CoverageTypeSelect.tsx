@@ -28,7 +28,8 @@ export default function CoverageTypeSelect({
 	}
 
 	return (
-		<Dropdown inlineLabel
+		<Dropdown
+			inlineLabel
 			label={label}
 			options={options.map((option) => ({
 				value: option.value,
@@ -47,9 +48,7 @@ export default function CoverageTypeSelect({
 				return (
 					<span style={{ display: 'flex', alignItems: 'center' }}>
 						{option.icon_emoji && (
-							<span style={{ fontSize: 14, marginRight: 8 }}>
-								{option.icon_emoji}
-							</span>
+							<span style={{ fontSize: 14, marginRight: 8 }}>{option.icon_emoji}</span>
 						)}
 						<span>{option.display_label}</span>
 					</span>

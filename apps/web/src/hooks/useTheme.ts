@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 
 export type Theme = 'light' | 'dark';
 
-const STORAGE_KEY = 'manifest-theme';
+const STORAGE_KEY = 'resolve-theme';
 
 function getInitialTheme(): Theme {
 	if (typeof window === 'undefined') return 'light';

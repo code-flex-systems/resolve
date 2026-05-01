@@ -48,10 +48,21 @@ export function CSVStep1({ fields, onParsed }: Props) {
 		[onParsed]
 	);
 
-	const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept: { 'text/csv': ['.csv'] } });
+	const { getRootProps, getInputProps, isDragActive } = useDropzone({
+		onDrop,
+		accept: { 'text/csv': ['.csv'] },
+	});
 
 	return (
-		<div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start', height: 350 }}>
+		<div
+			style={{
+				display: 'flex',
+				flexDirection: 'column',
+				gap: 8,
+				alignItems: 'flex-start',
+				height: 350,
+			}}
+		>
 			<p style={{ fontSize: 15, fontStyle: 'italic' }}>
 				The following columns are expected in your file:
 			</p>
@@ -76,13 +87,11 @@ export function CSVStep1({ fields, onParsed }: Props) {
 			>
 				<input {...getInputProps({ style: { height: 100, visibility: 'hidden' } })} />
 				<p>
-					{isDragActive ? 'Drop the CSV file here...' : 'Drag and drop a CSV file here, or click to select'}
+					{isDragActive
+						? 'Drop the CSV file here...'
+						: 'Drag and drop a CSV file here, or click to select'}
 				</p>
-				{filename && (
-					<p style={{ fontSize: 14, marginTop: 8 }}>
-						Selected: {filename}
-					</p>
-				)}
+				{filename && <p style={{ fontSize: 14, marginTop: 8 }}>Selected: {filename}</p>}
 			</div>
 
 			{error && <p style={{ color: 'var(--color-error)' }}>{error}</p>}

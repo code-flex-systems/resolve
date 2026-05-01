@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { TRPCError } from '@trpc/server';
 import type { Context } from '@/server/trpc/context';
 import config from '@/config/config';
@@ -219,7 +219,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to delete any comment', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+					db,
 				};
 
 				const mockDeleteComment = await import('@/api/controllers/commentController');
@@ -237,13 +237,15 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				});
 
 				const caller = createCaller(commentRouter, adminCtx);
-				await expect(caller.deleteComment({ id: '00000000-0000-0000-0000-000000000001' })).resolves.toBeDefined();
+				await expect(
+					caller.deleteComment({ id: '00000000-0000-0000-0000-000000000001' })
+				).resolves.toBeDefined();
 			});
 
 			it('should allow user to delete their own comment', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				const mockGetComment = await import('@/api/controllers/commentController');
@@ -278,13 +280,15 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				});
 
 				const caller = createCaller(commentRouter, userCtx);
-				await expect(caller.deleteComment({ id: '00000000-0000-0000-0000-000000000001' })).resolves.toBeDefined();
+				await expect(
+					caller.deleteComment({ id: '00000000-0000-0000-0000-000000000001' })
+				).resolves.toBeDefined();
 			});
 
 			it('should reject contributor deleting others comments', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				const mockGetComment = await import('@/api/controllers/commentController');
@@ -305,7 +309,9 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				});
 
 				const caller = createCaller(commentRouter, userCtx);
-				await expect(caller.deleteComment({ id: '00000000-0000-0000-0000-000000000001' })).rejects.toThrow('FORBIDDEN: You can only delete your own comments');
+				await expect(
+					caller.deleteComment({ id: '00000000-0000-0000-0000-000000000001' })
+				).rejects.toThrow('FORBIDDEN: You can only delete your own comments');
 			});
 		});
 
@@ -313,20 +319,28 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to evaluate any claim', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+					db,
 				};
 
 				const mockEvaluateResponses = await import('@/api/controllers/responseController');
-				vi.mocked(mockEvaluateResponses.evaluateResponses).mockResolvedValue(PageInstanceStatus.IN_PROGRESS);
+				vi.mocked(mockEvaluateResponses.evaluateResponses).mockResolvedValue(
+					PageInstanceStatus.IN_PROGRESS
+				);
 
 				const caller = createCaller(responseRouter, adminCtx);
-				await expect(caller.evaluateResponses({ checklistId: '00000000-0000-0000-0000-000000000001', claimId: '00000000-0000-0000-0000-000000000100', instanceId: '00000000-0000-0000-0000-000000000050' })).resolves.toBeDefined();
+				await expect(
+					caller.evaluateResponses({
+						checklistId: '00000000-0000-0000-0000-000000000001',
+						claimId: '00000000-0000-0000-0000-000000000100',
+						instanceId: '00000000-0000-0000-0000-000000000050',
+					})
+				).resolves.toBeDefined();
 			});
 
 			it('should allow owner to evaluate their claim', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				// Mock requireOwnership check
@@ -340,16 +354,24 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				vi.spyOn(db, 'selectFrom').mockReturnValue({ select: mockSelect } as any);
 
 				const mockEvaluateResponses = await import('@/api/controllers/responseController');
-				vi.mocked(mockEvaluateResponses.evaluateResponses).mockResolvedValue(PageInstanceStatus.IN_PROGRESS);
+				vi.mocked(mockEvaluateResponses.evaluateResponses).mockResolvedValue(
+					PageInstanceStatus.IN_PROGRESS
+				);
 
 				const caller = createCaller(responseRouter, userCtx);
-				await expect(caller.evaluateResponses({ checklistId: '00000000-0000-0000-0000-000000000001', claimId: '00000000-0000-0000-0000-000000000100', instanceId: '00000000-0000-0000-0000-000000000050' })).resolves.toBeDefined();
+				await expect(
+					caller.evaluateResponses({
+						checklistId: '00000000-0000-0000-0000-000000000001',
+						claimId: '00000000-0000-0000-0000-000000000100',
+						instanceId: '00000000-0000-0000-0000-000000000050',
+					})
+				).resolves.toBeDefined();
 			});
 
 			it('should allow assignee to evaluate their claim', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				// Mock requireOwnership check
@@ -363,16 +385,24 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				vi.spyOn(db, 'selectFrom').mockReturnValue({ select: mockSelect } as any);
 
 				const mockEvaluateResponses = await import('@/api/controllers/responseController');
-				vi.mocked(mockEvaluateResponses.evaluateResponses).mockResolvedValue(PageInstanceStatus.IN_PROGRESS);
+				vi.mocked(mockEvaluateResponses.evaluateResponses).mockResolvedValue(
+					PageInstanceStatus.IN_PROGRESS
+				);
 
 				const caller = createCaller(responseRouter, userCtx);
-				await expect(caller.evaluateResponses({ checklistId: '00000000-0000-0000-0000-000000000001', claimId: '00000000-0000-0000-0000-000000000100', instanceId: '00000000-0000-0000-0000-000000000050' })).resolves.toBeDefined();
+				await expect(
+					caller.evaluateResponses({
+						checklistId: '00000000-0000-0000-0000-000000000001',
+						claimId: '00000000-0000-0000-0000-000000000100',
+						instanceId: '00000000-0000-0000-0000-000000000050',
+					})
+				).resolves.toBeDefined();
 			});
 
 			it('should reject contributor evaluating unrelated claim', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				// Mock requireOwnership check (user is neither creator nor assignee)
@@ -386,7 +416,13 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				vi.spyOn(db, 'selectFrom').mockReturnValue({ select: mockSelect } as any);
 
 				const caller = createCaller(responseRouter, userCtx);
-				await expect(caller.evaluateResponses({ checklistId: '00000000-0000-0000-0000-000000000001', claimId: '00000000-0000-0000-0000-000000000100', instanceId: '00000000-0000-0000-0000-000000000050' })).rejects.toThrow(TRPCError);
+				await expect(
+					caller.evaluateResponses({
+						checklistId: '00000000-0000-0000-0000-000000000001',
+						claimId: '00000000-0000-0000-0000-000000000100',
+						instanceId: '00000000-0000-0000-0000-000000000050',
+					})
+				).rejects.toThrow(TRPCError);
 			});
 		});
 	});
@@ -400,11 +436,15 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to get claim count', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+					db,
 				};
 
 				const mockGetClaimCount = await import('@/api/controllers/claimController');
-				vi.mocked(mockGetClaimCount.getClaimCount).mockResolvedValue({ total: 42, fed: 30, manual: 12 });
+				vi.mocked(mockGetClaimCount.getClaimCount).mockResolvedValue({
+					total: 42,
+					fed: 30,
+					manual: 12,
+				});
 
 				const caller = createCaller(claimRouter, adminCtx);
 				await expect(caller.getClaimCount({})).resolves.toEqual({ total: 42, fed: 30, manual: 12 });
@@ -413,11 +453,15 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow super admin to get claim count', async () => {
 				const superAdminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.SUPER_ADMIN }),
-				db,
+					db,
 				};
 
 				const mockGetClaimCount = await import('@/api/controllers/claimController');
-				vi.mocked(mockGetClaimCount.getClaimCount).mockResolvedValue({ total: 42, fed: 30, manual: 12 });
+				vi.mocked(mockGetClaimCount.getClaimCount).mockResolvedValue({
+					total: 42,
+					fed: 30,
+					manual: 12,
+				});
 
 				const caller = createCaller(claimRouter, superAdminCtx);
 				await expect(caller.getClaimCount({})).resolves.toEqual({ total: 42, fed: 30, manual: 12 });
@@ -426,7 +470,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor access', async () => {
 				const contributorCtx: Context = {
 					session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				const caller = createCaller(claimRouter, contributorCtx);
@@ -436,7 +480,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should require super admin for client aliasing', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+					db,
 				};
 
 				const caller = createCaller(claimRouter, adminCtx);
@@ -448,7 +492,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to get checklist count', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+					db,
 				};
 
 				const mockGetChecklistCount = await import('@/api/controllers/checklistController');
@@ -469,7 +513,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor access', async () => {
 				const contributorCtx: Context = {
 					session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				const caller = createCaller(checklistRouter, contributorCtx);
@@ -481,7 +525,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to get responses for answer', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+					db,
 				};
 
 				const mockGetResponsesForAnswer = await import('@/api/controllers/responseController');
@@ -503,11 +547,13 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor access', async () => {
 				const contributorCtx: Context = {
 					session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				const caller = createCaller(responseRouter, contributorCtx);
-				await expect(caller.getResponsesForAnswer({ answerId: '00000000-0000-0000-0000-000000000001' })).rejects.toThrow(TRPCError);
+				await expect(
+					caller.getResponsesForAnswer({ answerId: '00000000-0000-0000-0000-000000000001' })
+				).rejects.toThrow(TRPCError);
 			});
 		});
 
@@ -536,7 +582,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should return full profile to admins', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+					db,
 				};
 
 				const mockGetUser = await import('@/api/controllers/userController');
@@ -554,7 +600,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should return full profile when user views self', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-456', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				const mockGetUser = await import('@/api/controllers/userController');
@@ -570,7 +616,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should return basic fields when contributor views other user', async () => {
 				const contributorCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				const mockGetUser = await import('@/api/controllers/userController');
@@ -601,7 +647,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to get any comment', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+					db,
 				};
 
 				const mockGetComment = await import('@/api/controllers/commentController');
@@ -622,13 +668,15 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				});
 
 				const caller = createCaller(commentRouter, adminCtx);
-				await expect(caller.getComment({ id: '00000000-0000-0000-0000-000000000001' })).resolves.toBeDefined();
+				await expect(
+					caller.getComment({ id: '00000000-0000-0000-0000-000000000001' })
+				).resolves.toBeDefined();
 			});
 
 			it('should allow contributor with ownership to get comment', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				const mockGetComment = await import('@/api/controllers/commentController');
@@ -659,13 +707,15 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				vi.spyOn(db, 'selectFrom').mockReturnValue({ select: mockSelect } as any);
 
 				const caller = createCaller(commentRouter, userCtx);
-				await expect(caller.getComment({ id: '00000000-0000-0000-0000-000000000001' })).resolves.toBeDefined();
+				await expect(
+					caller.getComment({ id: '00000000-0000-0000-0000-000000000001' })
+				).resolves.toBeDefined();
 			});
 
 			it('should reject contributor without ownership', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				const mockGetComment = await import('@/api/controllers/commentController');
@@ -696,7 +746,9 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				vi.spyOn(db, 'selectFrom').mockReturnValue({ select: mockSelect } as any);
 
 				const caller = createCaller(commentRouter, userCtx);
-				await expect(caller.getComment({ id: '00000000-0000-0000-0000-000000000001' })).rejects.toThrow(TRPCError);
+				await expect(
+					caller.getComment({ id: '00000000-0000-0000-0000-000000000001' })
+				).rejects.toThrow(TRPCError);
 			});
 		});
 	});
@@ -710,7 +762,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to update any user field', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+					db,
 				};
 
 				const mockUpdateUser = await import('@/api/controllers/userController');
@@ -736,7 +788,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow contributor to update their own email field', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				const mockUpdateUser = await import('@/api/controllers/userController');
@@ -787,7 +839,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor updating their own role field', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				const caller = createCaller(userRouter, userCtx);
@@ -812,7 +864,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor updating their own disabled field', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				const caller = createCaller(userRouter, userCtx);
@@ -829,7 +881,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor updating multiple privileged fields', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				const caller = createCaller(userRouter, userCtx);
@@ -847,7 +899,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor updating other users', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				const caller = createCaller(userRouter, userCtx);
@@ -866,7 +918,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow Admin to elevate Contributor to Admin', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+					db,
 				};
 
 				const mockUpdateUser = await import('@/api/controllers/userController');
@@ -891,7 +943,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject Admin trying to elevate Contributor to Super Admin', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+					db,
 				};
 
 				const caller = createCaller(userRouter, adminCtx);
@@ -916,7 +968,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject Admin trying to demote Admin to Contributor', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+					db,
 				};
 
 				const caller = createCaller(userRouter, adminCtx);
@@ -941,7 +993,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow Super Admin to elevate Contributor to Admin', async () => {
 				const superAdminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.SUPER_ADMIN }),
-				db,
+					db,
 				};
 
 				const mockUpdateUser = await import('@/api/controllers/userController');
@@ -966,7 +1018,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow Super Admin to elevate Contributor to Super Admin', async () => {
 				const superAdminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.SUPER_ADMIN }),
-				db,
+					db,
 				};
 
 				const mockUpdateUser = await import('@/api/controllers/userController');
@@ -991,7 +1043,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow Super Admin to demote Admin to Contributor', async () => {
 				const superAdminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.SUPER_ADMIN }),
-				db,
+					db,
 				};
 
 				const mockUpdateUser = await import('@/api/controllers/userController');
@@ -1016,7 +1068,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow Super Admin to demote Super Admin to Contributor', async () => {
 				const superAdminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.SUPER_ADMIN }),
-				db,
+					db,
 				};
 
 				const mockUpdateUser = await import('@/api/controllers/userController');
@@ -1041,7 +1093,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject Contributor trying to change any role', async () => {
 				const contributorCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				const caller = createCaller(userRouter, contributorCtx);
@@ -1078,7 +1130,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to get any checklist summary', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+					db,
 				};
 
 				const mockGetChecklistSummary = await import('@/api/controllers/checklistController');
@@ -1090,13 +1142,18 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				});
 
 				const caller = createCaller(checklistRouter, adminCtx);
-				await expect(caller.getChecklistSummary({ checklistId: '00000000-0000-0000-0000-000000000001', claimId: '00000000-0000-0000-0000-000000000100' })).resolves.toBeDefined();
+				await expect(
+					caller.getChecklistSummary({
+						checklistId: '00000000-0000-0000-0000-000000000001',
+						claimId: '00000000-0000-0000-0000-000000000100',
+					})
+				).resolves.toBeDefined();
 			});
 
 			it('should allow contributor with ownership', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				// Mock requireOwnership check
@@ -1118,13 +1175,18 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				});
 
 				const caller = createCaller(checklistRouter, userCtx);
-				await expect(caller.getChecklistSummary({ checklistId: '00000000-0000-0000-0000-000000000001', claimId: '00000000-0000-0000-0000-000000000100' })).resolves.toBeDefined();
+				await expect(
+					caller.getChecklistSummary({
+						checklistId: '00000000-0000-0000-0000-000000000001',
+						claimId: '00000000-0000-0000-0000-000000000100',
+					})
+				).resolves.toBeDefined();
 			});
 
 			it('should reject contributor without ownership', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				// Mock requireOwnership check (user is neither creator nor assignee)
@@ -1138,7 +1200,12 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				vi.spyOn(db, 'selectFrom').mockReturnValue({ select: mockSelect } as any);
 
 				const caller = createCaller(checklistRouter, userCtx);
-				await expect(caller.getChecklistSummary({ checklistId: '00000000-0000-0000-0000-000000000001', claimId: '00000000-0000-0000-0000-000000000100' })).rejects.toThrow(TRPCError);
+				await expect(
+					caller.getChecklistSummary({
+						checklistId: '00000000-0000-0000-0000-000000000001',
+						claimId: '00000000-0000-0000-0000-000000000100',
+					})
+				).rejects.toThrow(TRPCError);
 			});
 		});
 
@@ -1146,7 +1213,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to get any checklist summary detail', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+					db,
 				};
 
 				const mockGetChecklistSummaryDetail = await import('@/api/controllers/checklistController');
@@ -1169,7 +1236,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow contributor with ownership', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				// Mock requireOwnership check
@@ -1202,7 +1269,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor without ownership', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				// Mock requireOwnership check (user is neither creator nor assignee)
@@ -1234,12 +1301,19 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					db,
 				};
 
-				const mockGetResponsesForPageInstance = await import('@/api/controllers/responseController');
-				vi.mocked(mockGetResponsesForPageInstance.getResponsesForPageInstance).mockResolvedValue({});
+				const mockGetResponsesForPageInstance =
+					await import('@/api/controllers/responseController');
+				vi.mocked(mockGetResponsesForPageInstance.getResponsesForPageInstance).mockResolvedValue(
+					{}
+				);
 
 				const caller = createCaller(responseRouter, adminCtx);
 				await expect(
-					caller.getResponsesForPageInstance({ checklistId: '00000000-0000-0000-0000-000000000001', claimId: '00000000-0000-0000-0000-000000000100', instanceId: '00000000-0000-0000-0000-000000000001' })
+					caller.getResponsesForPageInstance({
+						checklistId: '00000000-0000-0000-0000-000000000001',
+						claimId: '00000000-0000-0000-0000-000000000100',
+						instanceId: '00000000-0000-0000-0000-000000000001',
+					})
 				).resolves.toEqual({});
 			});
 
@@ -1259,12 +1333,19 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				});
 				vi.spyOn(db, 'selectFrom').mockReturnValue({ select: mockSelect } as any);
 
-				const mockGetResponsesForPageInstance = await import('@/api/controllers/responseController');
-				vi.mocked(mockGetResponsesForPageInstance.getResponsesForPageInstance).mockResolvedValue({});
+				const mockGetResponsesForPageInstance =
+					await import('@/api/controllers/responseController');
+				vi.mocked(mockGetResponsesForPageInstance.getResponsesForPageInstance).mockResolvedValue(
+					{}
+				);
 
 				const caller = createCaller(responseRouter, userCtx);
 				await expect(
-					caller.getResponsesForPageInstance({ checklistId: '00000000-0000-0000-0000-000000000001', claimId: '00000000-0000-0000-0000-000000000100', instanceId: '00000000-0000-0000-0000-000000000001' })
+					caller.getResponsesForPageInstance({
+						checklistId: '00000000-0000-0000-0000-000000000001',
+						claimId: '00000000-0000-0000-0000-000000000100',
+						instanceId: '00000000-0000-0000-0000-000000000001',
+					})
 				).resolves.toEqual({});
 			});
 
@@ -1286,7 +1367,11 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 				const caller = createCaller(responseRouter, userCtx);
 				await expect(
-					caller.getResponsesForPageInstance({ checklistId: '00000000-0000-0000-0000-000000000001', claimId: '00000000-0000-0000-0000-000000000100', instanceId: '00000000-0000-0000-0000-000000000001' })
+					caller.getResponsesForPageInstance({
+						checklistId: '00000000-0000-0000-0000-000000000001',
+						claimId: '00000000-0000-0000-0000-000000000100',
+						instanceId: '00000000-0000-0000-0000-000000000001',
+					})
 				).rejects.toThrow(TRPCError);
 			});
 		});
@@ -1295,7 +1380,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to get all audit logs', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+					db,
 				};
 
 				const mockGetResponseAuditLogs = await import('@/api/controllers/responseController');
@@ -1317,7 +1402,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to get audit logs for specific claim', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+					db,
 				};
 
 				const mockGetResponseAuditLogs = await import('@/api/controllers/responseController');
@@ -1342,7 +1427,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor getting all audit logs', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				const caller = createCaller(responseRouter, userCtx);
@@ -1358,7 +1443,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow contributor with ownership for specific claim logs', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				// Mock requireOwnership check
@@ -1393,7 +1478,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor without ownership for specific claim logs', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				// Mock requireOwnership check (user is neither creator nor assignee)
@@ -1424,7 +1509,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to get comments for any page', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+					db,
 				};
 
 				const mockGetCommentsForPage = await import('@/api/controllers/commentController');
@@ -1443,7 +1528,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow contributor with ownership', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				// Mock requireOwnership check
@@ -1472,7 +1557,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor without ownership', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				// Mock requireOwnership check (user is neither creator nor assignee)
@@ -1500,7 +1585,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to query comments with any filters', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+					db,
 				};
 
 				const mockGetComments = await import('@/api/controllers/commentController');
@@ -1523,7 +1608,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow contributor with ownership for specific claim', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				// Mock requireOwnership check
@@ -1556,7 +1641,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor without ownership for specific claim', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				// Mock requireOwnership check (user is neither creator nor assignee)
@@ -1591,15 +1676,15 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to upsert responses for any claim', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+					db,
 				};
 
 				const mockUpsertQuestionResponses = await import('@/api/controllers/responseController');
 				vi.mocked(mockUpsertQuestionResponses.upsertQuestionResponses).mockResolvedValue({
-					updatedInstanceId: 50,
+					updatedInstanceId: '00000000-0000-0000-0000-000000000050',
 					status: PageInstanceStatus.UNSTARTED,
 					claimStatus: ClaimStatus.UNWORKED,
-					visibleIds: [50],
+					visibleIds: ['00000000-0000-0000-0000-000000000050'],
 				});
 
 				const caller = createCaller(responseRouter, adminCtx);
@@ -1621,7 +1706,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow assignee to upsert responses', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				// Mock requireAssigned check
@@ -1635,10 +1720,10 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 				const mockUpsertQuestionResponses = await import('@/api/controllers/responseController');
 				vi.mocked(mockUpsertQuestionResponses.upsertQuestionResponses).mockResolvedValue({
-					updatedInstanceId: 50,
+					updatedInstanceId: '00000000-0000-0000-0000-000000000050',
 					status: PageInstanceStatus.UNSTARTED,
 					claimStatus: ClaimStatus.UNWORKED,
-					visibleIds: [50],
+					visibleIds: ['00000000-0000-0000-0000-000000000050'],
 				});
 
 				const caller = createCaller(responseRouter, userCtx);
@@ -1660,7 +1745,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject creator who is not assignee', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				// Mock requireAssigned check (user is creator but not assignee)
@@ -1691,7 +1776,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject non-assigned contributor', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				// Mock requireAssigned check (user is neither creator nor assignee)
@@ -1730,7 +1815,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow admin to create comment on any claim', async () => {
 				const adminCtx: Context = {
 					session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+					db,
 				};
 
 				const mockCreateComment = await import('@/api/controllers/commentController');
@@ -1762,7 +1847,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow creator to create comment', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				// Mock requireOwnership check
@@ -1804,7 +1889,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should allow assignee to create comment', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				// Mock requireOwnership check
@@ -1846,7 +1931,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 			it('should reject contributor without ownership', async () => {
 				const userCtx: Context = {
 					session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+					db,
 				};
 
 				// Mock requireOwnership check (user is neither creator nor assignee)
@@ -1883,7 +1968,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow admin to create answer', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+						db,
 					};
 
 					const mockCreateAnswer = await import('@/api/controllers/answerController');
@@ -1916,7 +2001,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should reject contributor creating answer', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
-				db,
+						db,
 					};
 
 					const caller = createCaller(answerRouter, contributorCtx);
@@ -1937,7 +2022,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow admin to create question', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+						db,
 					};
 
 					const mockCreateQuestion = await import('@/api/controllers/questionController');
@@ -1968,7 +2053,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should reject contributor creating question', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
-				db,
+						db,
 					};
 
 					const caller = createCaller(questionRouter, contributorCtx);
@@ -1987,7 +2072,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow admin to get question stats', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+						db,
 					};
 
 					const mockGetQuestionStats = await import('@/api/controllers/questionController');
@@ -2007,11 +2092,13 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should reject contributor getting question stats', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
-				db,
+						db,
 					};
 
 					const caller = createCaller(questionRouter, contributorCtx);
-					await expect(caller.getQuestionStats({ pageId: '00000000-0000-0000-0000-000000000001' })).rejects.toThrow(TRPCError);
+					await expect(
+						caller.getQuestionStats({ pageId: '00000000-0000-0000-0000-000000000001' })
+					).rejects.toThrow(TRPCError);
 				});
 			});
 
@@ -2019,7 +2106,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow admin to create page', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+						db,
 					};
 
 					const mockCreatePage = await import('@/api/controllers/pageController');
@@ -2045,7 +2132,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should reject contributor creating page', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
-				db,
+						db,
 					};
 
 					const caller = createCaller(pageRouter, contributorCtx);
@@ -2063,7 +2150,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow admin to create page instance', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+						db,
 					};
 
 					const mockCreatePageInstance = await import('@/api/controllers/pageController');
@@ -2096,7 +2183,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should reject contributor creating page instance', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
-				db,
+						db,
 					};
 
 					const caller = createCaller(pageRouter, contributorCtx);
@@ -2116,7 +2203,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					it('should allow admin to get page instances without parentId', async () => {
 						const adminCtx: Context = {
 							session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+							db,
 						};
 
 						const mockGetPageInstances = await import('@/api/controllers/pageController');
@@ -2134,7 +2221,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					it('should allow super admin to get page instances without parentId', async () => {
 						const superAdminCtx: Context = {
 							session: createMockSession({ role: config.ROLES.SUPER_ADMIN }),
-				db,
+							db,
 						};
 
 						const mockGetPageInstances = await import('@/api/controllers/pageController');
@@ -2152,7 +2239,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					it('should reject contributor getting page instances without parentId', async () => {
 						const contributorCtx: Context = {
 							session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
-				db,
+							db,
 						};
 
 						const caller = createCaller(pageRouter, contributorCtx);
@@ -2173,7 +2260,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					it('should allow contributor to get page instances WITH parentId', async () => {
 						const contributorCtx: Context = {
 							session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
-				db,
+							db,
 						};
 
 						const mockGetPageInstances = await import('@/api/controllers/pageController');
@@ -2192,7 +2279,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					it('should allow admin to get page instances WITH parentId', async () => {
 						const adminCtx: Context = {
 							session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+							db,
 						};
 
 						const mockGetPageInstances = await import('@/api/controllers/pageController');
@@ -2214,7 +2301,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow admin to get feeds', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+						db,
 					};
 
 					const mockGetFeeds = await import('@/api/controllers/feedController');
@@ -2227,7 +2314,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should reject contributor getting feeds', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
-				db,
+						db,
 					};
 
 					const caller = createCaller(feedRouter, contributorCtx);
@@ -2239,7 +2326,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow admin to get action stats', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+						db,
 					};
 
 					const mockGetActionStats = await import('@/api/controllers/actionController');
@@ -2252,7 +2339,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should reject contributor getting action stats', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
-				db,
+						db,
 					};
 
 					const caller = createCaller(actionRouter, contributorCtx);
@@ -2266,7 +2353,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow admin to update any checklist claim', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+						db,
 					};
 
 					const mockModifyChecklistClaim = await import('@/api/controllers/checklistController');
@@ -2285,7 +2372,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow assignee to update their checklist claim', async () => {
 					const userCtx: Context = {
 						session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+						db,
 					};
 
 					// Mock requireAssigned check
@@ -2312,7 +2399,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should reject creator who is not assignee', async () => {
 					const userCtx: Context = {
 						session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+						db,
 					};
 
 					// Mock requireAssigned check (user is creator but not assignee)
@@ -2338,7 +2425,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow contributor to view their own stats', async () => {
 					const userCtx: Context = {
 						session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+						db,
 					};
 
 					const mockResult = {
@@ -2348,7 +2435,9 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 						[ClaimStatus.UNWORKED]: 0,
 					};
 					const mockGetChecklistClaimStats = await import('@/api/controllers/checklistController');
-					vi.mocked(mockGetChecklistClaimStats.getChecklistClaimStats).mockResolvedValue(mockResult);
+					vi.mocked(mockGetChecklistClaimStats.getChecklistClaimStats).mockResolvedValue(
+						mockResult
+					);
 
 					const caller = createCaller(checklistRouter, userCtx);
 					await expect(
@@ -2361,7 +2450,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should require admin to view other users stats', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+						db,
 					};
 
 					const caller = createCaller(checklistRouter, contributorCtx);
@@ -2375,7 +2464,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should require admin to query by checklist', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+						db,
 					};
 
 					const caller = createCaller(checklistRouter, contributorCtx);
@@ -2390,7 +2479,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should require admin to query multiple users', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ id: 'user-123', role: config.ROLES.CONTRIBUTOR }),
-				db,
+						db,
 					};
 
 					const caller = createCaller(checklistRouter, contributorCtx);
@@ -2408,7 +2497,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow admin to get inactive user count', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+						db,
 					};
 
 					const mockGetInactiveUserCount = await import('@/api/controllers/userController');
@@ -2421,7 +2510,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should reject contributor getting inactive user count', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
-				db,
+						db,
 					};
 
 					const caller = createCaller(userRouter, contributorCtx);
@@ -2431,7 +2520,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow admin to delete user', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+						db,
 					};
 
 					const mockDeleteUser = await import('@/api/controllers/userController');
@@ -2444,7 +2533,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should reject contributor deleting user', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
-				db,
+						db,
 					};
 
 					const caller = createCaller(userRouter, contributorCtx);
@@ -2456,38 +2545,58 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow admin to get user count for own client', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+						db,
 					};
 
 					const mockGetUserCount = await import('@/api/controllers/userController');
-					vi.mocked(mockGetUserCount.getUserCount).mockResolvedValue({ total: 25, active: 20, inactive: 5 });
+					vi.mocked(mockGetUserCount.getUserCount).mockResolvedValue({
+						total: 25,
+						active: 20,
+						inactive: 5,
+					});
 
 					const caller = createCaller(userRouter, adminCtx);
-					await expect(caller.getUserCount({})).resolves.toEqual({ total: 25, active: 20, inactive: 5 });
+					await expect(caller.getUserCount({})).resolves.toEqual({
+						total: 25,
+						active: 20,
+						inactive: 5,
+					});
 				});
 
 				it('should require super admin for client aliasing', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+						db,
 					};
 
 					const caller = createCaller(userRouter, adminCtx);
-					await expect(caller.getUserCount({ clientId: 'other-client' })).rejects.toThrow(TRPCError);
-					await expect(caller.getUserCount({ clientId: 'other-client' })).rejects.toThrow('User must have one of: Super Admin');
+					await expect(caller.getUserCount({ clientId: 'other-client' })).rejects.toThrow(
+						TRPCError
+					);
+					await expect(caller.getUserCount({ clientId: 'other-client' })).rejects.toThrow(
+						'User must have one of: Super Admin'
+					);
 				});
 
 				it('should allow super admin for client aliasing', async () => {
 					const superAdminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.SUPER_ADMIN }),
-				db,
+						db,
 					};
 
 					const mockGetUserCount = await import('@/api/controllers/userController');
-					vi.mocked(mockGetUserCount.getUserCount).mockResolvedValue({ total: 15, active: 12, inactive: 3 });
+					vi.mocked(mockGetUserCount.getUserCount).mockResolvedValue({
+						total: 15,
+						active: 12,
+						inactive: 3,
+					});
 
 					const caller = createCaller(userRouter, superAdminCtx);
-					await expect(caller.getUserCount({ clientId: 'other-client' })).resolves.toEqual({ total: 15, active: 12, inactive: 3 });
+					await expect(caller.getUserCount({ clientId: 'other-client' })).resolves.toEqual({
+						total: 15,
+						active: 12,
+						inactive: 3,
+					});
 				});
 			});
 		});
@@ -2497,11 +2606,14 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow admin to assign claim', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+						db,
 					};
 
 					const mockAssignClaim = await import('@/api/controllers/claimController');
-					vi.mocked(mockAssignClaim.assignClaim).mockResolvedValue({ insertId: BigInt(1), numInsertedOrUpdatedRows: BigInt(1) });
+					vi.mocked(mockAssignClaim.assignClaim).mockResolvedValue({
+						insertId: BigInt(1),
+						numInsertedOrUpdatedRows: BigInt(1),
+					});
 
 					const caller = createCaller(claimRouter, adminCtx);
 					await expect(
@@ -2516,7 +2628,7 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should reject contributor assigning claim', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
-				db,
+						db,
 					};
 
 					const caller = createCaller(claimRouter, contributorCtx);
@@ -2532,24 +2644,31 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 				it('should allow admin to get next claim to assign', async () => {
 					const adminCtx: Context = {
 						session: createMockSession({ role: config.ROLES.ADMIN }),
-				db,
+						db,
 					};
 
 					const mockGetNextClaimToAssign = await import('@/api/controllers/claimController');
-					vi.mocked(mockGetNextClaimToAssign.getNextClaimToAssign).mockResolvedValue({ claim: null, total: 0 });
+					vi.mocked(mockGetNextClaimToAssign.getNextClaimToAssign).mockResolvedValue({
+						claim: null,
+						total: 0,
+					});
 
 					const caller = createCaller(claimRouter, adminCtx);
-					await expect(caller.getNextClaimToAssign({ feedId: '00000000-0000-0000-0000-000000000001' })).resolves.toEqual({ claim: null, total: 0 });
+					await expect(
+						caller.getNextClaimToAssign({ feedId: '00000000-0000-0000-0000-000000000001' })
+					).resolves.toEqual({ claim: null, total: 0 });
 				});
 
 				it('should reject contributor getting next claim to assign', async () => {
 					const contributorCtx: Context = {
 						session: createMockSession({ role: config.ROLES.CONTRIBUTOR }),
-				db,
+						db,
 					};
 
 					const caller = createCaller(claimRouter, contributorCtx);
-					await expect(caller.getNextClaimToAssign({ feedId: '00000000-0000-0000-0000-000000000001' })).rejects.toThrow(TRPCError);
+					await expect(
+						caller.getNextClaimToAssign({ feedId: '00000000-0000-0000-0000-000000000001' })
+					).rejects.toThrow(TRPCError);
 				});
 			});
 
@@ -2730,7 +2849,9 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					};
 
 					const caller = createCaller(partyRouter, contributorCtx);
-					await expect(caller.archiveParty({ id: '00000000-0000-0000-0000-000000000001' })).rejects.toThrow(TRPCError);
+					await expect(
+						caller.archiveParty({ id: '00000000-0000-0000-0000-000000000001' })
+					).rejects.toThrow(TRPCError);
 				});
 
 				it('should allow admin to archive party', async () => {
@@ -2744,7 +2865,9 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					vi.mocked(mockPartyController.archiveParty).mockResolvedValue({} as any);
 
 					const caller = createCaller(partyRouter, adminCtx);
-					await expect(caller.archiveParty({ id: '00000000-0000-0000-0000-000000000001' })).resolves.toBeDefined();
+					await expect(
+						caller.archiveParty({ id: '00000000-0000-0000-0000-000000000001' })
+					).resolves.toBeDefined();
 				});
 
 				it('should reject contributor restoring party', async () => {
@@ -2754,7 +2877,9 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					};
 
 					const caller = createCaller(partyRouter, contributorCtx);
-					await expect(caller.restoreParty({ id: '00000000-0000-0000-0000-000000000001' })).rejects.toThrow(TRPCError);
+					await expect(
+						caller.restoreParty({ id: '00000000-0000-0000-0000-000000000001' })
+					).rejects.toThrow(TRPCError);
 				});
 
 				it('should allow admin to restore party', async () => {
@@ -2768,7 +2893,9 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					vi.mocked(mockPartyController.restoreParty).mockResolvedValue({} as any);
 
 					const caller = createCaller(partyRouter, adminCtx);
-					await expect(caller.restoreParty({ id: '00000000-0000-0000-0000-000000000001' })).resolves.toBeDefined();
+					await expect(
+						caller.restoreParty({ id: '00000000-0000-0000-0000-000000000001' })
+					).resolves.toBeDefined();
 				});
 			});
 
@@ -2818,7 +2945,9 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					};
 
 					const caller = createCaller(partyRouter, contributorCtx);
-					await expect(caller.archivePartyAddress({ id: '00000000-0000-0000-0000-000000000001' })).rejects.toThrow(TRPCError);
+					await expect(
+						caller.archivePartyAddress({ id: '00000000-0000-0000-0000-000000000001' })
+					).rejects.toThrow(TRPCError);
 				});
 
 				it('should allow admin to archive party address', async () => {
@@ -2832,7 +2961,9 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					vi.mocked(mockPartyController.archivePartyAddress).mockResolvedValue({} as any);
 
 					const caller = createCaller(partyRouter, adminCtx);
-					await expect(caller.archivePartyAddress({ id: '00000000-0000-0000-0000-000000000001' })).resolves.toBeDefined();
+					await expect(
+						caller.archivePartyAddress({ id: '00000000-0000-0000-0000-000000000001' })
+					).resolves.toBeDefined();
 				});
 
 				it('should reject contributor restoring party address', async () => {
@@ -2842,7 +2973,9 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					};
 
 					const caller = createCaller(partyRouter, contributorCtx);
-					await expect(caller.restorePartyAddress({ id: '00000000-0000-0000-0000-000000000001' })).rejects.toThrow(TRPCError);
+					await expect(
+						caller.restorePartyAddress({ id: '00000000-0000-0000-0000-000000000001' })
+					).rejects.toThrow(TRPCError);
 				});
 			});
 
@@ -2894,7 +3027,9 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					};
 
 					const caller = createCaller(partyRouter, contributorCtx);
-					await expect(caller.archivePartyRepresentative({ id: '00000000-0000-0000-0000-000000000001' })).rejects.toThrow(TRPCError);
+					await expect(
+						caller.archivePartyRepresentative({ id: '00000000-0000-0000-0000-000000000001' })
+					).rejects.toThrow(TRPCError);
 				});
 
 				it('should allow admin to archive party representative', async () => {
@@ -2908,7 +3043,9 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					vi.mocked(mockPartyController.archivePartyRepresentative).mockResolvedValue({} as any);
 
 					const caller = createCaller(partyRouter, adminCtx);
-					await expect(caller.archivePartyRepresentative({ id: '00000000-0000-0000-0000-000000000001' })).resolves.toBeDefined();
+					await expect(
+						caller.archivePartyRepresentative({ id: '00000000-0000-0000-0000-000000000001' })
+					).resolves.toBeDefined();
 				});
 
 				it('should reject contributor restoring party representative', async () => {
@@ -2918,7 +3055,9 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					};
 
 					const caller = createCaller(partyRouter, contributorCtx);
-					await expect(caller.restorePartyRepresentative({ id: '00000000-0000-0000-0000-000000000001' })).rejects.toThrow(TRPCError);
+					await expect(
+						caller.restorePartyRepresentative({ id: '00000000-0000-0000-0000-000000000001' })
+					).rejects.toThrow(TRPCError);
 				});
 			});
 
@@ -2966,7 +3105,9 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					};
 
 					const caller = createCaller(partyRouter, contributorCtx);
-					await expect(caller.archiveClaimParty({ id: '00000000-0000-0000-0000-000000000001' })).rejects.toThrow(TRPCError);
+					await expect(
+						caller.archiveClaimParty({ id: '00000000-0000-0000-0000-000000000001' })
+					).rejects.toThrow(TRPCError);
 				});
 
 				it('should allow admin to unlink party from claim', async () => {
@@ -2980,7 +3121,9 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 					vi.mocked(mockPartyController.archiveClaimParty).mockResolvedValue({} as any);
 
 					const caller = createCaller(partyRouter, adminCtx);
-					await expect(caller.archiveClaimParty({ id: '00000000-0000-0000-0000-000000000001' })).resolves.toBeDefined();
+					await expect(
+						caller.archiveClaimParty({ id: '00000000-0000-0000-0000-000000000001' })
+					).resolves.toBeDefined();
 				});
 			});
 
@@ -3065,11 +3208,14 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 					const mockStatuteController = await import('@/api/controllers/statuteController');
 					vi.mocked(mockStatuteController.updateStatuteRule).mockResolvedValue({
+						id: 1,
 						state_code: 'CA',
 						rules: { personal_injury: { default_years: 2, rules: [] } },
 						negligence_type: 'pure_comparative',
 						negligence_bar_percent: null,
 						negligence_notes: null,
+						updated_at: new Date('2025-01-01'),
+						updated_by: 'admin-user',
 					});
 
 					const caller = createCaller(statuteRouter, adminCtx);
@@ -3089,11 +3235,14 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 					const mockStatuteController = await import('@/api/controllers/statuteController');
 					vi.mocked(mockStatuteController.updateStatuteRule).mockResolvedValue({
+						id: 2,
 						state_code: 'TX',
 						rules: { personal_injury: { default_years: 2, rules: [] } },
 						negligence_type: 'modified_comparative',
 						negligence_bar_percent: 51,
 						negligence_notes: null,
+						updated_at: new Date('2025-01-01'),
+						updated_by: 'super-admin-user',
 					});
 
 					const caller = createCaller(statuteRouter, superAdminCtx);
@@ -3143,11 +3292,16 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 					const mockStatuteController = await import('@/api/controllers/statuteController');
 					vi.mocked(mockStatuteController.getStatuteRule).mockResolvedValue({
+						id: 1,
 						state_code: 'CA',
 						rules: {},
 						negligence_type: null,
 						negligence_bar_percent: null,
 						negligence_notes: null,
+						created_at: new Date('2025-01-01'),
+						created_by: null,
+						updated_at: null,
+						updated_by: null,
 					});
 
 					const caller = createCaller(statuteRouter, contributorCtx);
@@ -3162,9 +3316,11 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 					const mockStatuteController = await import('@/api/controllers/statuteController');
 					vi.mocked(mockStatuteController.calculateStatuteLimit).mockResolvedValue({
-						stateLimitYears: 2,
-						stateLimitDate: new Date('2026-01-01'),
-						source: 'default',
+						years: 2,
+						stateCode: 'CA',
+						tortType: 'personal_injury',
+						lob: undefined,
+						dateOfLoss: '2024-01-01',
 					});
 
 					const caller = createCaller(statuteRouter, contributorCtx);

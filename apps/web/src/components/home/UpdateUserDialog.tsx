@@ -31,7 +31,13 @@ const roleOptions: { icon: JSX.Element; value: Role }[] = [
 	{ icon: <IconUser size={15} />, value: config.ROLES.CONTRIBUTOR },
 ];
 
-export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutput; onClose: () => void }) {
+export default function UpdateUserDialog({
+	user,
+	onClose,
+}: {
+	user?: GetUserOutput;
+	onClose: () => void;
+}) {
 	const { data: session } = useClerkSession();
 	const [confirmingRoleChange, setConfirmingRoleChange] = useState(false);
 	const userData = user ?? session?.user;
@@ -42,7 +48,8 @@ export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutp
 
 	const availableRoleOptions = roleOptions.filter((option) => {
 		if (isSuperAdmin) return true;
-		if (isAdmin) return option.value === config.ROLES.ADMIN || option.value === config.ROLES.CONTRIBUTOR;
+		if (isAdmin)
+			return option.value === config.ROLES.ADMIN || option.value === config.ROLES.CONTRIBUTOR;
 		return false;
 	});
 
@@ -70,14 +77,18 @@ export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutp
 	const modifyUser = async (data: UserFormState) => {
 		try {
 			if (!userData) return;
-			const [first, last] = 'name' in userData ? (userData.name ?? '').split(' ') : [userData.first, userData.last];
+			const [first, last] =
+				'name' in userData ? (userData.name ?? '').split(' ') : [userData.first, userData.last];
 			const phoneNumber = userData.phone ? parsePhoneNumber(userData.phone) : undefined;
 			const updates: UpdateUserInput['params'] = {
 				first: data.first !== first ? data.first : undefined,
 				last: data.last !== last ? data.last : undefined,
 				email: data.email !== userData.email ? data.email : undefined,
 				phone: data.phone !== phoneNumber ? formatPhoneNumber(data.phone).toString() : undefined,
-				role: canChangeRole && 'role' in userData && data.role !== userData.role ? (data.role as Role) : undefined,
+				role:
+					canChangeRole && 'role' in userData && data.role !== userData.role
+						? (data.role as Role)
+						: undefined,
 			};
 			if (!Object.keys(updates).length) return;
 			await updateUser({ id: userData.id, params: updates });
@@ -100,7 +111,12 @@ export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutp
 			primaryAction={{
 				label: confirmingRoleChange ? 'Continue' : 'Update',
 				onClick: () => {
-					if (validRoleInUserData && userData.role !== role && !confirmingRoleChange && canChangeRole) {
+					if (
+						validRoleInUserData &&
+						userData.role !== role &&
+						!confirmingRoleChange &&
+						canChangeRole
+					) {
 						setConfirmingRoleChange(true);
 					} else {
 						onSubmit();
@@ -108,21 +124,52 @@ export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutp
 				},
 				disabled: isSubmitting || !isDirty || !isValid,
 			}}
-			secondaryActions={confirmingRoleChange ? [{ label: 'Cancel', onClick: () => setConfirmingRoleChange(false) }] : undefined}
+			secondaryActions={
+				confirmingRoleChange
+					? [{ label: 'Cancel', onClick: () => setConfirmingRoleChange(false) }]
+					: undefined
+			}
 			onClose={onClose}
 			width={500}
 		>
-			<div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', width: '100%' }}>
+			<div
+				style={{
+					display: 'flex',
+					flexDirection: 'column' as const,
+					alignItems: 'center',
+					width: '100%',
+				}}
+			>
 				{/* Avatar */}
-				<div style={{ width: 100, height: 100, borderRadius: '50%', backgroundColor: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 10 }}>
-					{userData ? getInitials('name' in userData ? userData.name : `${userData.first} ${userData.last}`) : ''}
+				<div
+					style={{
+						width: 100,
+						height: 100,
+						borderRadius: '50%',
+						backgroundColor: 'var(--bg-tertiary)',
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						fontSize: 40,
+						fontWeight: 600,
+						color: 'var(--text-secondary)',
+						marginBottom: 10,
+					}}
+				>
+					{userData
+						? getInitials('name' in userData ? userData.name : `${userData.first} ${userData.last}`)
+						: ''}
 				</div>
 
 				<Collapse open={confirmingRoleChange}>
 					<div style={{ display: 'flex', alignItems: 'center', marginBottom: 10, maxWidth: 300 }}>
-						<IconAlertTriangle size={20} style={{ color: 'var(--status-warning)', marginRight: 10, flexShrink: 0 }} />
+						<IconAlertTriangle
+							size={20}
+							style={{ color: 'var(--status-warning)', marginRight: 10, flexShrink: 0 }}
+						/>
 						<span style={{ fontSize: 13, lineHeight: '17px', color: 'var(--status-warning)' }}>
-							You are {role === config.ROLES.ADMIN ? 'elevating' : 'lowering'} this user&apos;s privileges. Are you sure you want to continue?
+							You are {role === config.ROLES.ADMIN ? 'elevating' : 'lowering'} this user&apos;s
+							privileges. Are you sure you want to continue?
 						</span>
 					</div>
 				</Collapse>
@@ -139,7 +186,12 @@ export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutp
 									options={dropdownRoleOptions}
 									value={field.value ?? ''}
 									onChange={(v) => field.onChange(String(v))}
-									disabled={isSubmitting || confirmingRoleChange || (isAdmin && (!validRoleInUserData || userData.role !== config.ROLES.CONTRIBUTOR))}
+									disabled={
+										isSubmitting ||
+										confirmingRoleChange ||
+										(isAdmin &&
+											(!validRoleInUserData || userData.role !== config.ROLES.CONTRIBUTOR))
+									}
 									placeholder="Select role"
 									fullWidth
 								/>
@@ -221,7 +273,9 @@ export default function UpdateUserDialog({ user, onClose }: { user?: GetUserOutp
 								type="tel"
 								error={!!errors.phone}
 								errorText={errors.phone?.message}
-								startAdornment={<span style={{ color: 'var(--text-muted)', fontSize: 13 }}>+1</span>}
+								startAdornment={
+									<span style={{ color: 'var(--text-muted)', fontSize: 13 }}>+1</span>
+								}
 								{...field}
 								onChange={(e) => {
 									if (e.target.value.length <= 10) field.onChange(e);

@@ -25,10 +25,7 @@ export default function TaskCompletionDialog({
 	const showAlert = useAlertStore((state) => state.showAlert);
 	const { mutateAsync: completeTask, isPending } = useTaskTrpc().complete;
 
-	const {
-		control,
-		handleSubmit,
-	} = useForm<TaskCompletionFormInputs>({
+	const { control, handleSubmit } = useForm<TaskCompletionFormInputs>({
 		defaultValues: {
 			completionNotes: '',
 		},
@@ -68,7 +65,15 @@ export default function TaskCompletionDialog({
 			onClose={onClose}
 			width={450}
 		>
-			<div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+			<div
+				style={{
+					width: '100%',
+					display: 'flex',
+					flexDirection: 'column',
+					alignItems: 'center',
+					gap: 16,
+				}}
+			>
 				<p style={{ fontSize: 14, width: 380, marginBottom: 8 }}>
 					<strong>Task:</strong> {task.title}
 				</p>

@@ -107,12 +107,13 @@ export default function SettlementTable({
 				accessorKey: 'party_name',
 				header: 'Party / Source',
 				minSize: 150,
-				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
+				cell: (info: any) => {
+					const params = { row: info.row.original, value: info.getValue() };
 					if (params.row.type === 'settlement') {
 						return <span style={{ fontSize: 13 }}>{params.row.party_name}</span>;
 					}
 					return (
-						<span style={{ fontSize: 13,  color: 'var(--text-secondary)'  }}>
+						<span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
 							{params.row.recovery_source || 'No source'}
 						</span>
 					);
@@ -122,7 +123,8 @@ export default function SettlementTable({
 				accessorKey: 'loss_type',
 				header: 'Coverage',
 				size: 120,
-				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
+				cell: (info: any) => {
+					const params = { row: info.row.original, value: info.getValue() };
 					if (params.row.type === 'settlement' && params.row.loss_type) {
 						return <span style={{ fontSize: 13 }}>{formatCoverageType(params.row.loss_type)}</span>;
 					}
@@ -133,14 +135,13 @@ export default function SettlementTable({
 				accessorKey: 'settlement_structure',
 				header: 'Type',
 				size: 60,
-				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
+				cell: (info: any) => {
+					const params = { row: info.row.original, value: info.getValue() };
 					const structure = params.row.settlement_structure;
 					if (!structure) return null;
 					const isPaymentPlan = structure === SettlementStructure.PAYMENT_PLAN;
 					return (
-						<Tooltip
-							content={isPaymentPlan ? 'Payment Plan' : 'Lump Sum'}
-						>
+						<Tooltip content={isPaymentPlan ? 'Payment Plan' : 'Lump Sum'}>
 							{isPaymentPlan ? (
 								<IconCalendarRepeat size={20} style={{ color: 'var(--status-info)' }} />
 							) : (
@@ -154,9 +155,12 @@ export default function SettlementTable({
 				accessorKey: 'demand_amount',
 				header: 'Demand',
 				size: 110,
-				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
+				cell: (info: any) => {
+					const params = { row: info.row.original, value: info.getValue() };
 					if (params.row.type === 'settlement' && params.row.demand_amount !== undefined) {
-						return <span style={{ fontSize: 13 }}>{formatCurrencyExact(params.row.demand_amount)}</span>;
+						return (
+							<span style={{ fontSize: 13 }}>{formatCurrencyExact(params.row.demand_amount)}</span>
+						);
 					}
 					return null;
 				},
@@ -165,7 +169,8 @@ export default function SettlementTable({
 				accessorKey: 'total_recovered',
 				header: 'Recovered',
 				size: 110,
-				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
+				cell: (info: any) => {
+					const params = { row: info.row.original, value: info.getValue() };
 					if (params.row.type === 'settlement') {
 						return (
 							<span style={{ fontSize: 13 }}>
@@ -174,7 +179,11 @@ export default function SettlementTable({
 						);
 					}
 					if (params.row.type === 'recovery' && params.row.recovery_amount !== undefined) {
-						return <span style={{ fontSize: 13 }}>{formatCurrencyExact(params.row.recovery_amount)}</span>;
+						return (
+							<span style={{ fontSize: 13 }}>
+								{formatCurrencyExact(params.row.recovery_amount)}
+							</span>
+						);
 					}
 					return null;
 				},
@@ -183,11 +192,17 @@ export default function SettlementTable({
 				accessorKey: 'remaining_balance',
 				header: 'Balance',
 				size: 110,
-				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
+				cell: (info: any) => {
+					const params = { row: info.row.original, value: info.getValue() };
 					if (params.row.type === 'settlement' && params.row.remaining_balance !== undefined) {
 						const balance = params.row.remaining_balance;
 						return (
-							<span style={{ fontSize: 13, color: balance > 0 ? 'var(--status-error)' : 'var(--status-success)' }}>
+							<span
+								style={{
+									fontSize: 13,
+									color: balance > 0 ? 'var(--status-error)' : 'var(--status-success)',
+								}}
+							>
 								{balance < 0
 									? `-${formatCurrencyExact(Math.abs(balance))}`
 									: formatCurrencyExact(balance)}
@@ -201,8 +216,10 @@ export default function SettlementTable({
 				accessorKey: 'date',
 				header: 'Date',
 				size: 100,
-				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
-					const date = params.row.type === 'settlement' ? params.row.demand_date : params.row.recovery_date;
+				cell: (info: any) => {
+					const params = { row: info.row.original, value: info.getValue() };
+					const date =
+						params.row.type === 'settlement' ? params.row.demand_date : params.row.recovery_date;
 					if (date) {
 						return <span style={{ fontSize: 13 }}>{dayjs(date).format('MMM D, YYYY')}</span>;
 					}
@@ -214,26 +231,39 @@ export default function SettlementTable({
 				header: '',
 				size: 80,
 				enableSorting: false,
-				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
+				cell: (info: any) => {
+					const params = { row: info.row.original, value: info.getValue() };
 					if (!isManageMode) return null;
 					return (
 						<div style={{ display: 'flex', gap: 4 }}>
 							<Tooltip content={`Edit ${params.row.type}`}>
-							<Button variant="icon" size="sm" color="neutral" onClick={() =>
+								<Button
+									variant="icon"
+									size="sm"
+									color="neutral"
+									onClick={() =>
 										params.row.type === 'settlement'
 											? onEditSettlement(params.row.originalData)
-											: onEditRecovery(params.row.originalData)}>
-							<IconEdit size={16} />
-						</Button>
-						</Tooltip>
+											: onEditRecovery(params.row.originalData)
+									}
+								>
+									<IconEdit size={16} />
+								</Button>
+							</Tooltip>
 							<Tooltip content={`Archive ${params.row.type}`}>
-							<Button variant="icon" size="sm" color="neutral" onClick={() =>
+								<Button
+									variant="icon"
+									size="sm"
+									color="neutral"
+									onClick={() =>
 										params.row.type === 'settlement'
 											? onArchiveSettlement(params.row.originalData)
-											: onArchiveRecovery(params.row.originalData)}>
-							<IconArchive style={{ color: 'var(--status-error)' }} />
-						</Button>
-						</Tooltip>
+											: onArchiveRecovery(params.row.originalData)
+									}
+								>
+									<IconArchive style={{ color: 'var(--status-error)' }} />
+								</Button>
+							</Tooltip>
 						</div>
 					);
 				},

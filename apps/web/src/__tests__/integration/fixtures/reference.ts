@@ -75,7 +75,8 @@ export async function createTestRoleList(
 	const list = await createTestReferenceList(db, {
 		client_id: params.client_id,
 		entity: params.entity,
-		display_name: params.entity === 'claimant_party_role' ? 'Claimant Party Role' : 'Adverse Party Role',
+		display_name:
+			params.entity === 'claimant_party_role' ? 'Claimant Party Role' : 'Adverse Party Role',
 	});
 
 	const options = [];

@@ -31,7 +31,9 @@
 	max-width: 640px;
 	background: var(--bg-white);
 	border-radius: var(--radius-lg);
-	box-shadow: var(--shadow-lg), 0 0 0 1px var(--border);
+	box-shadow:
+		var(--shadow-lg),
+		0 0 0 1px var(--border);
 	z-index: 9999;
 	overflow: hidden;
 	animation: cmdk-dialog-show 150ms ease;
@@ -211,7 +213,9 @@
 	border-radius: var(--radius-sm);
 	cursor: pointer;
 	font-family: inherit;
-	transition: border-color var(--transition-fast), color var(--transition-fast);
+	transition:
+		border-color var(--transition-fast),
+		color var(--transition-fast);
 	white-space: nowrap;
 }
 

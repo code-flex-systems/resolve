@@ -23,9 +23,11 @@ export const coverageRouter = router({
 		return getCoverages(ctx, input);
 	}),
 
-	getCoveragesByClaimParty: protectedProcedure.input(getCoveragesByClaimPartyInput).query(async ({ input, ctx }) => {
-		return getCoveragesByClaimParty(ctx, input);
-	}),
+	getCoveragesByClaimParty: protectedProcedure
+		.input(getCoveragesByClaimPartyInput)
+		.query(async ({ input, ctx }) => {
+			return getCoveragesByClaimParty(ctx, input);
+		}),
 
 	createCoverage: protectedProcedure.input(createCoverageInput).mutation(async ({ input, ctx }) => {
 		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
@@ -38,10 +40,12 @@ export const coverageRouter = router({
 		return updateCoverage(ctx, id, params);
 	}),
 
-	archiveCoverage: protectedProcedure.input(archiveCoverageInput).mutation(async ({ input, ctx }) => {
-		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-		return archiveCoverage(ctx, input.id);
-	}),
+	archiveCoverage: protectedProcedure
+		.input(archiveCoverageInput)
+		.mutation(async ({ input, ctx }) => {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			return archiveCoverage(ctx, input.id);
+		}),
 
 	deleteCoverage: protectedProcedure.input(deleteCoverageInput).mutation(async ({ input, ctx }) => {
 		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);

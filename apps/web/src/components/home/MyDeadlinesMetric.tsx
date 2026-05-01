@@ -77,7 +77,7 @@ export default function MyDeadlinesMetric() {
 			const deadlineDate = dayjs(deadline.deadline_date).startOf('day');
 
 			if (
-				deadlineDate.valueOf()>= today.valueOf() &&
+				deadlineDate.valueOf() >= today.valueOf() &&
 				deadlineDate.valueOf() < nextWeek.valueOf() &&
 				deadline.status === DeadlineStatus.PENDING
 			) {
@@ -115,7 +115,18 @@ export default function MyDeadlinesMetric() {
 
 	return (
 		<Card variant="beveled" padding="none" style={{ ...styles.container, overflow: 'hidden' }}>
-			<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					padding: '12px 16px',
+					fontSize: 13,
+					fontWeight: 600,
+					color: 'var(--text-primary)',
+					backgroundColor: 'var(--bg-secondary)',
+					borderBottom: '1px solid var(--border)',
+				}}
+			>
 				<IconCalendar size={16} style={{ marginRight: 8 }} />
 				My Deadlines
 			</div>
@@ -129,32 +140,42 @@ export default function MyDeadlinesMetric() {
 							{/* Overdue */}
 							<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 								<div
-style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40 }}>
+									style={{
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+										width: 40,
+										height: 40,
+									}}
+								>
 									<IconAlertTriangle size={20} style={{ color: 'white', fontSize: 22 }} />
 								</div>
 								<div style={{ display: 'flex', flexDirection: 'column' as const }}>
 									<span style={{ fontSize: 24, fontWeight: 700, color: 'error' }}>
 										{overdueCount}
 									</span>
-									<span style={{ fontSize: 11 }}>
-										Overdue
-									</span>
+									<span style={{ fontSize: 11 }}>Overdue</span>
 								</div>
 							</div>
 
 							{/* Upcoming */}
 							<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 								<div
-style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40 }}>
+									style={{
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+										width: 40,
+										height: 40,
+									}}
+								>
 									<IconClock size={20} style={{ color: 'white', fontSize: 22 }} />
 								</div>
 								<div style={{ display: 'flex', flexDirection: 'column' as const }}>
 									<span style={{ fontSize: 24, fontWeight: 700, color: 'warning.main' }}>
 										{upcomingCount}
 									</span>
-									<span style={{ color: 'text.secondary', fontSize: 11 }}>
-										Next 7 Days
-									</span>
+									<span style={{ color: 'text.secondary', fontSize: 11 }}>Next 7 Days</span>
 								</div>
 							</div>
 						</Card>
@@ -175,7 +196,9 @@ style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width:
 							}}
 							month={currentMonth?.toDate() ?? undefined}
 							modifiers={{ hasDeadline: deadlineDates }}
-							modifiersStyles={{ hasDeadline: { fontWeight: 'bold', backgroundColor: 'var(--status-info-bg)' } }}
+							modifiersStyles={{
+								hasDeadline: { fontWeight: 'bold', backgroundColor: 'var(--status-info-bg)' },
+							}}
 						/>
 
 						{/* Daily Events List - fills remaining space */}

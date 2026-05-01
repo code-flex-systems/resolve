@@ -32,10 +32,8 @@ export default function DocumentsTab() {
 
 	// Get all group IDs for batch count query
 	const groupIds = useMemo(() => groups.map((g) => g.id), [groups]);
-	const { data: docCounts = [], isFetching: isFetchingCounts } = useDocTrpc().getDocCountsByGroupIds(
-		{ groupIds },
-		{ enabled: groupIds.length > 0 }
-	);
+	const { data: docCounts = [], isFetching: isFetchingCounts } =
+		useDocTrpc().getDocCountsByGroupIds({ groupIds }, { enabled: groupIds.length > 0 });
 
 	const { mutateAsync: deleteDoc } = useDocTrpc().deleteDoc;
 	const { mutateAsync: deleteDocGroup } = useDocTrpc().deleteDocGroup;
@@ -107,7 +105,7 @@ export default function DocumentsTab() {
 
 	const handleConfirmDelete = async () => {
 		try {
-			const selectedKeys = Object.keys(selectedRows).filter(k => selectedRows[k]);
+			const selectedKeys = Object.keys(selectedRows).filter((k) => selectedRows[k]);
 			for (const rowId of selectedKeys) {
 				const [type, id] = String(rowId).split('-');
 				if (type === 'folder') {
@@ -129,7 +127,7 @@ export default function DocumentsTab() {
 		const folders: any[] = [];
 		const documents: any[] = [];
 
-		const selectedKeys = Object.keys(selectedRows).filter(k => selectedRows[k]);
+		const selectedKeys = Object.keys(selectedRows).filter((k) => selectedRows[k]);
 		selectedKeys.forEach((rowId) => {
 			const [type, id] = String(rowId).split('-');
 			if (type === 'folder') {
@@ -157,7 +155,14 @@ export default function DocumentsTab() {
 
 	return (
 		<Card variant="beveled" padding="md" style={styles.container}>
-			<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
+			<p
+				style={{
+					color: 'var(--text-secondary)',
+					fontSize: 13,
+					margin: '0 0 12px',
+					lineHeight: 1.5,
+				}}
+			>
 				Manage claim documents and files. Organize documents into folders and track document status.
 			</p>
 			<Toolbar
@@ -166,14 +171,14 @@ export default function DocumentsTab() {
 					<div style={{ display: 'flex', gap: 8 }}>
 						{editMode ? (
 							<>
-								{Object.keys(selectedRows).filter(k => selectedRows[k]).length > 0 && (
+								{Object.keys(selectedRows).filter((k) => selectedRows[k]).length > 0 && (
 									<Button
 										variant="outlined"
 										color="error"
 										startIcon={<IconPackage size={20} />}
 										onClick={handleDelete}
 									>
-										Archive ({Object.keys(selectedRows).filter(k => selectedRows[k]).length})
+										Archive ({Object.keys(selectedRows).filter((k) => selectedRows[k]).length})
 									</Button>
 								)}
 								<Button variant="outlined" onClick={handleToggleEditMode}>
@@ -182,7 +187,11 @@ export default function DocumentsTab() {
 							</>
 						) : (
 							<>
-								<Button variant="outlined" startIcon={<IconSettings size={20} />} onClick={handleToggleEditMode}>
+								<Button
+									variant="outlined"
+									startIcon={<IconSettings size={20} />}
+									onClick={handleToggleEditMode}
+								>
 									Manage
 								</Button>
 								<Button
@@ -193,7 +202,11 @@ export default function DocumentsTab() {
 								>
 									Add Folder
 								</Button>
-								<Button variant="contained" startIcon={<IconFileUpload size={20} />} onClick={handleAddDocument}>
+								<Button
+									variant="contained"
+									startIcon={<IconFileUpload size={20} />}
+									onClick={handleAddDocument}
+								>
 									Add Document
 								</Button>
 							</>
@@ -218,7 +231,10 @@ export default function DocumentsTab() {
 			</div>
 
 			{showCreateFolderDialog && (
-				<CreateFolderDialog onClose={() => setShowCreateFolderDialog(false)} parentGroupId={currentFolderId} />
+				<CreateFolderDialog
+					onClose={() => setShowCreateFolderDialog(false)}
+					parentGroupId={currentFolderId}
+				/>
 			)}
 
 			{showUploadDocumentDialog && (
@@ -237,7 +253,10 @@ export default function DocumentsTab() {
 			)}
 
 			{previewDocument && (
-				<DocumentPreviewDialog onClose={() => setPreviewDocument(null)} document={previewDocument} />
+				<DocumentPreviewDialog
+					onClose={() => setPreviewDocument(null)}
+					document={previewDocument}
+				/>
 			)}
 		</Card>
 	);

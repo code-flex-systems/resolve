@@ -82,7 +82,7 @@ describe('userQueries integration tests', () => {
 
 	// Helper to create desk location
 	let deskLocationCounter = 0;
-	async function createTestDeskLocation(clientId: string, userId: string, typeId: number) {
+	async function createTestDeskLocation(clientId: string, userId: string, typeId: string) {
 		deskLocationCounter++;
 		return await db
 			.insertInto('desk_location')
@@ -98,7 +98,7 @@ describe('userQueries integration tests', () => {
 
 	// Helper to assign user to desk
 	let deskPriorityCounter = 1;
-	async function assignUserToDesk(userId: string, deskLocationId: number, assignedBy: string) {
+	async function assignUserToDesk(userId: string, deskLocationId: string, assignedBy: string) {
 		const priority = deskPriorityCounter++;
 		return await db
 			.insertInto('user_desk_location')
@@ -116,7 +116,12 @@ describe('userQueries integration tests', () => {
 		it('should return users for the client', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'Admin' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'Admin',
+			});
 
 			const results = await getUsersPaginated(ctx, false);
 
@@ -128,7 +133,12 @@ describe('userQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const enabledUser = await createTestUser(db, { client_id: client.id, disabled: false });
 			const disabledUser = await createTestUser(db, { client_id: client.id, disabled: true });
-			const ctx = createTestContext(db, { id: enabledUser.id, client_id: client.id, email: enabledUser.email, role: 'Admin' });
+			const ctx = createTestContext(db, {
+				id: enabledUser.id,
+				client_id: client.id,
+				email: enabledUser.email,
+				role: 'Admin',
+			});
 
 			const enabledResults = await getUsersPaginated(ctx, false);
 			const disabledResults = await getUsersPaginated(ctx, true);
@@ -144,14 +154,27 @@ describe('userQueries integration tests', () => {
 			// Create admin user that won't match inactive filter
 			const adminUser = await createTestUser(db, { client_id: client.id });
 			// Manually update last_login to be recent for adminUser
-			await db.updateTable('users').set({ last_login: new Date() }).where('id', '=', adminUser.id).execute();
+			await db
+				.updateTable('users')
+				.set({ last_login: new Date() })
+				.where('id', '=', adminUser.id)
+				.execute();
 			// Create inactive user (never logged in - last_login is null by default)
 			const inactiveUser = await createTestUser(db, { client_id: client.id, disabled: false });
 			// Create active user (logged in recently)
 			const activeUser = await createTestUser(db, { client_id: client.id, disabled: false });
 			// Manually update last_login to be recent for activeUser
-			await db.updateTable('users').set({ last_login: new Date() }).where('id', '=', activeUser.id).execute();
-			const ctx = createTestContext(db, { id: adminUser.id, client_id: client.id, email: adminUser.email, role: 'Admin' });
+			await db
+				.updateTable('users')
+				.set({ last_login: new Date() })
+				.where('id', '=', activeUser.id)
+				.execute();
+			const ctx = createTestContext(db, {
+				id: adminUser.id,
+				client_id: client.id,
+				email: adminUser.email,
+				role: 'Admin',
+			});
 
 			const inactiveResults = await getUsersPaginated(ctx, false, true);
 
@@ -167,7 +190,12 @@ describe('userQueries integration tests', () => {
 			await createTestUser(db, { client_id: client.id, first: 'B' });
 			await createTestUser(db, { client_id: client.id, first: 'C' });
 			const user = await createTestUser(db, { client_id: client.id, first: 'D' });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'Admin' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'Admin',
+			});
 
 			const page1 = await getUsersPaginated(ctx, false, undefined, 2, 0);
 			const page2 = await getUsersPaginated(ctx, false, undefined, 2, 2);
@@ -178,14 +206,32 @@ describe('userQueries integration tests', () => {
 
 		it('should filter by searchTerm', async () => {
 			const client = await createTestClient(db);
-			const user = await createTestUser(db, { client_id: client.id, first: 'UniqueSearchName', last: 'Test' });
+			const user = await createTestUser(db, {
+				client_id: client.id,
+				first: 'UniqueSearchName',
+				last: 'Test',
+			});
 			await createTestUser(db, { client_id: client.id, first: 'Other', last: 'User' });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'Admin' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'Admin',
+			});
 
-			const results = await getUsersPaginated(ctx, false, undefined, undefined, undefined, 'UniqueSearch');
+			const results = await getUsersPaginated(
+				ctx,
+				false,
+				undefined,
+				undefined,
+				undefined,
+				'UniqueSearch'
+			);
 
 			expect(results.some((u) => u.id === user.id)).toBe(true);
-			expect(results.every((u) => `${u.first} ${u.last}`.toLowerCase().includes('uniquesearch'))).toBe(true);
+			expect(
+				results.every((u) => `${u.first} ${u.last}`.toLowerCase().includes('uniquesearch'))
+			).toBe(true);
 		});
 
 		it('should not return users from different client (tenant isolation)', async () => {
@@ -193,7 +239,12 @@ describe('userQueries integration tests', () => {
 			const clientB = await createTestClient(db);
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'Admin' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'Admin',
+			});
 
 			const results = await getUsersPaginated(ctxA, false);
 
@@ -209,7 +260,12 @@ describe('userQueries integration tests', () => {
 			const deskType = await createTestDeskLocationType(client.id, user.id);
 			const deskLocation = await createTestDeskLocation(client.id, user.id, deskType.id);
 			await assignUserToDesk(user.id, deskLocation.id, user.id);
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'Admin' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'Admin',
+			});
 
 			const result = await getUsersWithDeskAssignments(ctx, {});
 
@@ -228,7 +284,12 @@ describe('userQueries integration tests', () => {
 			const desk2 = await createTestDeskLocation(client.id, user1.id, deskType.id);
 			await assignUserToDesk(user1.id, desk1.id, user1.id);
 			await assignUserToDesk(user2.id, desk2.id, user1.id);
-			const ctx = createTestContext(db, { id: user1.id, client_id: client.id, email: user1.email, role: 'Admin' });
+			const ctx = createTestContext(db, {
+				id: user1.id,
+				client_id: client.id,
+				email: user1.email,
+				role: 'Admin',
+			});
 
 			const result = await getUsersWithDeskAssignments(ctx, { deskLocationId: desk1.id });
 
@@ -246,7 +307,12 @@ describe('userQueries integration tests', () => {
 			const desk2 = await createTestDeskLocation(client.id, user1.id, deskType2.id);
 			await assignUserToDesk(user1.id, desk1.id, user1.id);
 			await assignUserToDesk(user2.id, desk2.id, user1.id);
-			const ctx = createTestContext(db, { id: user1.id, client_id: client.id, email: user1.email, role: 'Admin' });
+			const ctx = createTestContext(db, {
+				id: user1.id,
+				client_id: client.id,
+				email: user1.email,
+				role: 'Admin',
+			});
 
 			const result = await getUsersWithDeskAssignments(ctx, { deskLocationTypeId: deskType1.id });
 
@@ -259,7 +325,12 @@ describe('userQueries integration tests', () => {
 			const clientB = await createTestClient(db);
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'Admin' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'Admin',
+			});
 
 			const result = await getUsersWithDeskAssignments(ctxA, {});
 
@@ -269,9 +340,22 @@ describe('userQueries integration tests', () => {
 
 		it('should filter by searchTerm', async () => {
 			const client = await createTestClient(db);
-			const user1 = await createTestUser(db, { client_id: client.id, first: 'DeskSearchUnique', last: 'User' });
-			const user2 = await createTestUser(db, { client_id: client.id, first: 'Other', last: 'Person' });
-			const ctx = createTestContext(db, { id: user1.id, client_id: client.id, email: user1.email, role: 'Admin' });
+			const user1 = await createTestUser(db, {
+				client_id: client.id,
+				first: 'DeskSearchUnique',
+				last: 'User',
+			});
+			const user2 = await createTestUser(db, {
+				client_id: client.id,
+				first: 'Other',
+				last: 'Person',
+			});
+			const ctx = createTestContext(db, {
+				id: user1.id,
+				client_id: client.id,
+				email: user1.email,
+				role: 'Admin',
+			});
 
 			const result = await getUsersWithDeskAssignments(ctx, { searchTerm: 'DeskSearch' });
 
@@ -285,7 +369,12 @@ describe('userQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const enabledUser = await createTestUser(db, { client_id: client.id, disabled: false });
 			const disabledUser = await createTestUser(db, { client_id: client.id, disabled: true });
-			const ctx = createTestContext(db, { id: enabledUser.id, client_id: client.id, email: enabledUser.email, role: 'Admin' });
+			const ctx = createTestContext(db, {
+				id: enabledUser.id,
+				client_id: client.id,
+				email: enabledUser.email,
+				role: 'Admin',
+			});
 
 			const results = await getUsers(ctx);
 
@@ -295,8 +384,17 @@ describe('userQueries integration tests', () => {
 
 		it('should filter by searchTerm (prefix match)', async () => {
 			const client = await createTestClient(db);
-			const user = await createTestUser(db, { client_id: client.id, first: 'PrefixSearch', last: 'Name' });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'Admin' });
+			const user = await createTestUser(db, {
+				client_id: client.id,
+				first: 'PrefixSearch',
+				last: 'Name',
+			});
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'Admin',
+			});
 
 			const results = await getUsers(ctx, 'prefixsearch');
 
@@ -308,7 +406,12 @@ describe('userQueries integration tests', () => {
 			const clientB = await createTestClient(db);
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'Admin' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'Admin',
+			});
 
 			const results = await getUsers(ctxA);
 
@@ -325,8 +428,17 @@ describe('userQueries integration tests', () => {
 			await createTestUser(db, { client_id: client.id });
 			const activeUser = await createTestUser(db, { client_id: client.id });
 			// Manually update last_login to be recent for activeUser
-			await db.updateTable('users').set({ last_login: new Date() }).where('id', '=', activeUser.id).execute();
-			const ctx = createTestContext(db, { id: activeUser.id, client_id: client.id, email: activeUser.email, role: 'Admin' });
+			await db
+				.updateTable('users')
+				.set({ last_login: new Date() })
+				.where('id', '=', activeUser.id)
+				.execute();
+			const ctx = createTestContext(db, {
+				id: activeUser.id,
+				client_id: client.id,
+				email: activeUser.email,
+				role: 'Admin',
+			});
 
 			const result = await getInactiveUserCount(ctx);
 
@@ -338,10 +450,19 @@ describe('userQueries integration tests', () => {
 			const clientB = await createTestClient(db);
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			// Update userA to have recent login (making them active)
-			await db.updateTable('users').set({ last_login: new Date() }).where('id', '=', userA.id).execute();
+			await db
+				.updateTable('users')
+				.set({ last_login: new Date() })
+				.where('id', '=', userA.id)
+				.execute();
 			// Create user in client B with no login (last_login is null by default)
 			await createTestUser(db, { client_id: clientB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'Admin' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'Admin',
+			});
 
 			const result = await getInactiveUserCount(ctxA);
 
@@ -355,7 +476,12 @@ describe('userQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			await createTestResponseAuditLog(client.id, user.id);
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'Admin' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'Admin',
+			});
 
 			const now = new Date();
 			const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -372,7 +498,12 @@ describe('userQueries integration tests', () => {
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
 			await createTestResponseAuditLog(clientB.id, userB.id);
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'Admin' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'Admin',
+			});
 
 			const now = new Date();
 			const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -390,7 +521,12 @@ describe('userQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			await createTestResponseAuditLog(client.id, user.id);
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'Admin' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'Admin',
+			});
 
 			const today = new Date().toISOString().split('T')[0];
 			const results = await getUserActivityDetail(ctx, today);
@@ -404,7 +540,12 @@ describe('userQueries integration tests', () => {
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
 			await createTestResponseAuditLog(clientB.id, userB.id);
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'Admin' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'Admin',
+			});
 
 			const today = new Date().toISOString().split('T')[0];
 			const results = await getUserActivityDetail(ctxA, today);
@@ -418,7 +559,12 @@ describe('userQueries integration tests', () => {
 			const client = await createTestClient(db);
 			await createTestUser(db, { client_id: client.id });
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'Admin' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'Admin',
+			});
 
 			const count = await getUserCount(ctx);
 
@@ -430,7 +576,12 @@ describe('userQueries integration tests', () => {
 			await createTestUser(db, { client_id: client.id, disabled: false });
 			await createTestUser(db, { client_id: client.id, disabled: true });
 			const user = await createTestUser(db, { client_id: client.id, disabled: false });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'Admin' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'Admin',
+			});
 
 			const enabledCount = await getUserCount(ctx, false);
 			const disabledCount = await getUserCount(ctx, true);
@@ -445,8 +596,17 @@ describe('userQueries integration tests', () => {
 			await createTestUser(db, { client_id: client.id });
 			const activeUser = await createTestUser(db, { client_id: client.id });
 			// Manually update last_login to be recent for activeUser
-			await db.updateTable('users').set({ last_login: new Date() }).where('id', '=', activeUser.id).execute();
-			const ctx = createTestContext(db, { id: activeUser.id, client_id: client.id, email: activeUser.email, role: 'Admin' });
+			await db
+				.updateTable('users')
+				.set({ last_login: new Date() })
+				.where('id', '=', activeUser.id)
+				.execute();
+			const ctx = createTestContext(db, {
+				id: activeUser.id,
+				client_id: client.id,
+				email: activeUser.email,
+				role: 'Admin',
+			});
 
 			const inactiveCount = await getUserCount(ctx, false, true);
 
@@ -458,7 +618,12 @@ describe('userQueries integration tests', () => {
 			const clientB = await createTestClient(db);
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			await createTestUser(db, { client_id: clientB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'Admin' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'Admin',
+			});
 
 			const count = await getUserCount(ctxA);
 
@@ -470,7 +635,12 @@ describe('userQueries integration tests', () => {
 			await createTestUser(db, { client_id: client.id, first: 'John', last: 'Smith' });
 			await createTestUser(db, { client_id: client.id, first: 'Jane', last: 'Doe' });
 			const user = await createTestUser(db, { client_id: client.id, first: 'Admin', last: 'User' });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'Admin' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'Admin',
+			});
 
 			// Search by full name "First Last"
 			const fullNameCount = await getUserCount(ctx, false, false, 'John Smith');
@@ -498,7 +668,12 @@ describe('userQueries integration tests', () => {
 			await createTestUser(db, { client_id: client.id, disabled: false });
 			await createTestUser(db, { client_id: client.id, disabled: true });
 			const user = await createTestUser(db, { client_id: client.id, disabled: false });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'Admin' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'Admin',
+			});
 
 			const metrics = await getUserCountMetrics(ctx, client.id);
 
@@ -512,7 +687,12 @@ describe('userQueries integration tests', () => {
 		it('should return user by id', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'Admin' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'Admin',
+			});
 
 			const result = await getUser(ctx, user.id);
 
@@ -524,7 +704,12 @@ describe('userQueries integration tests', () => {
 		it('should return undefined for non-existent user', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'Admin' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'Admin',
+			});
 
 			// Use a valid UUID format that doesn't exist
 			const result = await getUser(ctx, '00000000-0000-0000-0000-000000000000');
@@ -537,7 +722,12 @@ describe('userQueries integration tests', () => {
 			const clientB = await createTestClient(db);
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'Admin' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'Admin',
+			});
 
 			const result = await getUser(ctxA, userB.id);
 
@@ -549,7 +739,12 @@ describe('userQueries integration tests', () => {
 		it('should update user fields', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'Admin' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'Admin',
+			});
 
 			const result = await updateUser(ctx, user.id, {
 				first: 'Updated',
@@ -565,14 +760,24 @@ describe('userQueries integration tests', () => {
 			const clientB = await createTestClient(db);
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'Admin' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'Admin',
+			});
 
 			const result = await updateUser(ctxA, userB.id, { first: 'Hacked' });
 
 			expect(result).toBeUndefined();
 
 			// Verify user B wasn't updated
-			const verifyCtx = createTestContext(db, { id: userB.id, client_id: clientB.id, email: userB.email, role: 'Admin' });
+			const verifyCtx = createTestContext(db, {
+				id: userB.id,
+				client_id: clientB.id,
+				email: userB.email,
+				role: 'Admin',
+			});
 			const userBAfter = await getUser(verifyCtx, userB.id);
 			expect(userBAfter!.first).not.toBe('Hacked');
 		});
@@ -583,7 +788,12 @@ describe('userQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const adminUser = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const ctx = createTestContext(db, { id: adminUser.id, client_id: client.id, email: adminUser.email, role: 'Admin' });
+			const ctx = createTestContext(db, {
+				id: adminUser.id,
+				client_id: client.id,
+				email: adminUser.email,
+				role: 'Admin',
+			});
 
 			await deleteUser(ctx, user.id);
 
@@ -596,12 +806,22 @@ describe('userQueries integration tests', () => {
 			const clientB = await createTestClient(db);
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'Admin' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'Admin',
+			});
 
 			await deleteUser(ctxA, userB.id);
 
 			// Verify user B still exists
-			const ctxB = createTestContext(db, { id: userB.id, client_id: clientB.id, email: userB.email, role: 'Admin' });
+			const ctxB = createTestContext(db, {
+				id: userB.id,
+				client_id: clientB.id,
+				email: userB.email,
+				role: 'Admin',
+			});
 			const result = await getUser(ctxB, userB.id);
 			expect(result).toBeDefined();
 		});
@@ -652,7 +872,11 @@ describe('userQueries integration tests', () => {
 				client_id: client.id,
 			});
 			// Manually set email_verified since it's not part of createTestUser params
-			await db.updateTable('users').set({ email_verified: verifiedDate }).where('id', '=', existingUser.id).execute();
+			await db
+				.updateTable('users')
+				.set({ email_verified: verifiedDate })
+				.where('id', '=', existingUser.id)
+				.execute();
 
 			const result = await upsertUserFromClerk(db, {
 				first: 'Updated',

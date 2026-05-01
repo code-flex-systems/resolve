@@ -17,7 +17,8 @@ const startCase = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
 export function useCrudAlerts(resourceLabel: string) {
 	const showAlert = useAlertStore((state) => state.showAlert);
 
-	const formatSuccess = (action: CrudAction) => `${startCase(resourceLabel)} ${actionText[action]} successfully`;
+	const formatSuccess = (action: CrudAction) =>
+		`${startCase(resourceLabel)} ${actionText[action]} successfully`;
 	const formatError = (action: CrudAction) => `Failed to ${action} ${resourceLabel}`;
 
 	return {

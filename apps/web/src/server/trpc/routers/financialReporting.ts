@@ -37,12 +37,10 @@ export const financialReportingRouter = router({
 			return getRecoveryRateByCarrier(ctx.db, ctx.session.user.client_id!, input.range);
 		}),
 
-	getNetRecoveryByMonth: protectedProcedure
-		.input(dateRangeInput)
-		.query(async ({ input, ctx }) => {
-			requireRole(ctx, adminRoles);
-			return getNetRecoveryByMonth(ctx.db, ctx.session.user.client_id!, input.range);
-		}),
+	getNetRecoveryByMonth: protectedProcedure.input(dateRangeInput).query(async ({ input, ctx }) => {
+		requireRole(ctx, adminRoles);
+		return getNetRecoveryByMonth(ctx.db, ctx.session.user.client_id!, input.range);
+	}),
 
 	getNetRecoveryByLineOfBusiness: protectedProcedure
 		.input(dateRangeInput)
@@ -86,12 +84,10 @@ export const financialReportingRouter = router({
 			return getVarianceDecomposition(ctx.db, ctx.session.user.client_id!, input.range);
 		}),
 
-	getSettlementFunnel: protectedProcedure
-		.input(dateRangeInput)
-		.query(async ({ input, ctx }) => {
-			requireRole(ctx, adminRoles);
-			return getSettlementFunnel(ctx.db, ctx.session.user.client_id!, input.range);
-		}),
+	getSettlementFunnel: protectedProcedure.input(dateRangeInput).query(async ({ input, ctx }) => {
+		requireRole(ctx, adminRoles);
+		return getSettlementFunnel(ctx.db, ctx.session.user.client_id!, input.range);
+	}),
 
 	getNegotiationEfficiencyScatter: protectedProcedure
 		.input(dateRangeInput)
@@ -100,10 +96,8 @@ export const financialReportingRouter = router({
 			return getNegotiationEfficiencyScatter(ctx.db, ctx.session.user.client_id!, input.range);
 		}),
 
-	getStatuteDeadlineRisk: protectedProcedure
-		.input(dateRangeInput)
-		.query(async ({ input, ctx }) => {
-			requireRole(ctx, adminRoles);
-			return getStatuteDeadlineRisk(ctx.db, ctx.session.user.client_id!, input.range);
-		}),
+	getStatuteDeadlineRisk: protectedProcedure.input(dateRangeInput).query(async ({ input, ctx }) => {
+		requireRole(ctx, adminRoles);
+		return getStatuteDeadlineRisk(ctx.db, ctx.session.user.client_id!, input.range);
+	}),
 });

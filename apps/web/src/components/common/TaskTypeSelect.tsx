@@ -20,7 +20,8 @@ export default function TaskTypeSelect({
 	width = 400,
 }: TaskTypeSelectProps) {
 	return (
-		<Dropdown inlineLabel
+		<Dropdown
+			inlineLabel
 			label="Task Type"
 			options={Object.entries(TASK_TYPE_CONFIG).map(([type, config]) => ({
 				value: type,

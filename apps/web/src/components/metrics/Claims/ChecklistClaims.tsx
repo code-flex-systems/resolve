@@ -27,13 +27,19 @@ const COLUMNS: ColumnDef<any, any>[] = [
 	{
 		accessorKey: 'status',
 		header: (ctx) => <IconHeaderCell {...ctx} />,
-		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return <ClaimStatusCell {...params} />; },
+		cell: (info: any) => {
+			const params = { row: info.row.original, value: info.getValue() };
+			return <ClaimStatusCell {...params} />;
+		},
 		size: 150,
 	},
 	{
 		accessorKey: 'claim_number',
 		header: (ctx) => <IconHeaderCell {...ctx} />,
-		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return <StackedHeaderCell primary={params.value} secondary={params.row.checklist_name} />; },
+		cell: (info: any) => {
+			const params = { row: info.row.original, value: info.getValue() };
+			return <StackedHeaderCell primary={params.value} secondary={params.row.checklist_name} />;
+		},
 		size: 220,
 	},
 	{
@@ -44,12 +50,15 @@ const COLUMNS: ColumnDef<any, any>[] = [
 	{
 		accessorKey: 'expected_recovery',
 		header: (ctx) => <IconHeaderCell {...ctx} />,
-		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return (
-			<StackedHeaderCell
-				primary={formatAmount(params.row.actual_recovery ?? 0, true)}
-				secondary={formatAmount(params.value, true)}
-			/>
-		); },
+		cell: (info: any) => {
+			const params = { row: info.row.original, value: info.getValue() };
+			return (
+				<StackedHeaderCell
+					primary={formatAmount(params.row.actual_recovery ?? 0, true)}
+					secondary={formatAmount(params.value, true)}
+				/>
+			);
+		},
 		size: 300,
 	},
 	{
@@ -84,7 +93,11 @@ const COLUMNS: ColumnDef<any, any>[] = [
 	{
 		accessorKey: 'updated_at',
 		header: (ctx) => <IconHeaderCell {...ctx} />,
-		cell: (info: any) => { const value = info.getValue(); const row = info.row.original; return formatMDY(value ?? row.created_at); },
+		cell: (info: any) => {
+			const value = info.getValue();
+			const row = info.row.original;
+			return formatMDY(value ?? row.created_at);
+		},
 		size: 130,
 	},
 ];
@@ -100,7 +113,10 @@ export default function ChecklistClaims({
 	range: DateRange<Dayjs>;
 	setClaim: (newClaim: ChecklistClaimsOutput[number] | null) => void;
 }) {
-	const [constraints, setContraints] = useState<{ page: number; pageSize: number }>({ page: 0, pageSize: 25 });
+	const [constraints, setContraints] = useState<{ page: number; pageSize: number }>({
+		page: 0,
+		pageSize: 25,
+	});
 	const [selectionModel, setSelectionModel] = useState<Record<string, boolean>>({});
 	const selectedClaimStatus = useMetricsStore((state) => state.selectedClaimStatus);
 	const trpcUtils = trpc.useUtils();
@@ -124,7 +140,7 @@ export default function ChecklistClaims({
 
 	const updateSelectionModel = (newModel: Record<string, boolean>) => {
 		setSelectionModel(newModel);
-		const selectedIds = Object.keys(newModel).filter(k => newModel[k]);
+		const selectedIds = Object.keys(newModel).filter((k) => newModel[k]);
 		const newClaim = selectedIds.length
 			? (data.rows.find((c) => `${c.checklist_id}:${c.claim_id}` === selectedIds[0]) ?? null)
 			: null;
@@ -195,10 +211,16 @@ export default function ChecklistClaims({
 	return (
 		<div className="flex-col-start" style={styles.container}>
 			<div className="flex-col-start" style={styles.paper}>
-				<div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-					<span style={{ fontSize: 18, fontWeight: 600 }}>
-						Assigned Claims
-					</span>
+				<div
+					style={{
+						width: '100%',
+						display: 'flex',
+						justifyContent: 'space-between',
+						alignItems: 'center',
+						marginBottom: 8,
+					}}
+				>
+					<span style={{ fontSize: 18, fontWeight: 600 }}>Assigned Claims</span>
 					<div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
 						<span style={{ fontSize: 12, color: 'text.secondary', marginRight: '20px' }}>
 							{(data?.count ?? 0).toLocaleString()} claim{(data?.count ?? 0) !== 1 ? 's' : ''}

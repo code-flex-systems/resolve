@@ -7,16 +7,10 @@ import { Kysely, sql } from 'kysely';
 
 export async function up(db: Kysely<any>): Promise<void> {
 	// Add line_of_business field
-	await db.schema
-		.alterTable('claim')
-		.addColumn('line_of_business', 'text')
-		.execute();
+	await db.schema.alterTable('claim').addColumn('line_of_business', 'text').execute();
 
 	// Add loss_type field
-	await db.schema
-		.alterTable('claim')
-		.addColumn('loss_type', 'text')
-		.execute();
+	await db.schema.alterTable('claim').addColumn('loss_type', 'text').execute();
 
 	// Add CHECK constraint for line_of_business
 	await sql`
@@ -59,15 +53,15 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.column('line_of_business')
 		.execute();
 
-	await db.schema
-		.createIndex('idx_claim_loss_type')
-		.on('claim')
-		.column('loss_type')
-		.execute();
+	await db.schema.createIndex('idx_claim_loss_type').on('claim').column('loss_type').execute();
 
 	// Add column comments
-	await sql`COMMENT ON COLUMN claim.line_of_business IS 'Line of business for the claim (LineOfBusiness enum enforced in TypeScript)'`.execute(db);
-	await sql`COMMENT ON COLUMN claim.loss_type IS 'Type of loss for the claim (LossType enum enforced in TypeScript)'`.execute(db);
+	await sql`COMMENT ON COLUMN claim.line_of_business IS 'Line of business for the claim (LineOfBusiness enum enforced in TypeScript)'`.execute(
+		db
+	);
+	await sql`COMMENT ON COLUMN claim.loss_type IS 'Type of loss for the claim (LossType enum enforced in TypeScript)'`.execute(
+		db
+	);
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
@@ -80,13 +74,7 @@ export async function down(db: Kysely<any>): Promise<void> {
 	await sql`ALTER TABLE claim DROP CONSTRAINT IF EXISTS claim_line_of_business_check`.execute(db);
 
 	// Drop columns
-	await db.schema
-		.alterTable('claim')
-		.dropColumn('loss_type')
-		.execute();
+	await db.schema.alterTable('claim').dropColumn('loss_type').execute();
 
-	await db.schema
-		.alterTable('claim')
-		.dropColumn('line_of_business')
-		.execute();
+	await db.schema.alterTable('claim').dropColumn('line_of_business').execute();
 }

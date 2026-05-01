@@ -11,10 +11,13 @@ export function usePartyTrpc() {
 	const updateClaimExpectedRecovery = (claimId: string, expectedRecovery: number) => {
 		const currentData = utils.claim.getClaimDetail.getData({ claimId });
 		if (currentData) {
-			utils.claim.getClaimDetail.setData({ claimId }, {
-				...currentData,
-				expected_recovery: expectedRecovery.toString(),
-			});
+			utils.claim.getClaimDetail.setData(
+				{ claimId },
+				{
+					...currentData,
+					expected_recovery: expectedRecovery.toString(),
+				}
+			);
 		}
 	};
 

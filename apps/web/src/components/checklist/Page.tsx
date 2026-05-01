@@ -17,12 +17,20 @@ import CommentDialog from './CommentDialog';
 import UpdateSubmittedDialog from './UpdateSubmittedDialog';
 import useIsAssigned from '@/hooks/useIsAssigned';
 import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
-import { IconCircleCheck, IconDeviceFloppy, IconFileDescription, IconRefresh } from '@tabler/icons-react';
+import {
+	IconCircleCheck,
+	IconDeviceFloppy,
+	IconFileDescription,
+	IconRefresh,
+} from '@tabler/icons-react';
 import Skeleton from '@/components/ui/Skeleton';
 import Divider from '@/components/ui/Divider';
 import Card from '../ui/Card';
 
-function generateDefaultValues(questions?: Question[], responses?: Record<string, QuestionResponse>) {
+function generateDefaultValues(
+	questions?: Question[],
+	responses?: Record<string, QuestionResponse>
+) {
 	const defaults: Record<string, string[] | string | number | null> = {};
 	if (!questions) return defaults;
 	questions.forEach((q) => {
@@ -64,8 +72,12 @@ export default function Page() {
 	const mode = useChecklistStore((state) => state.mode);
 	const selectedPageInfo = getSelectedPageInfoOrDefault();
 	const questionCommentDialog = useChecklistStore((state) => state.questionCommentDialog);
-	const updateSubmittedDialogAction = useChecklistStore((state) => state.updateSubmittedDialogAction);
-	const toggleUpdateSubmittedDialog = useChecklistStore((state) => state.toggleUpdateSubmittedDialog);
+	const updateSubmittedDialogAction = useChecklistStore(
+		(state) => state.updateSubmittedDialogAction
+	);
+	const toggleUpdateSubmittedDialog = useChecklistStore(
+		(state) => state.toggleUpdateSubmittedDialog
+	);
 
 	const {
 		control,
@@ -76,7 +88,10 @@ export default function Page() {
 		formState: { isDirty, isSubmitting },
 	} = useForm({ mode: 'onChange' });
 
-	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: !!checklistId });
+	const { data: checklist } = useChecklistTrpc().get(
+		{ id: checklistId! },
+		{ enabled: !!checklistId }
+	);
 	const { data: checklistClaim } = useChecklistTrpc().getForClaim(
 		{ checklistId, claimId },
 		{ enabled: !!checklistId && !!claimId }
@@ -139,7 +154,8 @@ export default function Page() {
 						claim_id: claimId,
 						question_id: questionId,
 						response_text: typeof data[field] === 'string' && !!data[field] ? data[field] : null,
-						response_doc_id: uploadFieldName && data[uploadFieldName] ? data[uploadFieldName] : null,
+						response_doc_id:
+							uploadFieldName && data[uploadFieldName] ? data[uploadFieldName] : null,
 						selected_answers: Array.isArray(data[field])
 							? data[field].map((id) => ({
 									answer_id: id,
@@ -149,7 +165,10 @@ export default function Page() {
 					};
 					return response;
 				});
-			await upsertResponses({ responses, claimStatus: checklistClaim?.status as ClaimStatus | undefined });
+			await upsertResponses({
+				responses,
+				claimStatus: checklistClaim?.status as ClaimStatus | undefined,
+			});
 			setShowUpdateMsg(true);
 			setTimeout(() => setShowUpdateMsg(false), 1000);
 		} catch (e) {
@@ -174,7 +193,10 @@ export default function Page() {
 							>
 								<Skeleton variant="text" width="60%" height={32} />
 								{[1, 2, 3, 4].map((i) => (
-									<div key={i} style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
+									<div
+										key={i}
+										style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}
+									>
 										<Skeleton variant="text" width="40%" />
 										<Skeleton variant="rect" height={48} />
 									</div>
@@ -182,9 +204,17 @@ export default function Page() {
 							</div>
 						) : (
 							<div
-								style={{ width: 200, display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+								style={{
+									width: 200,
+									display: 'flex',
+									justifyContent: 'center',
+									alignItems: 'center',
+								}}
 							>
-								<IconFileDescription size={20} style={{ color: 'var(--text-muted)', fontSize: 25 }} />
+								<IconFileDescription
+									size={20}
+									style={{ color: 'var(--text-muted)', fontSize: 25 }}
+								/>
 								<span style={{ color: 'var(--text-muted)', fontSize: 15, paddingLeft: '10px' }}>
 									No page selected
 								</span>
@@ -252,7 +282,12 @@ export default function Page() {
 						<div style={styles.formWrapper}>
 							<Form
 								control={control}
-								style={{ width: '100%', display: 'flex', flexDirection: 'column' as const, gap: 16 }}
+								style={{
+									width: '100%',
+									display: 'flex',
+									flexDirection: 'column' as const,
+									gap: 16,
+								}}
 							>
 								{(questions ?? []).map((question, i) => (
 									<ChecklistQuestion

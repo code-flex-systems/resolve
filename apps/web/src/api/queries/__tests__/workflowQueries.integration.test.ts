@@ -30,7 +30,12 @@ import {
 	createRuleExecution,
 	updateRuleExecution,
 } from '../workflowQueries';
-import { WorkflowTriggerType, WorkflowActionType, WorkflowExecutionMode, RuleExecutionStatus } from '@/config/enums';
+import {
+	WorkflowTriggerType,
+	WorkflowActionType,
+	WorkflowExecutionMode,
+	RuleExecutionStatus,
+} from '@/config/enums';
 
 // ============================================================================
 // HELPERS
@@ -620,7 +625,9 @@ describe('workflowQueries integration tests', () => {
 			});
 
 			// Filter to our rules only
-			const ourRules = results.filter((r) => r.name === 'High Priority' || r.name === 'Low Priority');
+			const ourRules = results.filter(
+				(r) => r.name === 'High Priority' || r.name === 'Low Priority'
+			);
 			expect(ourRules.length).toBe(2);
 			expect(ourRules[0].name).toBe('High Priority');
 			expect(ourRules[1].name).toBe('Low Priority');
@@ -716,7 +723,9 @@ describe('workflowQueries integration tests', () => {
 				role: 'Admin',
 			});
 
-			await expect(validateDeskLocationBelongsToClient(ctx, deskLocation.id)).resolves.toBeUndefined();
+			await expect(
+				validateDeskLocationBelongsToClient(ctx, deskLocation.id)
+			).resolves.toBeUndefined();
 		});
 
 		it('should throw FORBIDDEN for desk location belonging to another client', async () => {
@@ -803,7 +812,9 @@ describe('workflowQueries integration tests', () => {
 				created_by: user.id,
 			});
 
-			await expect(validateWorkflowDefinitionBelongsToClient(ctx, workflow.id)).resolves.toBeUndefined();
+			await expect(
+				validateWorkflowDefinitionBelongsToClient(ctx, workflow.id)
+			).resolves.toBeUndefined();
 		});
 
 		it('should throw FORBIDDEN for workflow belonging to another client', async () => {

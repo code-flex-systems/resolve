@@ -77,12 +77,15 @@ export default function AdminLogsTab() {
 		};
 	}, [appliedUser]);
 
-	const filtersKey = [appliedEntity ?? '', appliedUserId ?? '', appliedStart ?? '', appliedEnd ?? ''].join('|');
+	const filtersKey = [
+		appliedEntity ?? '',
+		appliedUserId ?? '',
+		appliedStart ?? '',
+		appliedEnd ?? '',
+	].join('|');
 
-	const { paginationModel, setPaginationModel, cursor, registerCursor } = useCursorPagination<AdminConfigLogCursor>(
-		filtersKey,
-		25
-	);
+	const { paginationModel, setPaginationModel, cursor, registerCursor } =
+		useCursorPagination<AdminConfigLogCursor>(filtersKey, 25);
 
 	const [filtersAnchorEl, setFiltersAnchorEl] = useState<HTMLElement | null>(null);
 	const [draftEntity, setDraftEntity] = useState<EntityName | null>(null);
@@ -123,21 +126,32 @@ export default function AdminLogsTab() {
 			{
 				accessorKey: 'created_at',
 				header: (params) => (
-					<IconHeaderCell {...params} icon={<IconClockFilled style={{ color: 'var(--text-muted)' }} />} />
-				),
-				cell: ({ getValue }: any) => { const value = getValue(); return (
-					<StackedHeaderCell
-						primary={formatTimestamp(value)}
-						secondary={value ? dayjs(value).format('MMM D, YYYY') : '-'}
+					<IconHeaderCell
+						{...params}
+						icon={<IconClockFilled style={{ color: 'var(--text-muted)' }} />}
 					/>
-				); },
+				),
+				cell: ({ getValue }: any) => {
+					const value = getValue();
+					return (
+						<StackedHeaderCell
+							primary={formatTimestamp(value)}
+							secondary={value ? dayjs(value).format('MMM D, YYYY') : '-'}
+						/>
+					);
+				},
 				minSize: 180,
 			},
 			{
 				accessorKey: 'user',
-				header: (params) => <IconHeaderCell {...params} icon={<IconUser style={{ color: 'var(--text-muted)' }} />} />,
+				header: (params) => (
+					<IconHeaderCell {...params} icon={<IconUser style={{ color: 'var(--text-muted)' }} />} />
+				),
 				cell: ({ row: { original: row } }) => (
-					<StackedHeaderCell primary={`${row.first_name} ${row.last_name}`} secondary={row.user_email} />
+					<StackedHeaderCell
+						primary={`${row.first_name} ${row.last_name}`}
+						secondary={row.user_email}
+					/>
 				),
 				minSize: 200,
 			},
@@ -155,7 +169,10 @@ export default function AdminLogsTab() {
 			{
 				accessorKey: 'action',
 				header: (params) => (
-					<IconHeaderCell {...params} icon={<IconFileSearch style={{ color: 'var(--text-muted)' }} />} />
+					<IconHeaderCell
+						{...params}
+						icon={<IconFileSearch style={{ color: 'var(--text-muted)' }} />}
+					/>
 				),
 				minSize: 140,
 			},
@@ -178,11 +195,9 @@ export default function AdminLogsTab() {
 								});
 							}}
 						>
-							<Chip
-								size="sm"
-								color="info"
-								variant="outlined"
-							>...</Chip>
+							<Chip size="sm" color="info" variant="outlined">
+								...
+							</Chip>
 						</span>
 					);
 				},
@@ -229,20 +244,27 @@ export default function AdminLogsTab() {
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading logs...">
 			<div style={styles.container}>
 				<Card variant="beveled" padding="md" style={styles.paper}>
-					<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
-						Audit log of all administrative actions taken in the system. Filter by entity type, user, or date range.
+					<p
+						style={{
+							color: 'var(--text-secondary)',
+							fontSize: 13,
+							margin: '0 0 12px',
+							lineHeight: 1.5,
+						}}
+					>
+						Audit log of all administrative actions taken in the system. Filter by entity type,
+						user, or date range.
 					</p>
-					<Toolbar
-						left={undefined}
-						right={<></>}
-						height={50}
-						padding={'0px 10px'}
-					/>
+					<Toolbar left={undefined} right={<></>} height={50} padding={'0px 10px'} />
 
 					<Toolbar
 						left={
 							<div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-								<Button variant="outlined" onClick={handleOpenFilters} endIcon={<IconFilter size={16} />}>
+								<Button
+									variant="outlined"
+									onClick={handleOpenFilters}
+									endIcon={<IconFilter size={16} />}
+								>
 									Filters...
 									{hasActiveFilters && (
 										<div style={styles.filterCountBadge}>

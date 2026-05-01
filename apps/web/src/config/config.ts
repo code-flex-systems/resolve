@@ -10,7 +10,7 @@ export function getFiscalYearStart(): Dayjs {
 }
 
 const config = {
-	APP_NAME: 'Manifest',
+	APP_NAME: 'Resolve',
 	CLAIM_FIELDS: [
 		{ key: 'claim_number', label: 'Claim Number' },
 		{ key: 'client', label: 'Client' },

@@ -5,7 +5,7 @@
  * test database and schema isolation.
  *
  * Strategy:
- * - Uses `manifest_test` database with `test` schema
+ * - Uses `resolve_test` database with `test` schema
  * - Each test file gets a fresh database state via table truncation
  * - Real Kysely instance for actual query execution
  */
@@ -19,7 +19,7 @@ import type { ProtectedContext } from '@/server/trpc/trpc';
 const TEST_DB_CONFIG = {
 	user: process.env.DB_USER || 'postgres',
 	password: process.env.DB_PASSWORD || 'password',
-	database: process.env.DB_DATABASE || 'manifest_test',
+	database: process.env.DB_DATABASE || 'resolve_test',
 	host: process.env.DB_HOST || 'localhost',
 	port: parseInt(process.env.DB_PORT || '5432', 10),
 };
@@ -140,14 +140,17 @@ export async function withRollback<T>(
 	db: Kysely<DB>,
 	fn: (trx: Kysely<DB>) => Promise<T>
 ): Promise<T> {
-	return db.transaction().execute(async (trx) => {
-		const result = await fn(trx);
-		// Force rollback by throwing
-		throw { __rollback: true, result };
-	}).catch((err) => {
-		if (err && err.__rollback) {
-			return err.result as T;
-		}
-		throw err;
-	});
+	return db
+		.transaction()
+		.execute(async (trx) => {
+			const result = await fn(trx);
+			// Force rollback by throwing
+			throw { __rollback: true, result };
+		})
+		.catch((err) => {
+			if (err && err.__rollback) {
+				return err.result as T;
+			}
+			throw err;
+		});
 }

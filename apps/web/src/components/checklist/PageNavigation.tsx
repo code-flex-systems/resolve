@@ -85,10 +85,11 @@ export default function PageNavigation() {
 		{ checklistId, claimId: claimId! },
 		{ enabled: !!checklistId && !!claimId }
 	);
-	const { data: checklistClaim, isFetching: isFetchingChecklistClaim } = useChecklistTrpc().getForClaim(
-		{ checklistId, claimId: claimId! },
-		{ enabled: !!checklistId && !!claimId }
-	);
+	const { data: checklistClaim, isFetching: isFetchingChecklistClaim } =
+		useChecklistTrpc().getForClaim(
+			{ checklistId, claimId: claimId! },
+			{ enabled: !!checklistId && !!claimId }
+		);
 
 	const { mutateAsync: addPage, isPending: adding } = usePageTrpc().createTemplate;
 	const { data: visibleInstanceIds = [] } = usePageTrpc().listVisibleInstances(
@@ -124,7 +125,9 @@ export default function PageNavigation() {
 	);
 
 	useEffect(() => {
-		useChecklistStore.getState().updateMode(!claimId && isAdmin ? ChecklistMode.TEST : ChecklistMode.VIEW);
+		useChecklistStore
+			.getState()
+			.updateMode(!claimId && isAdmin ? ChecklistMode.TEST : ChecklistMode.VIEW);
 	}, [isAdmin, claimId]);
 
 	useChecklistDeepLink(isChSuccess && isClSuccess && isNavSuccess);
@@ -143,7 +146,9 @@ export default function PageNavigation() {
 				const { data: freshData } = await refetchTree();
 				useChecklistStore.getState().updateSelectedPage(newInstance.instance_id);
 				if (freshData) {
-					useChecklistStore.getState().updateSelectedPageInfoSearch(newInstance.instance_id, freshData.tree);
+					useChecklistStore
+						.getState()
+						.updateSelectedPageInfoSearch(newInstance.instance_id, freshData.tree);
 				}
 				showSuccess('create', 'Page created');
 			}
@@ -169,7 +174,11 @@ export default function PageNavigation() {
 					left={
 						<span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 							<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-								{mode === ChecklistMode.EDIT ? 'Edit' : mode === ChecklistMode.VIEW ? 'View' : 'Test'}{' '}
+								{mode === ChecklistMode.EDIT
+									? 'Edit'
+									: mode === ChecklistMode.VIEW
+										? 'View'
+										: 'Test'}{' '}
 								mode
 							</span>
 						</span>
@@ -182,7 +191,8 @@ export default function PageNavigation() {
 						</span>
 					}
 					right={
-						mode === ChecklistMode.EDIT || (mode === ChecklistMode.VIEW && !!checklist && !!claim) ? (
+						mode === ChecklistMode.EDIT ||
+						(mode === ChecklistMode.VIEW && !!checklist && !!claim) ? (
 							<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 								{mode === ChecklistMode.VIEW && !!checklist && !!claim && (
 									<>
@@ -214,10 +224,7 @@ export default function PageNavigation() {
 												size="sm"
 												startIcon={
 													<ClaimStatusIcon
-														status={
-															(checklistClaim?.status ??
-																ClaimStatus.UNWORKED) as ClaimStatus
-														}
+														status={(checklistClaim?.status ?? ClaimStatus.UNWORKED) as ClaimStatus}
 													/>
 												}
 												onClick={() =>
@@ -321,7 +328,9 @@ export default function PageNavigation() {
 					{!!checklist && !isFetching && (!claimId || !!claim) && (
 						<span>
 							{navigation.tree.length ? (
-								navigation.tree.map((node) => <TreeNode key={node.instanceId} level={0} {...node} />)
+								navigation.tree.map((node) => (
+									<TreeNode key={node.instanceId} level={0} {...node} />
+								))
 							) : (
 								<div
 									style={{

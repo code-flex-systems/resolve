@@ -41,40 +41,22 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.execute();
 
 	// 3. Add desk_location_id to checklist_claim table (for future use)
-	await db.schema
-		.alterTable('checklist_claim')
-		.addColumn('desk_location_id', 'integer')
-		.execute();
+	await db.schema.alterTable('checklist_claim').addColumn('desk_location_id', 'integer').execute();
 
 	// 4. Add foreign key constraints
 	await db.schema
 		.alterTable('desk_location_type')
-		.addForeignKeyConstraint(
-			'desk_location_type_client_id_fkey',
-			['client_id'],
-			'client',
-			['id']
-		)
+		.addForeignKeyConstraint('desk_location_type_client_id_fkey', ['client_id'], 'client', ['id'])
 		.execute();
 
 	await db.schema
 		.alterTable('desk_location_type')
-		.addForeignKeyConstraint(
-			'desk_location_type_created_by_fkey',
-			['created_by'],
-			'users',
-			['id']
-		)
+		.addForeignKeyConstraint('desk_location_type_created_by_fkey', ['created_by'], 'users', ['id'])
 		.execute();
 
 	await db.schema
 		.alterTable('desk_location_type')
-		.addForeignKeyConstraint(
-			'desk_location_type_updated_by_fkey',
-			['updated_by'],
-			'users',
-			['id']
-		)
+		.addForeignKeyConstraint('desk_location_type_updated_by_fkey', ['updated_by'], 'users', ['id'])
 		.execute();
 
 	await db.schema
@@ -89,32 +71,17 @@ export async function up(db: Kysely<any>): Promise<void> {
 
 	await db.schema
 		.alterTable('desk_location')
-		.addForeignKeyConstraint(
-			'desk_location_client_id_fkey',
-			['client_id'],
-			'client',
-			['id']
-		)
+		.addForeignKeyConstraint('desk_location_client_id_fkey', ['client_id'], 'client', ['id'])
 		.execute();
 
 	await db.schema
 		.alterTable('desk_location')
-		.addForeignKeyConstraint(
-			'desk_location_created_by_fkey',
-			['created_by'],
-			'users',
-			['id']
-		)
+		.addForeignKeyConstraint('desk_location_created_by_fkey', ['created_by'], 'users', ['id'])
 		.execute();
 
 	await db.schema
 		.alterTable('desk_location')
-		.addForeignKeyConstraint(
-			'desk_location_updated_by_fkey',
-			['updated_by'],
-			'users',
-			['id']
-		)
+		.addForeignKeyConstraint('desk_location_updated_by_fkey', ['updated_by'], 'users', ['id'])
 		.execute();
 
 	await db.schema
@@ -185,38 +152,45 @@ export async function up(db: Kysely<any>): Promise<void> {
 
 	// 9. Add column comments
 	await sql`COMMENT ON COLUMN desk_location_type.id IS 'Primary key'`.execute(db);
-	await sql`COMMENT ON COLUMN desk_location_type.name IS 'Name of the desk location type (e.g., "Documentation and Demand Packages")'`.execute(db);
+	await sql`COMMENT ON COLUMN desk_location_type.name IS 'Name of the desk location type (e.g., "Documentation and Demand Packages")'`.execute(
+		db
+	);
 	await sql`COMMENT ON COLUMN desk_location_type.deleted_at IS 'Soft delete timestamp'`.execute(db);
 
 	await sql`COMMENT ON COLUMN desk_location.id IS 'Primary key'`.execute(db);
-	await sql`COMMENT ON COLUMN desk_location.name IS 'Name of the desk location (e.g., "Pending", "Transactional", "Closed")'`.execute(db);
-	await sql`COMMENT ON COLUMN desk_location.desk_location_type_id IS 'Parent desk location type'`.execute(db);
-	await sql`COMMENT ON COLUMN desk_location.is_active IS 'Whether this desk location is currently active and accepting work'`.execute(db);
+	await sql`COMMENT ON COLUMN desk_location.name IS 'Name of the desk location (e.g., "Pending", "Transactional", "Closed")'`.execute(
+		db
+	);
+	await sql`COMMENT ON COLUMN desk_location.desk_location_type_id IS 'Parent desk location type'`.execute(
+		db
+	);
+	await sql`COMMENT ON COLUMN desk_location.is_active IS 'Whether this desk location is currently active and accepting work'`.execute(
+		db
+	);
 	await sql`COMMENT ON COLUMN desk_location.deleted_at IS 'Soft delete timestamp'`.execute(db);
 
-	await sql`COMMENT ON COLUMN checklist_claim.desk_location_id IS 'Desk location assignment (mutually exclusive with assignee - for future use in claiming workflow)'`.execute(db);
+	await sql`COMMENT ON COLUMN checklist_claim.desk_location_id IS 'Desk location assignment (mutually exclusive with assignee - for future use in claiming workflow)'`.execute(
+		db
+	);
 
 	// 10. Add table comments
-	await sql`COMMENT ON TABLE desk_location_type IS 'Top-level organizational categories for desk locations (e.g., team names, workflow types)'`.execute(db);
-	await sql`COMMENT ON TABLE desk_location IS 'Specific desk locations within a type where work can be assigned (e.g., status queues, priority levels)'`.execute(db);
+	await sql`COMMENT ON TABLE desk_location_type IS 'Top-level organizational categories for desk locations (e.g., team names, workflow types)'`.execute(
+		db
+	);
+	await sql`COMMENT ON TABLE desk_location IS 'Specific desk locations within a type where work can be assigned (e.g., status queues, priority levels)'`.execute(
+		db
+	);
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
 	// Reverse all operations in reverse order
 
 	// 1. Drop column from checklist_claim
-	await db.schema
-		.alterTable('checklist_claim')
-		.dropColumn('desk_location_id')
-		.execute();
+	await db.schema.alterTable('checklist_claim').dropColumn('desk_location_id').execute();
 
 	// 2. Drop desk_location table (foreign keys drop automatically in PostgreSQL with CASCADE)
-	await db.schema
-		.dropTable('desk_location')
-		.execute();
+	await db.schema.dropTable('desk_location').execute();
 
 	// 3. Drop desk_location_type table
-	await db.schema
-		.dropTable('desk_location_type')
-		.execute();
+	await db.schema.dropTable('desk_location_type').execute();
 }

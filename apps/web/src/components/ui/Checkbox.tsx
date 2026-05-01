@@ -3,8 +3,10 @@
 import { forwardRef, useEffect, useRef, type InputHTMLAttributes } from 'react';
 import styles from './Checkbox.module.css';
 
-export interface CheckboxProps
-	extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'checked'> {
+export interface CheckboxProps extends Omit<
+	InputHTMLAttributes<HTMLInputElement>,
+	'onChange' | 'checked'
+> {
 	checked: boolean;
 	onChange: (checked: boolean) => void;
 	label?: string;
@@ -56,7 +58,13 @@ const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
 				<span className={boxClasses}>
 					{checked && (
 						<svg className={styles.icon} viewBox="0 0 12 12" fill="none">
-							<path d="M2.5 6L5 8.5L9.5 3.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+							<path
+								d="M2.5 6L5 8.5L9.5 3.5"
+								stroke="white"
+								strokeWidth="1.5"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+							/>
 						</svg>
 					)}
 					{indeterminate && !checked && (

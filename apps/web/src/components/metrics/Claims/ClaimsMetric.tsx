@@ -1,7 +1,7 @@
 'use client';
 
 import { ClaimStatus } from '@/config/enums';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { useMemo } from 'react';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import ExpandableTitle from '../../common/ExpandableTitle';
@@ -14,6 +14,7 @@ import Card from '@/components/ui/Card';
 import Skeleton from '@/components/ui/Skeleton';
 import Divider from '@/components/ui/Divider';
 import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
 
 const METRIC_WIDTH = 400;
 const METRIC_HEIGHT = 300;
@@ -43,7 +44,13 @@ const defaultData: Record<ClaimStatus, number> = {
 	[ClaimStatus.UNWORKED]: 0,
 };
 
-export default function ClaimsMetric({ checklistId, users }: { checklistId?: string | null; users?: string[] }) {
+export default function ClaimsMetric({
+	checklistId,
+	users,
+}: {
+	checklistId?: string | null;
+	users?: string[];
+}) {
 	const pathname = usePathname();
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
@@ -71,7 +78,8 @@ export default function ClaimsMetric({ checklistId, users }: { checklistId?: str
 		});
 	}, [data]);
 
-	const total = data[ClaimStatus.SUBMITTED] + data[ClaimStatus.IN_PROGRESS] + data[ClaimStatus.UNWORKED];
+	const total =
+		data[ClaimStatus.SUBMITTED] + data[ClaimStatus.IN_PROGRESS] + data[ClaimStatus.UNWORKED];
 	const pct = getProgressPercentage(data[ClaimStatus.SUBMITTED], total);
 
 	return (
@@ -126,7 +134,7 @@ export default function ClaimsMetric({ checklistId, users }: { checklistId?: str
 											<Cell key={i} fill={entry.color} />
 										))}
 									</Pie>
-									<Tooltip formatter={(value: any) => [`${value} claim(s)`]} />
+									<RechartsTooltip formatter={(value: any) => [`${value} claim(s)`]} />
 								</PieChart>
 							</ResponsiveContainer>
 							{/* Center label */}

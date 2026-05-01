@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **IMPORTANT: This application is NOT live in production yet.**
 
 Current state:
+
 - Development and testing phase
 - One test user building out a checklist template
 - All data in deployed environment is test/development data
@@ -14,6 +15,7 @@ Current state:
 - Safe to perform breaking schema changes without complex migration strategies
 
 This means:
+
 - Direct cutover migrations are acceptable (no dual-write complexity needed)
 - Data loss during migrations is low-risk (only test data)
 - Can iterate on database schema more freely
@@ -21,7 +23,7 @@ This means:
 
 ## Project Overview
 
-Manifest is a claims management system designed to help claims adjusters work through property insurance claims efficiently. The system combines:
+Resolve is a claims management system designed to help claims adjusters work through property insurance claims efficiently. The system combines:
 
 1. **Checklist-driven workflows**: AI-powered checklists guide adjusters through claim requirements
 2. **Document management**: Upload, review, and track claim-related documents
@@ -34,13 +36,15 @@ The application is built with React, Next.js, tRPC, Kysely, and PostgreSQL, enab
 ## Tech Stack
 
 ### Backend
+
 - **Database**: PostgreSQL with Kysely ORM for type-safe queries
 - **API**: TRPC for end-to-end type safety
-- **Authentication**: NextAuth with Azure AD B2C
+- **Authentication**: Clerk
 - **Server**: Next.js API routes
 - **AI Integration**: OpenAI for checklist generation and guidance
 
 ### Frontend
+
 - **Framework**: Next.js 13+ with App Router
 - **UI Library**: Material-UI (MUI)
 - **State Management**: Zustand stores (domain-based, individual stores per feature)
@@ -49,6 +53,7 @@ The application is built with React, Next.js, tRPC, Kysely, and PostgreSQL, enab
 - **Data fetching**: TRPC hooks via React Query
 
 ### DevOps
+
 - **Deployment**: Azure Container Apps
 - **Database**: Azure Database for PostgreSQL
 - **Storage**: Azure Blob Storage for documents
@@ -59,7 +64,7 @@ The application is built with React, Next.js, tRPC, Kysely, and PostgreSQL, enab
 This is an npm workspaces monorepo with the main application in `apps/web/`. Root-level scripts delegate to the web workspace.
 
 ```
-manifest/
+/
 ├── apps/web/                          # Main Next.js application
 │   ├── src/
 │   │   ├── api/                       # Backend logic
@@ -172,6 +177,7 @@ manifest/
 **IMPORTANT - PageWrapper Requirement:**
 
 All protected page routes MUST wrap their main component in `<PageWrapper>`:
+
 - Import PageWrapper and wrap your component in the page file
 - PageWrapper provides the main sidebar navigation visible on all protected pages
 - PageWrapper handles layout, Fade transitions, and navigation items based on user role
@@ -228,6 +234,7 @@ Follow these core principles when writing any database-related code. These are f
    - Trade-off: Prefix-only search is acceptable for most UIs
 
 **Before writing a query function, ask:**
+
 - Can I reduce round-trips? (RETURNING, batch operations, parallelize)
 - Can I calculate instead of query? (Derive from known values)
 - Can I return the data the caller needs? (Avoid re-fetching)
@@ -304,6 +311,7 @@ Follow these core principles when writing any database-related code. These are f
 **Better Approach:** Use `jsonb_agg()` with `GROUP BY` to aggregate child records into arrays in a single query. Move filters into JOIN ON clauses. Post-process in TypeScript to extract primary values from arrays.
 
 **Why:**
+
 - Eliminates expensive `distinctOn` sort (20-40% faster)
 - Returns ALL related data, not just first arbitrary match
 - One row per parent entity naturally (no Cartesian product)
@@ -311,6 +319,7 @@ Follow these core principles when writing any database-related code. These are f
 **When to use:** When fetching a parent entity with multiple related child records (one-to-many).
 
 **Pattern checklist:**
+
 1. Move filters (deleted_at, status) into JOIN ON clauses
 2. Use `jsonb_agg(distinct jsonb_build_object(...))` for each child relationship
 3. Add `filter (where child.id is not null)` to handle parents with no children
@@ -386,14 +395,14 @@ All authorization rules MUST be enforced at the API/routing layer (tRPC routers)
 
 - **Read access:** Claims, published checklists only, basic user information, feeds
 - **Write access (limited):**
-    - Comments: Only on checklist+claim combinations they are assigned to OR own (created but assigned to someone else)
-    - Responses: Only on checklist+claim combinations they are currently assigned to
-    - User profile: Can update their own user information only
+  - Comments: Only on checklist+claim combinations they are assigned to OR own (created but assigned to someone else)
+  - Responses: Only on checklist+claim combinations they are currently assigned to
+  - User profile: Can update their own user information only
 - **No access to:**
-    - Unpublished checklists
-    - Aggregate metrics/data (except personal metrics like their own claims submitted count on dashboard)
-    - Other users' responses or work
-    - Administrative functions (user management, template creation, etc.)
+  - Unpublished checklists
+  - Aggregate metrics/data (except personal metrics like their own claims submitted count on dashboard)
+  - Other users' responses or work
+  - Administrative functions (user management, template creation, etc.)
 
 ### Published vs Unpublished Checklists
 
@@ -407,12 +416,14 @@ All authorization rules MUST be enforced at the API/routing layer (tRPC routers)
 Certain operations allow contributors to search/browse resources for the purpose of opening or assigning work:
 
 **User Search (for assignment purposes):**
+
 - Contributors can search for users to assign work
 - Must return limited columns (only what frontend needs to display in search results)
 - Sensitive fields (password_hash, role details, etc.) should NOT be returned to contributors
 - Example use case: Searching for a user to assign a claim to
 
 **Claim Search & Visibility:**
+
 - Contributors can search for claims to open with a checklist
 - Claims are visible to contributors if they fall into one of these buckets:
   1. **Owned by them:** They originally created/worked this claim (check `checklist_claim.created_by`), even if currently assigned to someone else
@@ -436,11 +447,13 @@ Certain operations allow contributors to search/browse resources for the purpose
 ## Data Model Concepts
 
 ### Claims
+
 - Central entity in the system
 - Has coverage details, parties, tasks, deadlines, documents
 - Follows a workflow driven by checklists
 
 ### Checklists
+
 - Templates created by admins
 - Questions, pages, and answers that guide the claim process
 - Instances created per-claim (`checklist_claim`)
@@ -475,22 +488,26 @@ Certain operations allow contributors to search/browse resources for the purpose
 - Recursive CTEs calculate unlocked page trees (see `getChecklistClaimProgress()`)
 
 ### Tasks
+
 - Work items assigned to users
 - Can be claimed/unclaimed by adjusters
 - Have due dates and completion states
 - Generate from checklist answers or manual creation
 
 ### Deadlines
+
 - Time-sensitive requirements with specific due dates
 - Can have actions that trigger task creation
 - Track compliance with regulatory/contractual timelines
 
 ### Recovery Events
+
 - Subrogation and recovery tracking
 - Link to specific claims
 - Track amounts and statuses
 
 ### Parties
+
 - Claimants, insureds, attorneys, contractors, etc.
 - Can be linked to multiple claims
 - Address locations and representatives
@@ -571,17 +588,20 @@ All schema changes should now use the Kysely migration system:
 5. **Commit the migration file** to git
 
 **Migration Infrastructure:**
+
 - Migrations tracked in `kysely_migration` table
 - Migration files: `apps/web/src/api/database/migrations/*.ts`
 - Baseline migration marked as executed for existing databases
 - Rollback available via `npm run db:migrate:down`
 
 **Legacy SQL Files:**
+
 - Files in `apps/web/src/api/sql/` are now legacy (pre-November 2025)
 - `initial_tables_and_sql.sql` represents the baseline schema
 - Do NOT create new SQL files - use Kysely migrations instead
 
 **IMPORTANT: Never create migrations to revert uncommitted migrations.** If you need to change a migration you created in the current commit:
+
 1. Modify the existing migration file directly
 2. Run raw SQL to adjust the current database state to match
 3. Regenerate types
@@ -591,6 +611,7 @@ Creating "fix" or "revert" migrations for uncommitted changes causes bloat in th
 ### Enum Management
 
 Define enums in TypeScript, not SQL:
+
 - Add enum definitions to `apps/web/src/config/enums.ts` as TypeScript enums
 - Reference these enums in Zod schemas using `z.nativeEnum(EnumName)`
 - Use enum constants in query functions (e.g., `DocType.OTHER` instead of `'other'`)
@@ -656,6 +677,7 @@ Define enums in TypeScript, not SQL:
 7. **Check joins** - Joined tables with their own soft-delete columns need separate exclusion tests
 
 **Required test categories for query functions:**
+
 - Basic functionality (happy path)
 - Tenant isolation (different client_id returns nothing / throws error)
 - Soft-delete exclusion (deleted records not returned) - for EACH table in joins
@@ -677,22 +699,26 @@ See `project_files/TESTING_PROGRESS.md` for current coverage and detailed standa
 ## Development Commands
 
 **Database:**
+
 - Run migrations: `npm --workspace apps/web run db:migrate`
 - Create new migration: `npm --workspace apps/web run db:migration:create <name>`
 - Generate TypeScript types: `npm --workspace apps/web run db:types`
 
 **Testing:**
+
 - Run all tests: `npm --workspace apps/web test -- --run`
 - Run specific tests: `npm --workspace apps/web test -- <pattern> --run`
 - Type checking: `npm run typecheck`
 
 **Development:**
+
 - Start dev server: `npm run dev`
 - Production build: `npm run build`
 - Run ESLint: `npm run lint`
 
 **Database connection (local):**
-- `psql postgres://postgres:password@localhost/manifest`
+
+- `psql postgres://postgres:password@localhost/`
 
 ## Environment Configuration
 
@@ -709,12 +735,14 @@ Required environment variables (in `apps/web/.env`):
 ## Important Files & Directories
 
 ### Configuration
+
 - `src/config.ts`: Application constants, roles, environment variables
 - `src/config/enums.ts`: TypeScript enums (source of truth)
 - `src/api/database/db.ts`: Database connection setup
 - `.env.local`: Local environment variables (not in git)
 
 ### Database
+
 - `src/api/sql/`: Legacy SQL migration files (pre-November 2025)
 - `src/api/database/migrations/`: Kysely migration files (current)
 - `src/api/database/types.d.ts`: Generated TypeScript types
@@ -722,11 +750,13 @@ Required environment variables (in `apps/web/.env`):
 - `src/api/controllers/`: Business logic layer
 
 ### API
+
 - `src/server/trpc/`: TRPC configuration and routers
 - `src/server/trpc/context.ts`: Request context creation
 - `src/server/trpc/routers/`: All API endpoints
 
 ### Frontend
+
 - `src/app/`: Next.js app directory (routing)
 - `src/components/`: React components
 - `src/utils/`: Frontend utilities and helpers

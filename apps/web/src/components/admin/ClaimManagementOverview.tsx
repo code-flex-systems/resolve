@@ -30,7 +30,8 @@ const STATUS_LABELS: Record<string, string> = {
 
 export default function ClaimManagementOverview() {
 	const { data: claimCount, isLoading: isLoadingClaims } = useClaimTrpc().count({});
-	const { data: rolloverCount, isLoading: isLoadingRollover } = useClaimTrpc().countRollover(undefined);
+	const { data: rolloverCount, isLoading: isLoadingRollover } =
+		useClaimTrpc().countRollover(undefined);
 	const { data: feedCount, isLoading: isLoadingFeeds } = useFeedTrpc().count({});
 	const { data: statusData } = useClaimTrpc().statusBreakdown(undefined);
 	const { data: slaData } = useWorkflowAnalyticsTrpc().getClaimsApproachingSLABreach({ limit: 10 });
@@ -46,47 +47,65 @@ export default function ClaimManagementOverview() {
 		}));
 	}, [statusData]);
 
-	const slaColumns = useMemo<ColumnDef<any>[]>(() => [
-		{
-			accessorKey: 'claimNumber',
-			header: 'Claim #',
-			size: 120,
-		},
-		{
-			accessorKey: 'deskLocationName',
-			header: 'Desk Location',
-			size: 160,
-		},
-		{
-			id: 'assignee',
-			header: 'Assignee',
-			size: 140,
-			cell: ({ row }) => row.original.adjusterName || '—',
-		},
-		{
-			accessorKey: 'hoursRemaining',
-			header: 'Hours Left',
-			size: 90,
-			cell: ({ getValue }) => {
-				const hrs = Number(getValue());
-				return (
-					<span style={{ fontWeight: 600, color: hrs <= 0 ? 'var(--status-error)' : hrs <= 24 ? 'var(--status-warning)' : 'var(--text-primary)' }}>
-						{Math.round(hrs)}h
-					</span>
-				);
+	const slaColumns = useMemo<ColumnDef<any>[]>(
+		() => [
+			{
+				accessorKey: 'claimNumber',
+				header: 'Claim #',
+				size: 120,
 			},
-		},
-		{
-			accessorKey: 'slaStatus',
-			header: 'Status',
-			size: 100,
-			cell: ({ getValue }) => {
-				const status = getValue() as string;
-				const color = status === 'breached' ? 'error' : status === 'critical' ? 'warning' : 'neutral';
-				return <Chip size="sm" color={color}>{status}</Chip>;
+			{
+				accessorKey: 'deskLocationName',
+				header: 'Desk Location',
+				size: 160,
 			},
-		},
-	], []);
+			{
+				id: 'assignee',
+				header: 'Assignee',
+				size: 140,
+				cell: ({ row }) => row.original.adjusterName || '—',
+			},
+			{
+				accessorKey: 'hoursRemaining',
+				header: 'Hours Left',
+				size: 90,
+				cell: ({ getValue }) => {
+					const hrs = Number(getValue());
+					return (
+						<span
+							style={{
+								fontWeight: 600,
+								color:
+									hrs <= 0
+										? 'var(--status-error)'
+										: hrs <= 24
+											? 'var(--status-warning)'
+											: 'var(--text-primary)',
+							}}
+						>
+							{Math.round(hrs)}h
+						</span>
+					);
+				},
+			},
+			{
+				accessorKey: 'slaStatus',
+				header: 'Status',
+				size: 100,
+				cell: ({ getValue }) => {
+					const status = getValue() as string;
+					const color =
+						status === 'breached' ? 'error' : status === 'critical' ? 'warning' : 'neutral';
+					return (
+						<Chip size="sm" color={color}>
+							{status}
+						</Chip>
+					);
+				},
+			},
+		],
+		[]
+	);
 
 	if (isLoading) {
 		return <CardioLoadingIndicator message="Loading claims data..." />;
@@ -138,10 +157,35 @@ export default function ClaimManagementOverview() {
 							Claims by Recovery Status
 						</span>
 						<ResponsiveContainer width="100%" height={chartData.length * 44 + 20}>
-							<BarChart data={chartData} layout="vertical" margin={{ left: 10, right: 20, top: 5, bottom: 5 }}>
-								<XAxis type="number" fontSize={11} tick={{ fill: 'var(--text-muted)' }} tickLine={false} axisLine={false} />
-								<YAxis type="category" dataKey="name" width={140} fontSize={12} tick={{ fill: 'var(--text-secondary)' }} tickLine={false} axisLine={false} />
-								<Tooltip contentStyle={{ fontSize: 12, borderRadius: 6, border: '1px solid var(--border-primary)', background: 'var(--bg-primary)' }} />
+							<BarChart
+								data={chartData}
+								layout="vertical"
+								margin={{ left: 10, right: 20, top: 5, bottom: 5 }}
+							>
+								<XAxis
+									type="number"
+									fontSize={11}
+									tick={{ fill: 'var(--text-muted)' }}
+									tickLine={false}
+									axisLine={false}
+								/>
+								<YAxis
+									type="category"
+									dataKey="name"
+									width={140}
+									fontSize={12}
+									tick={{ fill: 'var(--text-secondary)' }}
+									tickLine={false}
+									axisLine={false}
+								/>
+								<Tooltip
+									contentStyle={{
+										fontSize: 12,
+										borderRadius: 6,
+										border: '1px solid var(--border-primary)',
+										background: 'var(--bg-primary)',
+									}}
+								/>
 								<Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={24}>
 									{chartData.map((entry, i) => (
 										<Cell key={i} fill={entry.color} />

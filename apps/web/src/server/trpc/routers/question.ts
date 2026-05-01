@@ -30,10 +30,12 @@ export const questionRouter = router({
 		return getQuestions(ctx, input);
 	}),
 
-	getQuestionStats: protectedProcedure.input(getQuestionStatsInput).query(async ({ input, ctx }) => {
-		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-		return getQuestionStats(ctx, input);
-	}),
+	getQuestionStats: protectedProcedure
+		.input(getQuestionStatsInput)
+		.query(async ({ input, ctx }) => {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			return getQuestionStats(ctx, input);
+		}),
 
 	createQuestion: protectedProcedure.input(createQuestionInput).mutation(async ({ input, ctx }) => {
 		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);

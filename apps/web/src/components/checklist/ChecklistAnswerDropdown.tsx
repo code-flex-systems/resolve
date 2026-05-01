@@ -23,8 +23,8 @@ function DropdownAnswerItem(props: { answer: any }) {
 
 	return (
 		<Tooltip content={a.description_text ?? ''} position="right">
-			<div     style={{ display: 'flex', alignItems: 'center', gap: 4, width: '100%' }}>
-				<span  style={{ fontSize: 13 }}>{a.text}</span>
+			<div style={{ display: 'flex', alignItems: 'center', gap: 4, width: '100%' }}>
+				<span style={{ fontSize: 13 }}>{a.text}</span>
 				{attachedImage && (
 					<ImageTooltip
 						imageUrl={`/api/download?docId=${attachedImage.id}`}
@@ -44,7 +44,8 @@ export default function ChecklistAnswerDropdown(props: {
 	const { field, question, disabled } = props;
 	return (
 		<div style={{ marginTop: 5, marginLeft: 10 }}>
-			<Dropdown inlineLabel
+			<Dropdown
+				inlineLabel
 				options={question.answers.map((a) => ({
 					value: a.id,
 					label: a.text,

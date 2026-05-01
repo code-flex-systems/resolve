@@ -27,7 +27,8 @@ export default function RecoveryStatusSelect({
 	];
 
 	return (
-		<Dropdown inlineLabel
+		<Dropdown
+			inlineLabel
 			label="Recovery Status"
 			options={dropdownOptions}
 			value={recoveryStatus ?? ''}

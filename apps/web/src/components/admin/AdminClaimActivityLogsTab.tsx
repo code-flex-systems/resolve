@@ -1,6 +1,12 @@
 'use client';
 
-import { IconClipboardCheck, IconClockFilled, IconFileSearch, IconFilter, IconUser } from '@tabler/icons-react';
+import {
+	IconClipboardCheck,
+	IconClockFilled,
+	IconFileSearch,
+	IconFilter,
+	IconUser,
+} from '@tabler/icons-react';
 import Card from '@/components/ui/Card';
 import Chip from '@/components/ui/Chip';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -24,7 +30,8 @@ import Button from '@/components/ui/Button';
 
 const ACTOR_TYPE_VALUES = new Set(['admin', 'user']);
 
-const isActorType = (value: string | null): value is 'admin' | 'user' => value !== null && ACTOR_TYPE_VALUES.has(value);
+const isActorType = (value: string | null): value is 'admin' | 'user' =>
+	value !== null && ACTOR_TYPE_VALUES.has(value);
 
 function formatTimestamp(value?: string) {
 	if (!value) return '';
@@ -108,10 +115,8 @@ export default function AdminClaimActivityLogsTab() {
 		normalizedClaimId ?? '',
 	].join('|');
 
-	const { paginationModel, setPaginationModel, cursor, registerCursor } = useCursorPagination<ClaimActivityLogCursor>(
-		filtersKey,
-		25
-	);
+	const { paginationModel, setPaginationModel, cursor, registerCursor } =
+		useCursorPagination<ClaimActivityLogCursor>(filtersKey, 25);
 
 	const [filtersAnchorEl, setFiltersAnchorEl] = useState<HTMLElement | null>(null);
 	const [draftEntity, setDraftEntity] = useState<EntityName | null>(null);
@@ -158,20 +163,29 @@ export default function AdminClaimActivityLogsTab() {
 			{
 				accessorKey: 'created_at',
 				header: (params) => (
-					<IconHeaderCell {...params} icon={<IconClockFilled style={{ color: 'var(--text-muted)' }} />} />
-				),
-				cell: ({ getValue }: any) => { const value = getValue(); return (
-					<StackedHeaderCell
-						primary={formatTimestamp(value)}
-						secondary={value ? dayjs(value).format('MMM D, YYYY') : '-'}
+					<IconHeaderCell
+						{...params}
+						icon={<IconClockFilled style={{ color: 'var(--text-muted)' }} />}
 					/>
-				); },
+				),
+				cell: ({ getValue }: any) => {
+					const value = getValue();
+					return (
+						<StackedHeaderCell
+							primary={formatTimestamp(value)}
+							secondary={value ? dayjs(value).format('MMM D, YYYY') : '-'}
+						/>
+					);
+				},
 				minSize: 180,
 			},
 			{
 				accessorKey: 'claim_number',
 				header: (params) => (
-					<IconHeaderCell {...params} icon={<IconFileSearch style={{ color: 'var(--text-muted)' }} />} />
+					<IconHeaderCell
+						{...params}
+						icon={<IconFileSearch style={{ color: 'var(--text-muted)' }} />}
+					/>
 				),
 				cell: ({ row: { original: row } }) => (
 					<StackedHeaderCell
@@ -183,25 +197,32 @@ export default function AdminClaimActivityLogsTab() {
 			},
 			{
 				accessorKey: 'user',
-				header: (params) => <IconHeaderCell {...params} icon={<IconUser style={{ color: 'var(--text-muted)' }} />} />,
+				header: (params) => (
+					<IconHeaderCell {...params} icon={<IconUser style={{ color: 'var(--text-muted)' }} />} />
+				),
 				cell: ({ row: { original: row } }) => (
-					<StackedHeaderCell primary={`${row.first_name} ${row.last_name}`} secondary={row.user_email} />
+					<StackedHeaderCell
+						primary={`${row.first_name} ${row.last_name}`}
+						secondary={row.user_email}
+					/>
 				),
 				minSize: 200,
 			},
 			{
 				accessorKey: 'actor_type',
 				header: (params) => (
-					<IconHeaderCell {...params} icon={<IconClipboardCheck style={{ color: 'var(--text-muted)' }} />} />
+					<IconHeaderCell
+						{...params}
+						icon={<IconClipboardCheck style={{ color: 'var(--text-muted)' }} />}
+					/>
 				),
 				cell: ({ getValue }: any) => {
 					const value = getValue();
 					const label = value === 'admin' ? 'Admin' : value === 'user' ? 'User' : 'Unknown';
 					return (
-						<Chip 
-							size="sm"
-							color={value === 'admin' ? 'info' : 'neutral'}
-							variant="outlined">{label}</Chip>
+						<Chip size="sm" color={value === 'admin' ? 'info' : 'neutral'} variant="outlined">
+							{label}
+						</Chip>
 					);
 				},
 				minSize: 140,
@@ -220,7 +241,10 @@ export default function AdminClaimActivityLogsTab() {
 			{
 				accessorKey: 'action',
 				header: (params) => (
-					<IconHeaderCell {...params} icon={<IconFileSearch style={{ color: 'var(--text-muted)' }} />} />
+					<IconHeaderCell
+						{...params}
+						icon={<IconFileSearch style={{ color: 'var(--text-muted)' }} />}
+					/>
 				),
 				minSize: 140,
 			},
@@ -243,11 +267,9 @@ export default function AdminClaimActivityLogsTab() {
 								});
 							}}
 						>
-							<Chip
-								size="sm"
-								color="info"
-								variant="outlined"
-							>...</Chip>
+							<Chip size="sm" color="info" variant="outlined">
+								...
+							</Chip>
 						</span>
 					);
 				},
@@ -290,7 +312,12 @@ export default function AdminClaimActivityLogsTab() {
 	}, []);
 
 	const hasActiveFilters = Boolean(
-		appliedEntity || appliedUserId || appliedStart || appliedEnd || appliedActorType || normalizedClaimId
+		appliedEntity ||
+		appliedUserId ||
+		appliedStart ||
+		appliedEnd ||
+		appliedActorType ||
+		normalizedClaimId
 	);
 
 	const rows = data?.rows ?? [];
@@ -310,7 +337,11 @@ export default function AdminClaimActivityLogsTab() {
 					<Toolbar
 						left={
 							<div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-								<Button variant="outlined" onClick={handleOpenFilters} endIcon={<IconFilter size={16} />}>
+								<Button
+									variant="outlined"
+									onClick={handleOpenFilters}
+									endIcon={<IconFilter size={16} />}
+								>
 									Filters...
 									{hasActiveFilters && (
 										<div style={styles.filterCountBadge}>

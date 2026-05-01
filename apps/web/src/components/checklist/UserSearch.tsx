@@ -113,16 +113,12 @@ export default function UserSearch({
 					>
 						{searching && (
 							<div style={{ width: 300, padding: '8px 16px', opacity: 0.6 }}>
-								<span style={{ fontSize, fontStyle: 'italic' }}>
-									Searching...
-								</span>
+								<span style={{ fontSize, fontStyle: 'italic' }}>Searching...</span>
 							</div>
 						)}
 						{!searching && results.length === 0 && (
 							<div style={{ width: 300, padding: '8px 16px', opacity: 0.6 }}>
-								<span style={{ fontSize, fontStyle: 'italic' }}>
-									No users found
-								</span>
+								<span style={{ fontSize, fontStyle: 'italic' }}>No users found</span>
 							</div>
 						)}
 						{!searching &&
@@ -137,10 +133,17 @@ export default function UserSearch({
 									style={{
 										padding: '8px 16px',
 										cursor: 'pointer',
-										backgroundColor: selectedUser?.email === u.email ? 'var(--bg-tertiary)' : undefined,
+										backgroundColor:
+											selectedUser?.email === u.email ? 'var(--bg-tertiary)' : undefined,
 									}}
-									onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.backgroundColor = 'var(--bg-secondary)'; }}
-									onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.backgroundColor = selectedUser?.email === u.email ? 'var(--bg-tertiary)' : ''; }}
+									onMouseEnter={(e) => {
+										(e.currentTarget as HTMLDivElement).style.backgroundColor =
+											'var(--bg-secondary)';
+									}}
+									onMouseLeave={(e) => {
+										(e.currentTarget as HTMLDivElement).style.backgroundColor =
+											selectedUser?.email === u.email ? 'var(--bg-tertiary)' : '';
+									}}
 								>
 									<StackedRow
 										primary={`${u.first} ${u.last}`}

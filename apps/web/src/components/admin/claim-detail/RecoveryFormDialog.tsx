@@ -50,7 +50,9 @@ export default function RecoveryFormDialog({
 	isSubmitting,
 }: RecoveryFormDialogProps) {
 	const isValid =
-		formData.settlement_id !== '' && formData.recovery_amount && parseFloat(formData.recovery_amount) > 0;
+		formData.settlement_id !== '' &&
+		formData.recovery_amount &&
+		parseFloat(formData.recovery_amount) > 0;
 
 	return (
 		<Dialog
@@ -69,49 +71,49 @@ export default function RecoveryFormDialog({
 		>
 			<div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: 8 }}>
 				<Dropdown
-						label="Settlement"
-						options={settlements.map((settlement) => ({
-							value: settlement.id,
-							label: `${settlement.party_name} · ${capitalize(settlement.loss_type)} - ${formatCurrencyExact(Number(settlement.demand_amount))} (${dayjs(settlement.demand_date).format('MMM D')})`,
-						}))}
-						value={formData.settlement_id}
-						onChange={(v) => setFormData({ ...formData, settlement_id: String(v) })}
-						required
-						fullWidth
-					/>
-					<DateField
-						label="Recovery Date"
-						value={formData.recovery_date || null}
-						onChange={(val) => setFormData({ ...formData, recovery_date: val ?? '' })}
-						fullWidth
-					/>
-					<Input
-						label="Recovery Amount"
-						type="number"
-						value={formData.recovery_amount}
-						onChange={(e) => setFormData({ ...formData, recovery_amount: e.target.value })}
-						fullWidth
-						required
-						placeholder="0.00"
-						step="0.01"
-						min="0"
-					/>
-					<Input
-						label="Recovery Source"
-						value={formData.recovery_source}
-						onChange={(e) => setFormData({ ...formData, recovery_source: e.target.value })}
-						fullWidth
-						placeholder="e.g., Check, Wire Transfer, etc."
-					/>
-					<Textarea
-						label="Notes"
-						value={formData.notes}
-						onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-						fullWidth
-						rows={3}
-						placeholder="Additional details about this recovery..."
-					/>
-				</div>
+					label="Settlement"
+					options={settlements.map((settlement) => ({
+						value: settlement.id,
+						label: `${settlement.party_name} · ${capitalize(settlement.loss_type)} - ${formatCurrencyExact(Number(settlement.demand_amount))} (${dayjs(settlement.demand_date).format('MMM D')})`,
+					}))}
+					value={formData.settlement_id}
+					onChange={(v) => setFormData({ ...formData, settlement_id: String(v) })}
+					required
+					fullWidth
+				/>
+				<DateField
+					label="Recovery Date"
+					value={formData.recovery_date || null}
+					onChange={(val) => setFormData({ ...formData, recovery_date: val ?? '' })}
+					fullWidth
+				/>
+				<Input
+					label="Recovery Amount"
+					type="number"
+					value={formData.recovery_amount}
+					onChange={(e) => setFormData({ ...formData, recovery_amount: e.target.value })}
+					fullWidth
+					required
+					placeholder="0.00"
+					step="0.01"
+					min="0"
+				/>
+				<Input
+					label="Recovery Source"
+					value={formData.recovery_source}
+					onChange={(e) => setFormData({ ...formData, recovery_source: e.target.value })}
+					fullWidth
+					placeholder="e.g., Check, Wire Transfer, etc."
+				/>
+				<Textarea
+					label="Notes"
+					value={formData.notes}
+					onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+					fullWidth
+					rows={3}
+					placeholder="Additional details about this recovery..."
+				/>
+			</div>
 		</Dialog>
 	);
 }

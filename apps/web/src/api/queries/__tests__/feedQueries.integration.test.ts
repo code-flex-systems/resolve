@@ -28,7 +28,12 @@ import {
 	deleteFeed,
 } from '../feedQueries';
 import { FeedStatus, FeedType } from '@/config/enums';
-import { createTestClient, createTestUser, createTestFeed, createTestClaim } from '@/__tests__/integration/fixtures';
+import {
+	createTestClient,
+	createTestUser,
+	createTestFeed,
+	createTestClaim,
+} from '@/__tests__/integration/fixtures';
 
 describe('feedQueries integration tests', () => {
 	let db: Kysely<DB>;
@@ -41,7 +46,12 @@ describe('feedQueries integration tests', () => {
 		it('should return all non-inactive feeds', async () => {
 			const client = await createTestClient(db, { name: 'Feed Test Client' });
 			const user = await createTestUser(db, { client_id: client.id, email: 'feed-test@test.com' });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await createTestFeed(db, {
 				client_id: client.id,
@@ -71,10 +81,25 @@ describe('feedQueries integration tests', () => {
 		it('should order feeds by name', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
-			await createTestFeed(db, { client_id: client.id, created_by: user.id, name: 'Zebra Feed', status: FeedStatus.ONLINE });
-			await createTestFeed(db, { client_id: client.id, created_by: user.id, name: 'Alpha Feed', status: FeedStatus.ONLINE });
+			await createTestFeed(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: 'Zebra Feed',
+				status: FeedStatus.ONLINE,
+			});
+			await createTestFeed(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: 'Alpha Feed',
+				status: FeedStatus.ONLINE,
+			});
 
 			const feeds = await getFeeds(ctx);
 
@@ -87,11 +112,31 @@ describe('feedQueries integration tests', () => {
 			const clientB = await createTestClient(db, { name: 'Feed Client B' });
 			const userA = await createTestUser(db, { client_id: clientA.id, email: 'feed-a@test.com' });
 			const userB = await createTestUser(db, { client_id: clientB.id, email: 'feed-b@test.com' });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
-			const ctxB = createTestContext(db, { id: userB.id, client_id: clientB.id, email: userB.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
+			const ctxB = createTestContext(db, {
+				id: userB.id,
+				client_id: clientB.id,
+				email: userB.email,
+				role: 'user',
+			});
 
-			await createTestFeed(db, { client_id: clientA.id, created_by: userA.id, name: 'Client A Feed', status: FeedStatus.ONLINE });
-			await createTestFeed(db, { client_id: clientB.id, created_by: userB.id, name: 'Client B Feed', status: FeedStatus.ONLINE });
+			await createTestFeed(db, {
+				client_id: clientA.id,
+				created_by: userA.id,
+				name: 'Client A Feed',
+				status: FeedStatus.ONLINE,
+			});
+			await createTestFeed(db, {
+				client_id: clientB.id,
+				created_by: userB.id,
+				name: 'Client B Feed',
+				status: FeedStatus.ONLINE,
+			});
 
 			const feedsA = await getFeeds(ctxA);
 			expect(feedsA).toHaveLength(1);
@@ -107,12 +152,37 @@ describe('feedQueries integration tests', () => {
 		it('should count feeds by status', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
-			await createTestFeed(db, { client_id: client.id, created_by: user.id, name: `Feed Online 1 ${Date.now()}`, status: FeedStatus.ONLINE });
-			await createTestFeed(db, { client_id: client.id, created_by: user.id, name: `Feed Online 2 ${Date.now()}`, status: FeedStatus.ONLINE });
-			await createTestFeed(db, { client_id: client.id, created_by: user.id, name: `Feed Muted ${Date.now()}`, status: FeedStatus.MUTED });
-			await createTestFeed(db, { client_id: client.id, created_by: user.id, name: `Feed Inactive ${Date.now()}`, status: FeedStatus.INACTIVE });
+			await createTestFeed(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Feed Online 1 ${Date.now()}`,
+				status: FeedStatus.ONLINE,
+			});
+			await createTestFeed(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Feed Online 2 ${Date.now()}`,
+				status: FeedStatus.ONLINE,
+			});
+			await createTestFeed(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Feed Muted ${Date.now()}`,
+				status: FeedStatus.MUTED,
+			});
+			await createTestFeed(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Feed Inactive ${Date.now()}`,
+				status: FeedStatus.INACTIVE,
+			});
 
 			const counts = await getFeedCount(ctx, client.id);
 
@@ -125,7 +195,12 @@ describe('feedQueries integration tests', () => {
 		it('should return zeros when no feeds exist', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const counts = await getFeedCount(ctx, client.id);
 
@@ -138,11 +213,31 @@ describe('feedQueries integration tests', () => {
 			const clientB = await createTestClient(db, { name: 'Count Client B' });
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
-			const ctxB = createTestContext(db, { id: userB.id, client_id: clientB.id, email: userB.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
+			const ctxB = createTestContext(db, {
+				id: userB.id,
+				client_id: clientB.id,
+				email: userB.email,
+				role: 'user',
+			});
 
-			await createTestFeed(db, { client_id: clientA.id, created_by: userA.id, name: `Count A Feed ${Date.now()}`, status: FeedStatus.ONLINE });
-			await createTestFeed(db, { client_id: clientB.id, created_by: userB.id, name: `Count B Feed ${Date.now()}`, status: FeedStatus.ONLINE });
+			await createTestFeed(db, {
+				client_id: clientA.id,
+				created_by: userA.id,
+				name: `Count A Feed ${Date.now()}`,
+				status: FeedStatus.ONLINE,
+			});
+			await createTestFeed(db, {
+				client_id: clientB.id,
+				created_by: userB.id,
+				name: `Count B Feed ${Date.now()}`,
+				status: FeedStatus.ONLINE,
+			});
 
 			const countsA = await getFeedCount(ctxA, clientA.id);
 			expect(countsA.total).toBe(1);
@@ -156,7 +251,12 @@ describe('feedQueries integration tests', () => {
 		it('should return a feed by id', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const created = await createTestFeed(db, {
 				client_id: client.id,
@@ -178,7 +278,12 @@ describe('feedQueries integration tests', () => {
 		it('should return undefined for non-existent feed', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const feed = await getFeed(ctx, '00000000-0000-0000-0000-000000000000');
 			expect(feed).toBeUndefined();
@@ -189,7 +294,12 @@ describe('feedQueries integration tests', () => {
 			const clientB = await createTestClient(db);
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			const feedB = await createTestFeed(db, { client_id: clientB.id, created_by: userB.id });
 
@@ -202,7 +312,12 @@ describe('feedQueries integration tests', () => {
 		it('should return online feed with unassigned claims', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const feed = await createTestFeed(db, {
 				client_id: client.id,
@@ -234,7 +349,12 @@ describe('feedQueries integration tests', () => {
 		it('should not return feed when all claims are assigned', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const feed = await createTestFeed(db, {
 				client_id: client.id,
@@ -280,7 +400,12 @@ describe('feedQueries integration tests', () => {
 		it('should not return muted or inactive feeds', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const feed = await createTestFeed(db, {
 				client_id: client.id,
@@ -309,7 +434,12 @@ describe('feedQueries integration tests', () => {
 			const clientB = await createTestClient(db, { name: 'LastSync Client B' });
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			// Create feed with unassigned claims for client B
 			const feedB = await createTestFeed(db, {
@@ -340,7 +470,12 @@ describe('feedQueries integration tests', () => {
 		it('should create a feed with all fields', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const feed = await createFeed(ctx, {
 				name: 'New Feed',
@@ -360,7 +495,12 @@ describe('feedQueries integration tests', () => {
 		it('should set client_id from context', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const feed = await createFeed(ctx, {
 				name: `Client ID Test Feed ${Date.now()}`,
@@ -370,7 +510,11 @@ describe('feedQueries integration tests', () => {
 				status: FeedStatus.INACTIVE,
 			});
 
-			const retrieved = await db.selectFrom('feeds').selectAll().where('id', '=', feed.id).executeTakeFirstOrThrow();
+			const retrieved = await db
+				.selectFrom('feeds')
+				.selectAll()
+				.where('id', '=', feed.id)
+				.executeTakeFirstOrThrow();
 			expect(retrieved.client_id).toBe(client.id);
 		});
 	});
@@ -379,7 +523,12 @@ describe('feedQueries integration tests', () => {
 		it('should update feed fields', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const created = await createTestFeed(db, {
 				client_id: client.id,
@@ -403,7 +552,12 @@ describe('feedQueries integration tests', () => {
 		it('should only update provided fields', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const created = await createTestFeed(db, {
 				client_id: client.id,
@@ -423,7 +577,12 @@ describe('feedQueries integration tests', () => {
 			const clientB = await createTestClient(db);
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			const feedB = await createTestFeed(db, {
 				client_id: clientB.id,
@@ -436,7 +595,11 @@ describe('feedQueries integration tests', () => {
 			expect(result).toBeUndefined();
 
 			// Verify unchanged
-			const unchanged = await db.selectFrom('feeds').selectAll().where('id', '=', feedB.id).executeTakeFirstOrThrow();
+			const unchanged = await db
+				.selectFrom('feeds')
+				.selectAll()
+				.where('id', '=', feedB.id)
+				.executeTakeFirstOrThrow();
 			expect(unchanged.name).toBe(feedB.name);
 		});
 	});
@@ -445,7 +608,12 @@ describe('feedQueries integration tests', () => {
 		it('should return feed info for logging', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const created = await createTestFeed(db, {
 				client_id: client.id,
@@ -469,7 +637,12 @@ describe('feedQueries integration tests', () => {
 			const clientB = await createTestClient(db);
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			const feedB = await createTestFeed(db, { client_id: clientB.id, created_by: userB.id });
 
@@ -482,13 +655,22 @@ describe('feedQueries integration tests', () => {
 		it('should delete a feed', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const created = await createTestFeed(db, { client_id: client.id, created_by: user.id });
 
 			await deleteFeed(ctx, created.id);
 
-			const remaining = await db.selectFrom('feeds').selectAll().where('id', '=', created.id).executeTakeFirst();
+			const remaining = await db
+				.selectFrom('feeds')
+				.selectAll()
+				.where('id', '=', created.id)
+				.executeTakeFirst();
 			expect(remaining).toBeUndefined();
 		});
 
@@ -497,7 +679,12 @@ describe('feedQueries integration tests', () => {
 			const clientB = await createTestClient(db);
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			const feedB = await createTestFeed(db, { client_id: clientB.id, created_by: userB.id });
 
@@ -506,7 +693,11 @@ describe('feedQueries integration tests', () => {
 			await expect(deleteFeed(ctxA, feedB.id)).rejects.toThrow();
 
 			// Feed should still exist
-			const stillExists = await db.selectFrom('feeds').selectAll().where('id', '=', feedB.id).executeTakeFirst();
+			const stillExists = await db
+				.selectFrom('feeds')
+				.selectAll()
+				.where('id', '=', feedB.id)
+				.executeTakeFirst();
 			expect(stillExists).toBeTruthy();
 		});
 	});

@@ -56,8 +56,12 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.execute();
 
 	// 4. Add column comments
-	await sql`COMMENT ON COLUMN claim_party.loss_type IS 'For facilitators: type of loss this carrier covers (bodily_injury, property_damage, etc.)'`.execute(db);
-	await sql`COMMENT ON COLUMN claim_party.policy_limit IS 'For facilitators: maximum amount the adverse carrier will pay (policy limit)'`.execute(db);
+	await sql`COMMENT ON COLUMN claim_party.loss_type IS 'For facilitators: type of loss this carrier covers (bodily_injury, property_damage, etc.)'`.execute(
+		db
+	);
+	await sql`COMMENT ON COLUMN claim_party.policy_limit IS 'For facilitators: maximum amount the adverse carrier will pay (policy limit)'`.execute(
+		db
+	);
 
 	// 5. Drop the claim_liability table entirely
 	// Note: CASCADE will handle foreign key constraints
@@ -162,16 +166,28 @@ export async function down(db: Kysely<any>): Promise<void> {
 		.execute();
 
 	// 4. Add column comments
-	await sql`COMMENT ON COLUMN claim_liability.feed_id IS 'Which feed sourced this liability'`.execute(db);
-	await sql`COMMENT ON COLUMN claim_liability.external_reference IS 'External ID from source system (for upsert logic)'`.execute(db);
-	await sql`COMMENT ON COLUMN claim_liability.last_synced_at IS 'When feed last updated this record'`.execute(db);
-	await sql`COMMENT ON COLUMN claim_liability.manually_overridden IS 'User edited after feed sync - prevents feed overwrites'`.execute(db);
+	await sql`COMMENT ON COLUMN claim_liability.feed_id IS 'Which feed sourced this liability'`.execute(
+		db
+	);
+	await sql`COMMENT ON COLUMN claim_liability.external_reference IS 'External ID from source system (for upsert logic)'`.execute(
+		db
+	);
+	await sql`COMMENT ON COLUMN claim_liability.last_synced_at IS 'When feed last updated this record'`.execute(
+		db
+	);
+	await sql`COMMENT ON COLUMN claim_liability.manually_overridden IS 'User edited after feed sync - prevents feed overwrites'`.execute(
+		db
+	);
 
 	// 5. Drop loss_type and policy_limit from claim_party
 	await db.schema.dropIndex('idx_claim_party_loss_type').ifExists().execute();
 
-	await sql`ALTER TABLE claim_party DROP CONSTRAINT IF EXISTS claim_party_loss_type_check`.execute(db);
-	await sql`ALTER TABLE claim_party DROP CONSTRAINT IF EXISTS claim_party_policy_limit_check`.execute(db);
+	await sql`ALTER TABLE claim_party DROP CONSTRAINT IF EXISTS claim_party_loss_type_check`.execute(
+		db
+	);
+	await sql`ALTER TABLE claim_party DROP CONSTRAINT IF EXISTS claim_party_policy_limit_check`.execute(
+		db
+	);
 
 	await db.schema.alterTable('claim_party').dropColumn('loss_type').execute();
 	await db.schema.alterTable('claim_party').dropColumn('policy_limit').execute();

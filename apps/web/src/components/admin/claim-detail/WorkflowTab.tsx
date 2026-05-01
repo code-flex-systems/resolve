@@ -31,7 +31,7 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 	if (isLoading) {
 		return (
 			<div style={{ padding: 24 }}>
-				<div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+				<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 					<Skeleton variant="rect" height={200} />
 					<Skeleton variant="rect" height={300} />
 				</div>
@@ -56,35 +56,43 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 
 	return (
 		<div style={{ padding: 24 }}>
-			<div style={{ display: "flex", flexDirection: "column", gap: 24, maxWidth: 1000, margin: "0 auto" }}>
+			<div
+				style={{
+					display: 'flex',
+					flexDirection: 'column',
+					gap: 24,
+					maxWidth: 1000,
+					margin: '0 auto',
+				}}
+			>
 				{/* Workflow Status */}
 				<Card variant="float" padding="lg">
-					<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, display: 'block' }}>
+					<span
+						style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, display: 'block' }}
+					>
 						Workflow Status
 					</span>
-					<div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-						<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+					<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+						<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 							<span style={{ fontSize: 13 }}>
 								<Highlight bold={false}>Recovery Status:</Highlight>
 							</span>
 							{claimDetail.recovery_status ? (
-								<Chip  size="sm" color="info">{formatLabel(claimDetail.recovery_status)}</Chip>
+								<Chip size="sm" color="info">
+									{formatLabel(claimDetail.recovery_status)}
+								</Chip>
 							) : (
-								<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-									N/A
-								</span>
+								<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>N/A</span>
 							)}
 						</div>
-						<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+						<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 							<span style={{ fontSize: 13 }}>
 								<Highlight bold={false}>Substatus:</Highlight>
 							</span>
 							{claimDetail.substatus ? (
 								<ClaimSubstatusChip value={claimDetail.substatus} showEmoji={false} />
 							) : (
-								<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-									N/A
-								</span>
+								<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>N/A</span>
 							)}
 						</div>
 					</div>
@@ -93,15 +101,24 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 				{/* Current Assignment */}
 				{currentAssignment ? (
 					<Card variant="beveled" padding="lg">
-						<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-							<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-								Current Assignment
-							</span>
-							<Button variant="outlined" onClick={() => handleOpenChecklist(currentAssignment.checklist_id)} endIcon={<IconExternalLink size={16} />}>
+						<div
+							style={{
+								display: 'flex',
+								justifyContent: 'space-between',
+								alignItems: 'center',
+								marginBottom: 16,
+							}}
+						>
+							<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Current Assignment</span>
+							<Button
+								variant="outlined"
+								onClick={() => handleOpenChecklist(currentAssignment.checklist_id)}
+								endIcon={<IconExternalLink size={16} />}
+							>
 								Open Checklist
 							</Button>
 						</div>
-						<div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+						<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 							<div>
 								<span style={{ fontSize: 13 }}>
 									<Highlight>
@@ -111,11 +128,22 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 								</span>
 							</div>
 							<Divider />
-							<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+							<div
+								style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+							>
 								<span style={{ fontSize: 13 }}>
 									<Highlight bold={false}>Status:</Highlight>
 								</span>
-								<div style={{ display: 'flex', alignItems: 'center', padding: '2px 8px', border: '1px solid #85D2FF', backgroundColor: 'white', borderRadius: 12 }}>
+								<div
+									style={{
+										display: 'flex',
+										alignItems: 'center',
+										padding: '2px 8px',
+										border: '1px solid #85D2FF',
+										backgroundColor: 'white',
+										borderRadius: 12,
+									}}
+								>
 									<ClaimStatusIcon status={currentAssignment.status as ClaimStatus} fontSize={17} />
 									<span style={{ fontSize: 14, color: 'var(--text-accent)', marginLeft: '5px' }}>
 										{currentAssignment.status}
@@ -174,7 +202,14 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 							)}
 							<Divider />
 							<div>
-								<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, display: 'block' }}>
+								<span
+									style={{
+										fontSize: 13,
+										color: 'var(--text-muted)',
+										marginBottom: 16,
+										display: 'block',
+									}}
+								>
 									Progress
 								</span>
 								<ChecklistProgress
@@ -189,7 +224,14 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 					</Card>
 				) : (
 					<Card variant="beveled" padding="lg">
-						<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, display: 'block' }}>
+						<span
+							style={{
+								fontSize: 13,
+								color: 'var(--text-muted)',
+								marginBottom: 16,
+								display: 'block',
+							}}
+						>
 							Current Assignment
 						</span>
 						<span style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>
@@ -201,24 +243,44 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 				{/* Assignment History */}
 				{assignmentHistory.length > 0 && (
 					<Card variant="beveled" padding="lg">
-						<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, display: 'block' }}>
+						<span
+							style={{
+								fontSize: 13,
+								color: 'var(--text-muted)',
+								marginBottom: 16,
+								display: 'block',
+							}}
+						>
 							Assignment History ({assignmentHistory.length} assignment
 							{assignmentHistory.length !== 1 ? 's' : ''})
 						</span>
-						<div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+						<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 							{assignmentHistory.map((assignment, index) => (
 								<div key={`${assignment.checklist_id}-${assignment.claim_id}`}>
 									{index > 0 && <Divider />}
-									<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+									<div
+										style={{
+											display: 'flex',
+											justifyContent: 'space-between',
+											alignItems: 'flex-start',
+										}}
+									>
 										<div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const }}>
 											<span style={{ fontSize: 13, fontWeight: 600 }}>
 												{assignment.checklist_name}
 											</span>
 											<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>
-												Assigned to {assignment.assignee_first_name}{' '}
-												{assignment.assignee_last_name}
+												Assigned to {assignment.assignee_first_name} {assignment.assignee_last_name}
 											</span>
-											<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8, alignItems: 'center' }}>
+											<div
+												style={{
+													display: 'flex',
+													gap: 8,
+													flexWrap: 'wrap',
+													marginBottom: 8,
+													alignItems: 'center',
+												}}
+											>
 												<div
 													style={{
 														display: 'flex',
@@ -233,7 +295,9 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 														status={assignment.status as ClaimStatus}
 														fontSize={17}
 													/>
-													<span style={{ fontSize: 14, color: 'var(--text-accent)', marginLeft: 5 }}>
+													<span
+														style={{ fontSize: 14, color: 'var(--text-accent)', marginLeft: 5 }}
+													>
 														{assignment.status}
 													</span>
 												</div>
@@ -256,13 +320,12 @@ export default function WorkflowTab({ claimId }: WorkflowTabProps) {
 
 				{/* Tasks */}
 				<Card variant="beveled" padding="lg">
-					<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, display: 'block' }}>
+					<span
+						style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16, display: 'block' }}
+					>
 						Tasks
 					</span>
-					<TaskListPanel
-						claimId={claimId}
-						claimNumber={claimDetail.claim_number ?? undefined}
-					/>
+					<TaskListPanel claimId={claimId} claimNumber={claimDetail.claim_number ?? undefined} />
 				</Card>
 			</div>
 		</div>

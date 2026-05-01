@@ -59,7 +59,10 @@ export default function UserFilter({
 					values={selectedOptions}
 					onChangeMultiple={(opts) => {
 						const newUsers = opts
-							.map((opt) => results.find((u) => u.id === opt.value) ?? users.find((u) => u.id === opt.value))
+							.map(
+								(opt) =>
+									results.find((u) => u.id === opt.value) ?? users.find((u) => u.id === opt.value)
+							)
 							.filter(Boolean) as GetUserOutput[];
 						setUsers(newUsers);
 					}}
@@ -79,9 +82,14 @@ export default function UserFilter({
 	}
 
 	// Single-select mode
-	const selectedOption = users.length > 0
-		? { value: users[0].id, label: `${users[0].first} ${users[0].last}`, description: users[0].email }
-		: null;
+	const selectedOption =
+		users.length > 0
+			? {
+					value: users[0].id,
+					label: `${users[0].first} ${users[0].last}`,
+					description: users[0].email,
+				}
+			: null;
 
 	return (
 		<div style={{ width }}>
@@ -92,7 +100,8 @@ export default function UserFilter({
 					if (!opt) {
 						setUsers([]);
 					} else {
-						const found = results.find((u) => u.id === opt.value) ?? users.find((u) => u.id === opt.value);
+						const found =
+							results.find((u) => u.id === opt.value) ?? users.find((u) => u.id === opt.value);
 						setUsers(found ? [found] : []);
 					}
 				}}

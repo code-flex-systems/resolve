@@ -48,10 +48,10 @@ const createMockContext = (clientId = 'client-abc'): ProtectedContext =>
 	}) as ProtectedContext;
 
 const createMockResponse = (overrides: Partial<QuestionResponse> = {}): QuestionResponse => ({
-	checklist_id: 10,
-	instance_id: 100,
-	claim_id: 1000,
-	question_id: 50,
+	checklist_id: 'checklist-10',
+	instance_id: 'instance-100',
+	claim_id: 'claim-1000',
+	question_id: 'question-50',
 	response_text: null,
 	response_doc_id: null,
 	selected_answers: [],

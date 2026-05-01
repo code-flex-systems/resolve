@@ -107,9 +107,15 @@ export default function StepperFlow({
 						.join(' ');
 
 					return (
-						<div key={step.key} className={stepCls} onClick={() => isClickable && handleStepClick(index)}>
+						<div
+							key={step.key}
+							className={stepCls}
+							onClick={() => isClickable && handleStepClick(index)}
+						>
 							{/* Step indicator */}
-							<div className={`${styles.indicator} ${isActive ? styles.indicatorActive : ''} ${isCompleted ? styles.indicatorCompleted : ''}`}>
+							<div
+								className={`${styles.indicator} ${isActive ? styles.indicatorActive : ''} ${isCompleted ? styles.indicatorCompleted : ''}`}
+							>
 								{isCompleted ? (
 									<IconCheck size={14} stroke={2.5} />
 								) : step.icon ? (

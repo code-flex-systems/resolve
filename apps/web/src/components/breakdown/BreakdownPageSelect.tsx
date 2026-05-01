@@ -11,7 +11,10 @@ export default function BreakdownPageSelect({ onClose }: { onClose: () => void }
 	const pathname = usePathname();
 	const { checklistId } = useChecklistParams();
 	const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null);
-	const { data: instances = [] } = usePageTrpc().listInstances({ checklistId: checklistId! }, { enabled: !!checklistId });
+	const { data: instances = [] } = usePageTrpc().listInstances(
+		{ checklistId: checklistId! },
+		{ enabled: !!checklistId }
+	);
 	const selectedPage = instances.find((i) => i.instance_id === selectedInstanceId);
 
 	const setSearchParams = () => {
@@ -45,10 +48,11 @@ export default function BreakdownPageSelect({ onClose }: { onClose: () => void }
 			]}
 			width={400}
 		>
-			<span    style={{ fontSize: 15, color: 'primary', paddingBottom: '10px' }}>
+			<span style={{ fontSize: 15, color: 'primary', paddingBottom: '10px' }}>
 				Choose a page instance to get started:
 			</span>
-			<Dropdown inlineLabel
+			<Dropdown
+				inlineLabel
 				options={instances.map((o) => ({
 					value: o.instance_id,
 					label: `${o.title} (p${o.position + 1})`,

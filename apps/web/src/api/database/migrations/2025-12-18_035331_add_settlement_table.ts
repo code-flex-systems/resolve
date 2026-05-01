@@ -51,10 +51,22 @@ export async function up(db: Kysely<any>): Promise<void> {
 	`.execute(db);
 
 	// Step 3: Add indexes for settlement
-	await db.schema.createIndex('idx_settlement_client').on('settlement').column('client_id').execute();
+	await db.schema
+		.createIndex('idx_settlement_client')
+		.on('settlement')
+		.column('client_id')
+		.execute();
 	await db.schema.createIndex('idx_settlement_claim').on('settlement').column('claim_id').execute();
-	await db.schema.createIndex('idx_settlement_party').on('settlement').column('claim_party_id').execute();
-	await db.schema.createIndex('idx_settlement_coverage').on('settlement').column('coverage_id').execute();
+	await db.schema
+		.createIndex('idx_settlement_party')
+		.on('settlement')
+		.column('claim_party_id')
+		.execute();
+	await db.schema
+		.createIndex('idx_settlement_coverage')
+		.on('settlement')
+		.column('coverage_id')
+		.execute();
 	await db.schema.createIndex('idx_settlement_status').on('settlement').column('status').execute();
 
 	// Step 4: Drop coverage_id from recovery_event (if exists from earlier testing)
@@ -73,7 +85,9 @@ export async function up(db: Kysely<any>): Promise<void> {
 	// Step 5: Add settlement_id to recovery_event (NOT NULL since all recovery events require a settlement)
 	await db.schema
 		.alterTable('recovery_event')
-		.addColumn('settlement_id', 'integer', (col) => col.notNull().references('settlement.id').onDelete('cascade'))
+		.addColumn('settlement_id', 'integer', (col) =>
+			col.notNull().references('settlement.id').onDelete('cascade')
+		)
 		.execute();
 
 	// Add index for settlement_id

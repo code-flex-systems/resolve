@@ -9,9 +9,5 @@ interface HighlightProps {
  * Used throughout the application for emphasizing keywords in sentence-form text.
  */
 export default function Highlight({ children, color = '', bold = true }: HighlightProps) {
-	return (
-		<span style={{ color, fontWeight: bold ? 600 : 'inherit' }}>
-			{children}
-		</span>
-	);
+	return <span style={{ color, fontWeight: bold ? 600 : 'inherit' }}>{children}</span>;
 }

@@ -39,7 +39,6 @@ export default function DocumentNavigationTable({
 	emptyRootText = 'No folders or documents yet. Click "Add Folder" or "Add Document" to get started.',
 	emptyFolderText = 'No documents in this folder yet. Click "Add Document" to upload.',
 }: DocumentNavigationTableProps) {
-
 	// Memoized overlay to avoid remounting on every render
 	const noRowsOverlay = useCallback(
 		() => (
@@ -110,9 +109,7 @@ export default function DocumentNavigationTable({
 										{row.data.user_first} {row.data.user_last}
 									</span>
 									{row.data.user_email && (
-										<span style={{ color: 'var(--text-secondary)' }}>
-											{row.data.user_email}
-										</span>
+										<span style={{ color: 'var(--text-secondary)' }}>{row.data.user_email}</span>
 									)}
 								</div>
 							</div>
@@ -124,9 +121,7 @@ export default function DocumentNavigationTable({
 						return (
 							<div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
 								<IconSettings size={20} style={{ color: 'var(--text-accent)' }} />
-								<span style={{ color: 'var(--text-accent)' }}>
-									{row.data.name}
-								</span>
+								<span style={{ color: 'var(--text-accent)' }}>{row.data.name}</span>
 							</div>
 						);
 					}
@@ -154,25 +149,13 @@ export default function DocumentNavigationTable({
 					if (row.type === 'folder') {
 						// Show "User Folder" for user-specific folders
 						if (row.data.group_type === 'user') {
-							return (
-								<span style={{ color: 'var(--text-secondary)' }}>
-									User Folder
-								</span>
-							);
+							return <span style={{ color: 'var(--text-secondary)' }}>User Folder</span>;
 						}
 						// Show "System Folder" for system folders in admin mode
 						if (adminMode && row.data.system) {
-							return (
-								<span style={{ color: 'var(--text-accent)' }}>
-									System Folder
-								</span>
-							);
+							return <span style={{ color: 'var(--text-accent)' }}>System Folder</span>;
 						}
-						return (
-							<span style={{ color: 'var(--text-secondary)' }}>
-								Folder
-							</span>
-						);
+						return <span style={{ color: 'var(--text-secondary)' }}>Folder</span>;
 					}
 					return (
 						<span style={{ color: 'var(--text-secondary)' }}>
@@ -186,9 +169,7 @@ export default function DocumentNavigationTable({
 				accessorKey: 'date',
 				size: 150,
 				cell: ({ row: { original: row } }) => (
-					<span style={{ color: 'var(--text-secondary)' }}>
-						{formatMDY(row.data.created_at)}
-					</span>
+					<span style={{ color: 'var(--text-secondary)' }}>{formatMDY(row.data.created_at)}</span>
 				),
 			},
 			{
@@ -198,17 +179,9 @@ export default function DocumentNavigationTable({
 				cell: ({ row: { original: row } }) => {
 					if (row.type === 'document' && row.data.file_size) {
 						const sizeInKB = Number(row.data.file_size) / 1024;
-						return (
-							<span style={{ color: 'var(--text-secondary)' }}>
-								{sizeInKB.toFixed(1)} KB
-							</span>
-						);
+						return <span style={{ color: 'var(--text-secondary)' }}>{sizeInKB.toFixed(1)} KB</span>;
 					}
-					return (
-						<span style={{ color: 'var(--text-secondary)' }}>
-							—
-						</span>
-					);
+					return <span style={{ color: 'var(--text-secondary)' }}>—</span>;
 				},
 			},
 		],
@@ -218,16 +191,16 @@ export default function DocumentNavigationTable({
 	return (
 		<div style={{ flex: 1, minHeight: 0 }}>
 			<DataTable
-					rows={rows}
-					loading={loading}
-					columns={columns}
-					getRowId={(row) => `${row.type}-${row.data.id}`}
-					onRowDoubleClick={handleRowDoubleClick}
-					checkboxSelection={editMode}
-					rowSelection={selectedRows}
-					onRowSelectionChange={onRowSelectionChange}
-					hideFooter
-				/>
+				rows={rows}
+				loading={loading}
+				columns={columns}
+				getRowId={(row) => `${row.type}-${row.data.id}`}
+				onRowDoubleClick={handleRowDoubleClick}
+				checkboxSelection={editMode}
+				rowSelection={selectedRows}
+				onRowSelectionChange={onRowSelectionChange}
+				hideFooter
+			/>
 		</div>
 	);
 }

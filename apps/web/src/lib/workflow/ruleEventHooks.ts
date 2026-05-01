@@ -67,6 +67,9 @@ export async function onTaskCompleted(
 			claimIds: [claimId],
 		});
 	} catch (err) {
-		console.error(`[ruleEventHooks] onTaskCompleted failed for task ${taskId}, claim ${claimId}:`, err);
+		console.error(
+			`[ruleEventHooks] onTaskCompleted failed for task ${taskId}, claim ${claimId}:`,
+			err
+		);
 	}
 }

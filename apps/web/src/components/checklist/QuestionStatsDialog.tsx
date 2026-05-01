@@ -41,7 +41,8 @@ export default function QuestionStatsDialog() {
 			]}
 			onClose={toggleStatsDialog}
 			width={600}
-			maxHeight={600}>
+			maxHeight={600}
+		>
 			{loading && (
 				<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16, padding: 16 }}>
 					{[1, 2, 3].map((i) => (

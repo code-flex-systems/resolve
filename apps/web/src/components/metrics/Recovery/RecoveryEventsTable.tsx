@@ -33,7 +33,10 @@ const columns: ColumnDef<RecoveryEventWithDetails, any>[] = [
 		accessorKey: 'recovery_amount',
 		header: (ctx) => <IconHeaderCell {...ctx} />,
 		size: 130,
-		cell: ({ getValue }) => { const value = getValue(); return formatCurrency(parseFloat(value)); },
+		cell: ({ getValue }) => {
+			const value = getValue();
+			return formatCurrency(parseFloat(value));
+		},
 	},
 	{
 		accessorKey: 'recovery_source',
@@ -44,7 +47,10 @@ const columns: ColumnDef<RecoveryEventWithDetails, any>[] = [
 		accessorKey: 'recovery_status',
 		header: (ctx) => <IconHeaderCell {...ctx} />,
 		size: 150,
-		cell: ({ getValue }) => { const value = getValue(); return formatRecoveryStatus(value); },
+		cell: ({ getValue }) => {
+			const value = getValue();
+			return formatRecoveryStatus(value);
+		},
 	},
 	{
 		accessorKey: 'notes',
@@ -64,13 +70,18 @@ export default function RecoveryEventsTable({
 	recoverySource?: string;
 	checklistId?: string;
 }) {
-	const [paginationModel, setPaginationModel] = useState<{ page: number; pageSize: number }>({ page: 0, pageSize: 25 });
+	const [paginationModel, setPaginationModel] = useState<{ page: number; pageSize: number }>({
+		page: 0,
+		pageSize: 25,
+	});
 	const trpcUtils = trpc.useUtils();
 
 	// Convert DateRange to ISO strings for tRPC
 	const rangeISO = useMemo(
 		() =>
-			range[0] && range[1] ? ([range[0].toISOString(), range[1].toISOString()] as [string, string]) : undefined,
+			range[0] && range[1]
+				? ([range[0].toISOString(), range[1].toISOString()] as [string, string])
+				: undefined,
 		[range]
 	);
 
@@ -84,17 +95,17 @@ export default function RecoveryEventsTable({
 		[rangeISO, recoverySource, recoveryStatus, checklistId]
 	);
 
-	const { data = { rows: [], count: undefined }, isFetching } = useRecoveryTrpc().listRecoveryEventsWithFilters(
-		{
-			filters,
-			limit: paginationModel.pageSize,
-			offset: paginationModel.page * paginationModel.pageSize,
-		},
-		{
-			enabled: true,
-		}
-	);
-
+	const { data = { rows: [], count: undefined }, isFetching } =
+		useRecoveryTrpc().listRecoveryEventsWithFilters(
+			{
+				filters,
+				limit: paginationModel.pageSize,
+				offset: paginationModel.page * paginationModel.pageSize,
+			},
+			{
+				enabled: true,
+			}
+		);
 
 	// CSV column configuration
 	const csvColumns: CsvColumn<RecoveryEventWithDetails>[] = useMemo(
@@ -136,19 +147,27 @@ export default function RecoveryEventsTable({
 
 	return (
 		<Card variant="beveled" padding="lg" style={styles.paper}>
-			<div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-				<span style={{ fontSize: 18, fontWeight: 600 }}>
-					Recovery Events
-				</span>
+			<div
+				style={{
+					width: '100%',
+					display: 'flex',
+					justifyContent: 'space-between',
+					alignItems: 'center',
+					marginBottom: 16,
+				}}
+			>
+				<span style={{ fontSize: 18, fontWeight: 600 }}>Recovery Events</span>
 				<div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
 					<span style={{ fontSize: 12, color: 'text.secondary' }}>
 						{(data?.count ?? 0).toLocaleString()} event{(data?.count ?? 0) !== 1 ? 's' : ''}
 					</span>
 					<ExportButton
-						onExport={(async () => {
-							const result = await trpcUtils.recovery.exportRecoveryEvents.fetch({ filters });
-							return result;
-						}) as any}
+						onExport={
+							(async () => {
+								const result = await trpcUtils.recovery.exportRecoveryEvents.fetch({ filters });
+								return result;
+							}) as any
+						}
 						columns={csvColumns}
 						filename="recovery_events"
 						size="sm"

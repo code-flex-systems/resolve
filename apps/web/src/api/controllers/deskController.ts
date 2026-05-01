@@ -25,22 +25,13 @@ export async function getDeskLocationTypes(
 		showDeleted?: boolean;
 	}
 ) {
-	return await deskQueries.getDeskLocationTypes(
-		ctx,
-		searchTerm,
-		limit,
-		offset,
-		showDeleted
-	);
+	return await deskQueries.getDeskLocationTypes(ctx, searchTerm, limit, offset, showDeleted);
 }
 
 /**
  * Get single desk location type by ID
  */
-export async function getDeskLocationType(
-	ctx: ProtectedContext,
-	{ id }: { id: string }
-) {
+export async function getDeskLocationType(ctx: ProtectedContext, { id }: { id: string }) {
 	return await deskQueries.getDeskLocationType(ctx, id);
 }
 
@@ -56,10 +47,7 @@ export async function createDeskLocationType(
 	}
 ) {
 	const created = await ctx.db.transaction().execute(async (trx) => {
-		const deskLocationType = await deskQueries.createDeskLocationType(
-			{ ...ctx, db: trx },
-			input
-		);
+		const deskLocationType = await deskQueries.createDeskLocationType({ ...ctx, db: trx }, input);
 
 		await logAdminAction(
 			{ ...ctx, db: trx },
@@ -129,15 +117,9 @@ export async function updateDeskLocationType(
  * Archive desk location type with admin logging (soft delete)
  * Prevents archival if type has active locations
  */
-export async function archiveDeskLocationType(
-	ctx: ProtectedContext,
-	{ id }: { id: string }
-) {
+export async function archiveDeskLocationType(ctx: ProtectedContext, { id }: { id: string }) {
 	const archived = await ctx.db.transaction().execute(async (trx) => {
-		const deskLocationType = await deskQueries.archiveDeskLocationType(
-			{ ...ctx, db: trx },
-			id
-		);
+		const deskLocationType = await deskQueries.archiveDeskLocationType({ ...ctx, db: trx }, id);
 
 		await logAdminAction(
 			{ ...ctx, db: trx },
@@ -160,15 +142,9 @@ export async function archiveDeskLocationType(
 /**
  * Restore archived desk location type with admin logging
  */
-export async function restoreDeskLocationType(
-	ctx: ProtectedContext,
-	{ id }: { id: string }
-) {
+export async function restoreDeskLocationType(ctx: ProtectedContext, { id }: { id: string }) {
 	const restored = await ctx.db.transaction().execute(async (trx) => {
-		const deskLocationType = await deskQueries.restoreDeskLocationType(
-			{ ...ctx, db: trx },
-			id
-		);
+		const deskLocationType = await deskQueries.restoreDeskLocationType({ ...ctx, db: trx }, id);
 
 		await logAdminAction(
 			{ ...ctx, db: trx },
@@ -228,10 +204,7 @@ export async function getDeskLocations(
 /**
  * Get single desk location by ID
  */
-export async function getDeskLocation(
-	ctx: ProtectedContext,
-	{ id }: { id: string }
-) {
+export async function getDeskLocation(ctx: ProtectedContext, { id }: { id: string }) {
 	return await deskQueries.getDeskLocation(ctx, id);
 }
 
@@ -248,10 +221,7 @@ export async function createDeskLocation(
 	}
 ) {
 	const created = await ctx.db.transaction().execute(async (trx) => {
-		const deskLocation = await deskQueries.createDeskLocation(
-			{ ...ctx, db: trx },
-			input
-		);
+		const deskLocation = await deskQueries.createDeskLocation({ ...ctx, db: trx }, input);
 
 		await logAdminAction(
 			{ ...ctx, db: trx },
@@ -298,11 +268,7 @@ export async function updateDeskLocation(
 	}
 
 	const updated = await ctx.db.transaction().execute(async (trx) => {
-		const deskLocation = await deskQueries.updateDeskLocation(
-			{ ...ctx, db: trx },
-			id,
-			params
-		);
+		const deskLocation = await deskQueries.updateDeskLocation({ ...ctx, db: trx }, id, params);
 
 		await logAdminAction(
 			{ ...ctx, db: trx },
@@ -324,15 +290,9 @@ export async function updateDeskLocation(
  * Archive desk location with admin logging (soft delete)
  * Prevents archival if location has assigned claims
  */
-export async function archiveDeskLocation(
-	ctx: ProtectedContext,
-	{ id }: { id: string }
-) {
+export async function archiveDeskLocation(ctx: ProtectedContext, { id }: { id: string }) {
 	const archived = await ctx.db.transaction().execute(async (trx) => {
-		const deskLocation = await deskQueries.archiveDeskLocation(
-			{ ...ctx, db: trx },
-			id
-		);
+		const deskLocation = await deskQueries.archiveDeskLocation({ ...ctx, db: trx }, id);
 
 		await logAdminAction(
 			{ ...ctx, db: trx },
@@ -356,15 +316,9 @@ export async function archiveDeskLocation(
 /**
  * Restore archived desk location with admin logging
  */
-export async function restoreDeskLocation(
-	ctx: ProtectedContext,
-	{ id }: { id: string }
-) {
+export async function restoreDeskLocation(ctx: ProtectedContext, { id }: { id: string }) {
 	const restored = await ctx.db.transaction().execute(async (trx) => {
-		const deskLocation = await deskQueries.restoreDeskLocation(
-			{ ...ctx, db: trx },
-			id
-		);
+		const deskLocation = await deskQueries.restoreDeskLocation({ ...ctx, db: trx }, id);
 
 		await logAdminAction(
 			{ ...ctx, db: trx },
@@ -393,10 +347,7 @@ export async function restoreDeskLocation(
 /**
  * Get user desk location assignments for a specific user
  */
-export async function getUserDeskLocations(
-	ctx: ProtectedContext,
-	{ userId }: { userId: string }
-) {
+export async function getUserDeskLocations(ctx: ProtectedContext, { userId }: { userId: string }) {
 	return await deskQueries.getUserDeskLocations(ctx, userId);
 }
 
@@ -422,10 +373,7 @@ export async function assignUserToDeskLocation(
 	}
 ) {
 	const assigned = await ctx.db.transaction().execute(async (trx) => {
-		const assignment = await deskQueries.assignUserToDeskLocation(
-			{ ...ctx, db: trx },
-			input
-		);
+		const assignment = await deskQueries.assignUserToDeskLocation({ ...ctx, db: trx }, input);
 
 		await logAdminAction(
 			{ ...ctx, db: trx },
@@ -462,20 +410,17 @@ export async function bulkAssignUsersToDeskLocation(
 	const assignments = await deskQueries.bulkAssignUsersToDeskLocation(ctx, input);
 
 	// Log the bulk assignment action
-	await logAdminAction(
-		ctx,
-		{
-			entityId: 0, // Bulk operation
-			entityName: EntityName.USER_DESK_LOCATION,
-			action: AdminAction.CREATE,
-			value: {
-				bulkAssignment: true,
-				userCount: input.userIds.length,
-				deskLocationId: input.deskLocationId,
-				priority: input.priority,
-			},
-		}
-	);
+	await logAdminAction(ctx, {
+		entityId: 0, // Bulk operation
+		entityName: EntityName.USER_DESK_LOCATION,
+		action: AdminAction.CREATE,
+		value: {
+			bulkAssignment: true,
+			userCount: input.userIds.length,
+			deskLocationId: input.deskLocationId,
+			priority: input.priority,
+		},
+	});
 
 	return assignments;
 }
@@ -521,15 +466,9 @@ export async function updateUserDeskLocationPriority(
 /**
  * Remove user from desk location with admin logging (soft delete)
  */
-export async function removeUserFromDeskLocation(
-	ctx: ProtectedContext,
-	{ id }: { id: string }
-) {
+export async function removeUserFromDeskLocation(ctx: ProtectedContext, { id }: { id: string }) {
 	const removed = await ctx.db.transaction().execute(async (trx) => {
-		const assignment = await deskQueries.removeUserFromDeskLocation(
-			{ ...ctx, db: trx },
-			id
-		);
+		const assignment = await deskQueries.removeUserFromDeskLocation({ ...ctx, db: trx }, id);
 
 		await logAdminAction(
 			{ ...ctx, db: trx },
@@ -608,10 +547,7 @@ export async function updateUsersDeskAssignments(
 	}
 ) {
 	const updated = await ctx.db.transaction().execute(async (trx) => {
-		const results = await deskQueries.updateUsersDeskAssignments(
-			{ ...ctx, db: trx },
-			updates
-		);
+		const results = await deskQueries.updateUsersDeskAssignments({ ...ctx, db: trx }, updates);
 
 		// Log each user's assignment update
 		for (const result of results) {
@@ -668,9 +604,6 @@ export async function createClaimTransition(
 /**
  * Get transition history for a claim.
  */
-export async function getClaimTransitions(
-	ctx: ProtectedContext,
-	{ claimId }: { claimId: string }
-) {
+export async function getClaimTransitions(ctx: ProtectedContext, { claimId }: { claimId: string }) {
 	return await deskQueries.getClaimTransitions(ctx, claimId);
 }

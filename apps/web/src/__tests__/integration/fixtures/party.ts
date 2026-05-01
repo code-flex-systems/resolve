@@ -184,7 +184,11 @@ export async function createTestPartyRepresentative(
 		created_by: overrides.created_by,
 	};
 
-	return db.insertInto('party_representative').values(data).returningAll().executeTakeFirstOrThrow();
+	return db
+		.insertInto('party_representative')
+		.values(data)
+		.returningAll()
+		.executeTakeFirstOrThrow();
 }
 
 /**

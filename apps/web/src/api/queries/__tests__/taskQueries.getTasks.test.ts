@@ -253,9 +253,9 @@ describe('getTasks', () => {
 				} as any;
 			});
 
-			await getTasks(mockContext, { deskLocationId: 5 });
+			await getTasks(mockContext, { deskLocationId: 'desk-5' });
 
-			expect(mockWhere).toHaveBeenCalledWith('task.desk_location_id', '=', 5);
+			expect(mockWhere).toHaveBeenCalledWith('task.desk_location_id', '=', 'desk-5');
 		});
 
 		it('should filter by claim ID', async () => {
@@ -272,9 +272,9 @@ describe('getTasks', () => {
 				} as any;
 			});
 
-			await getTasks(mockContext, { claimId: 100 });
+			await getTasks(mockContext, { claimId: 'claim-100' });
 
-			expect(mockWhere).toHaveBeenCalledWith('task.claim_id', '=', 100);
+			expect(mockWhere).toHaveBeenCalledWith('task.claim_id', '=', 'claim-100');
 		});
 
 		it('should filter by task status', async () => {
@@ -356,8 +356,14 @@ describe('getTasks', () => {
 		it('should include cancelled tasks when showCancelled is true', async () => {
 			// Mock rows include total_count for window function pattern
 			const mockTasks = [
-				{ ...createMockTask({ status: TaskStatus.CANCELLED, derived_status: 'cancelled' }), total_count: '2' },
-				{ ...createMockTask({ id: 2, status: TaskStatus.PENDING, derived_status: 'available' }), total_count: '2' },
+				{
+					...createMockTask({ status: TaskStatus.CANCELLED, derived_status: 'cancelled' }),
+					total_count: '2',
+				},
+				{
+					...createMockTask({ id: 2, status: TaskStatus.PENDING, derived_status: 'available' }),
+					total_count: '2',
+				},
 			];
 
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
@@ -551,12 +557,12 @@ describe('getTasks', () => {
 			});
 
 			await getTasks(mockContext, {
-				deskLocationId: 5,
+				deskLocationId: 'desk-5',
 				status: TaskStatus.PENDING,
 				taskType: TaskType.GENERIC,
 			});
 
-			expect(mockWhere).toHaveBeenCalledWith('task.desk_location_id', '=', 5);
+			expect(mockWhere).toHaveBeenCalledWith('task.desk_location_id', '=', 'desk-5');
 			expect(mockWhere).toHaveBeenCalledWith('task.status', '=', TaskStatus.PENDING);
 			expect(mockWhere).toHaveBeenCalledWith('task.task_type', '=', TaskType.GENERIC);
 		});

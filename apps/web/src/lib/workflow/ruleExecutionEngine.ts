@@ -161,7 +161,13 @@ export async function evaluateRules(
 // =============================================================================
 
 interface AutoActionInput {
-	rule: { id: string; name: string; trigger_type: string; action_type: string; execution_mode: string };
+	rule: {
+		id: string;
+		name: string;
+		trigger_type: string;
+		action_type: string;
+		execution_mode: string;
+	};
 	actionType: WorkflowActionType;
 	actionConfig: Record<string, unknown>;
 	claimId: string;

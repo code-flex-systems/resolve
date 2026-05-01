@@ -20,7 +20,11 @@ export function useCommentTrpc() {
 				utils.comment.getComments.invalidate();
 				if (data.instance_id != null && data.question_id != null) {
 					utils.comment.getCommentsForPage.setData(
-						{ checklistId: data.checklist_id, claimId: data.claim_id, instanceId: data.instance_id },
+						{
+							checklistId: data.checklist_id,
+							claimId: data.claim_id,
+							instanceId: data.instance_id,
+						},
 						((prev: any) => {
 							if (!prev) {
 								return { [data.question_id!]: { ...data } };
@@ -38,7 +42,11 @@ export function useCommentTrpc() {
 				utils.comment.getComments.invalidate();
 				if (data.instance_id && data.question_id) {
 					utils.comment.getCommentsForPage.setData(
-						{ checklistId: data.checklist_id, claimId: data.claim_id, instanceId: data.instance_id },
+						{
+							checklistId: data.checklist_id,
+							claimId: data.claim_id,
+							instanceId: data.instance_id,
+						},
 						(prev) => {
 							if (!prev) {
 								return prev;

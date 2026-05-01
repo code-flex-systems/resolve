@@ -23,7 +23,7 @@ DECLARE
     i INT;
 BEGIN
     SELECT id INTO v_client_id FROM client LIMIT 1;
-    SELECT id INTO v_user_id FROM users WHERE email = 'owenfarthing@craig680.onmicrosoft.com' LIMIT 1;
+    SELECT id INTO v_user_id FROM users ORDER BY created_at ASC LIMIT 1;
 
     FOR v_claim IN SELECT id, claim_number, claim_amount FROM claim ORDER BY id LOOP
         -- Derive a deterministic integer from the UUID

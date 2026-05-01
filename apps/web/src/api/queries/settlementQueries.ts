@@ -49,7 +49,9 @@ export async function createSettlement(
 			}),
 			...(params.notes && { notes: params.notes }),
 			// New fields
-			...(params.adverse_party_reference && { adverse_party_reference: params.adverse_party_reference }),
+			...(params.adverse_party_reference && {
+				adverse_party_reference: params.adverse_party_reference,
+			}),
 			settlement_structure: params.settlement_structure || SettlementStructure.LUMP_SUM,
 			...(params.payment_amount !== undefined &&
 				params.payment_amount !== null && {

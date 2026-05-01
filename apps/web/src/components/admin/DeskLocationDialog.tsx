@@ -99,15 +99,26 @@ export default function DeskLocationDialog({ deskLocation, onClose }: DeskLocati
 				label: isEditMode ? 'Update' : 'Create',
 				onClick: onSubmit,
 				icon: isEditMode ? undefined : <IconSend size={20} />,
-				disabled: isSubmitting || isPending || !isValid || (isEditMode && !isDirty) || !deskLocationTypeId,
+				disabled:
+					isSubmitting || isPending || !isValid || (isEditMode && !isDirty) || !deskLocationTypeId,
 			}}
 			onClose={handleClose}
 			width={500}
 		>
-			<div style={{ width: '100%', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 16 }}>
+			<div
+				style={{
+					width: '100%',
+					display: 'flex',
+					alignItems: 'center',
+					flexDirection: 'column',
+					gap: 16,
+				}}
+			>
 				<DeskLocationTypeSelect
 					value={deskLocationTypeId}
-					onChange={(newValue) => setValue('desk_location_type_id', newValue, { shouldDirty: true })}
+					onChange={(newValue) =>
+						setValue('desk_location_type_id', newValue, { shouldDirty: true })
+					}
 					disabled={isSubmitting}
 					required
 				/>
@@ -132,7 +143,10 @@ export default function DeskLocationDialog({ deskLocation, onClose }: DeskLocati
 				<Controller
 					name="capacity_threshold"
 					control={control}
-					rules={{ required: 'Capacity threshold is required', min: { value: 1, message: 'Must be at least 1' } }}
+					rules={{
+						required: 'Capacity threshold is required',
+						min: { value: 1, message: 'Must be at least 1' },
+					}}
 					render={({ field }) => (
 						<Input
 							label="Capacity Threshold (work units)"
@@ -153,7 +167,12 @@ export default function DeskLocationDialog({ deskLocation, onClose }: DeskLocati
 					control={control}
 					render={({ field }) => (
 						<div style={{ width: 400 }}>
-							<Switch checked={field.value} onChange={(checked) => field.onChange(checked)} disabled={isSubmitting} label="Active" />
+							<Switch
+								checked={field.value}
+								onChange={(checked) => field.onChange(checked)}
+								disabled={isSubmitting}
+								label="Active"
+							/>
 						</div>
 					)}
 				/>
@@ -166,5 +185,5 @@ const styles = {
 	textFieldOverrides: {
 		width: 400,
 		margin: '5px 0px',
-		},
+	},
 };

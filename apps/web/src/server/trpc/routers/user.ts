@@ -39,10 +39,12 @@ export const userRouter = router({
 		return userController.getInactiveUserCount(ctx);
 	}),
 
-	getUsersPaginated: protectedProcedure.input(getUsersPaginatedInput).query(async ({ input, ctx }) => {
-		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-		return userController.getUsersPaginated(ctx, input);
-	}),
+	getUsersPaginated: protectedProcedure
+		.input(getUsersPaginatedInput)
+		.query(async ({ input, ctx }) => {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			return userController.getUsersPaginated(ctx, input);
+		}),
 
 	getUsersWithDeskAssignments: protectedProcedure
 		.input(getUsersWithDeskAssignmentsInput)
@@ -56,10 +58,12 @@ export const userRouter = router({
 		return userController.getUserActivity(ctx, input);
 	}),
 
-	getUserActivityDetail: protectedProcedure.input(getUserActivityDetailInput).query(async ({ input, ctx }) => {
-		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-		return userController.getUserActivityDetail(ctx, input);
-	}),
+	getUserActivityDetail: protectedProcedure
+		.input(getUserActivityDetailInput)
+		.query(async ({ input, ctx }) => {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			return userController.getUserActivityDetail(ctx, input);
+		}),
 
 	getUserCount: protectedProcedure.input(getUserCountInput).query(async ({ input, ctx }) => {
 		if (input.clientId) {
@@ -68,7 +72,9 @@ export const userRouter = router({
 		} else {
 			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		}
-		return await userController.getUserCount(ctx, { clientId: input.clientId ?? ctx.session.user.client_id! });
+		return await userController.getUserCount(ctx, {
+			clientId: input.clientId ?? ctx.session.user.client_id!,
+		});
 	}),
 
 	getUser: protectedProcedure.input(getUserInput).query(async ({ input, ctx }) => {
@@ -153,16 +159,18 @@ export const userRouter = router({
 		}),
 
 	indexResource: protectedProcedure
-		.input(z.object({
-			resource_type: z.string().max(50),
-			resource_id: z.string().uuid(),
-			linked_resource_type: z.string().max(50).nullable().optional(),
-			linked_resource_id: z.string().uuid().nullable().optional(),
-			label: z.string(),
-			secondary_label: z.string().nullable().optional(),
-			metadata: z.record(z.string()).optional(),
-			url: z.string(),
-		}))
+		.input(
+			z.object({
+				resource_type: z.string().max(50),
+				resource_id: z.string().uuid(),
+				linked_resource_type: z.string().max(50).nullable().optional(),
+				linked_resource_id: z.string().uuid().nullable().optional(),
+				label: z.string(),
+				secondary_label: z.string().nullable().optional(),
+				metadata: z.record(z.string()).optional(),
+				url: z.string(),
+			})
+		)
 		.mutation(async ({ input, ctx }) => {
 			return upsertResourceIndex(ctx.db, {
 				client_id: ctx.session.user.client_id!,

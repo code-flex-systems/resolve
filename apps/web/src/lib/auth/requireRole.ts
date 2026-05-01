@@ -11,7 +11,10 @@ export function requireRole(ctx: Context, requiredRole: Role | Role[]) {
 	}
 
 	if (!requiredRoles.includes(userRole as Role)) {
-		throw new TRPCError({ code: 'FORBIDDEN', message: `User must have one of: ${requiredRoles.join(', ')}` });
+		throw new TRPCError({
+			code: 'FORBIDDEN',
+			message: `User must have one of: ${requiredRoles.join(', ')}`,
+		});
 	}
 
 	return true;

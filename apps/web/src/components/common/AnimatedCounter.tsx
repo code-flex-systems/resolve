@@ -47,9 +47,5 @@ export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({
 
 	const display = formatter ? formatter(count) : count;
 
-	return (
-		<span style={{ fontSize, lineHeight: `${fontSize}px` }}>
-			{display}
-		</span>
-	);
+	return <span style={{ fontSize, lineHeight: `${fontSize}px` }}>{display}</span>;
 };

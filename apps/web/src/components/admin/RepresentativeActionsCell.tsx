@@ -27,8 +27,10 @@ export default function RepresentativeActionsCell(params: RepresentativeActionsC
 	const [showActionConfirm, setShowActionConfirm] = useState(false);
 	const showAlert = useAlertStore((state) => state.showAlert);
 	const partyTrpc = usePartyTrpc();
-	const { mutateAsync: archiveRepresentative, isPending: archiving } = partyTrpc.archiveRepresentative;
-	const { mutateAsync: restoreRepresentative, isPending: restoring } = partyTrpc.restoreRepresentative;
+	const { mutateAsync: archiveRepresentative, isPending: archiving } =
+		partyTrpc.archiveRepresentative;
+	const { mutateAsync: restoreRepresentative, isPending: restoring } =
+		partyTrpc.restoreRepresentative;
 
 	const isArchived = !!row.deleted_at;
 	const isPartyArchived = !!row.party_deleted_at;
@@ -47,7 +49,8 @@ export default function RepresentativeActionsCell(params: RepresentativeActionsC
 			}
 			setShowActionConfirm(false);
 		} catch (error: any) {
-			const message = error?.message || `Failed to ${isArchived ? 'restore' : 'archive'} representative`;
+			const message =
+				error?.message || `Failed to ${isArchived ? 'restore' : 'archive'} representative`;
 			showAlert(message, 'error');
 			setShowActionConfirm(false);
 		}
@@ -74,46 +77,57 @@ export default function RepresentativeActionsCell(params: RepresentativeActionsC
 					onClose={() => setShowActionConfirm(false)}
 					width={500}
 				>
-					<span style={{  fontStyle: 'italic' ,  fontWeight: 'bold'  }}>
+					<span style={{ fontStyle: 'italic', fontWeight: 'bold' }}>
 						Are you sure you want to {isArchived ? 'restore' : 'archive'} this representative?
 					</span>
 					<span style={{ paddingTop: '10px', fontStyle: 'italic' }}>
 						Representative: {representativeName}
 					</span>
-					{row.party_name && (
-						<span style={{ fontStyle: 'italic' }}>
-							Party: {row.party_name}
-						</span>
-					)}
+					{row.party_name && <span style={{ fontStyle: 'italic' }}>Party: {row.party_name}</span>}
 				</BasicDialog>
 			)}
 
 			<div style={styles.container}>
 				<div style={{ marginRight: isAdminContext ? '5px' : undefined }}>
-					<Tooltip content="isArchived
+					<Tooltip
+						content="isArchived
 								? 'Cannot edit archived representative'
 								: isPartyArchived
 									? 'Cannot edit representative - parent party is archived'
-									: 'Make changes'">
-							<Button variant="icon" size="sm" color="neutral" onClick={() => setEditing(true)} disabled={isArchived || isPartyArchived}>
+									: 'Make changes'"
+					>
+						<Button
+							variant="icon"
+							size="sm"
+							color="neutral"
+							onClick={() => setEditing(true)}
+							disabled={isArchived || isPartyArchived}
+						>
 							<IconEdit size={15} />
 						</Button>
-						</Tooltip>
+					</Tooltip>
 				</div>
 				{isAdminContext && (
-					<Tooltip content="isPartyArchived
+					<Tooltip
+						content="isPartyArchived
 								? 'Cannot modify representative - parent party is archived'
 								: isArchived
 									? 'Restore representative'
-									: 'Archive representative'">
-							<Button variant="icon" size="sm" color="neutral" onClick={() => setShowActionConfirm(true)} disabled={isPending || isPartyArchived}>
+									: 'Archive representative'"
+					>
+						<Button
+							variant="icon"
+							size="sm"
+							color="neutral"
+							onClick={() => setShowActionConfirm(true)}
+							disabled={isPending || isPartyArchived}
+						>
 							isArchived ? (
-								<IconArchiveOff size={15} style={{ color: 'var(--status-success)' }} />
+							<IconArchiveOff size={15} style={{ color: 'var(--status-success)' }} />
 							) : (
-								<IconArchive size={15} style={{ color: 'var(--status-error)' }} />
-							)
+							<IconArchive size={15} style={{ color: 'var(--status-error)' }} />)
 						</Button>
-						</Tooltip>
+					</Tooltip>
 				)}
 			</div>
 		</>

@@ -82,7 +82,6 @@ const ROUTE_LABELS: Record<string, string> = {
 	'reference-data': 'Reference Data',
 	'statute-rules': 'Statute Rules',
 	settings: 'Settings',
-	'component-showcase': 'Component Showcase',
 	edit: 'Edit',
 	breakdown: 'Breakdown',
 	summary: 'Summary',
@@ -106,7 +105,8 @@ function buildSegmentsFromPath(pathname: string): BreadcrumbSegment[] {
 		href += `/${part}`;
 		// Skip dynamic segments (UUIDs, numbers) — they'll be replaced by dynamic segments from pages
 		if (isDynamicSegment(part)) continue;
-		const label = ROUTE_LABELS[part] ?? part.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+		const label =
+			ROUTE_LABELS[part] ?? part.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 		segments.push({ label, href });
 	}
 

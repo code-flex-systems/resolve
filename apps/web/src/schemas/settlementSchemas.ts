@@ -27,7 +27,11 @@ const settlementParamsBase = z.object({
 });
 
 // Refinement for payment plan validation
-const paymentPlanRefinement = (data: { settlement_structure?: string | null; payment_amount?: number | null; payment_frequency?: string | null }) => {
+const paymentPlanRefinement = (data: {
+	settlement_structure?: string | null;
+	payment_amount?: number | null;
+	payment_frequency?: string | null;
+}) => {
 	// If settlement_structure is payment_plan, payment_amount and payment_frequency are required
 	if (data.settlement_structure === SettlementStructure.PAYMENT_PLAN) {
 		return (
@@ -41,7 +45,10 @@ const paymentPlanRefinement = (data: { settlement_structure?: string | null; pay
 };
 
 // Refinement for mutual exclusivity of settled_by and is_drop_check
-const settledByRefinement = (data: { settled_by?: string | null; is_drop_check?: boolean | null }) => {
+const settledByRefinement = (data: {
+	settled_by?: string | null;
+	is_drop_check?: boolean | null;
+}) => {
 	// settled_by and is_drop_check are mutually exclusive
 	if (data.settled_by && data.is_drop_check) {
 		return false;
@@ -51,7 +58,9 @@ const settledByRefinement = (data: { settled_by?: string | null; is_drop_check?:
 
 export const settlementParams = settlementParamsBase
 	.strict()
-	.refine(paymentPlanRefinement, { message: 'Payment amount and frequency are required for payment plan settlements' })
+	.refine(paymentPlanRefinement, {
+		message: 'Payment amount and frequency are required for payment plan settlements',
+	})
 	.refine(settledByRefinement, { message: 'Cannot set both settled_by and is_drop_check' });
 
 export type SettlementParams = z.infer<typeof settlementParams>;
@@ -59,7 +68,9 @@ export type SettlementParams = z.infer<typeof settlementParams>;
 // For updates, use partial base and apply same refinements
 export const settlementUpdateParams = settlementParamsBase
 	.partial()
-	.refine(paymentPlanRefinement, { message: 'Payment amount and frequency are required for payment plan settlements' })
+	.refine(paymentPlanRefinement, {
+		message: 'Payment amount and frequency are required for payment plan settlements',
+	})
 	.refine(settledByRefinement, { message: 'Cannot set both settled_by and is_drop_check' });
 
 export type SettlementUpdateParams = z.infer<typeof settlementUpdateParams>;

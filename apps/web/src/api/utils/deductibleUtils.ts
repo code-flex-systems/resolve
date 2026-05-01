@@ -31,7 +31,10 @@ export function shouldIncludeDeductibleInClaimAmount(deductibleStatus: Deductibl
  * Validates that deductible amount is 0 when status is NO_DEDUCTIBLE.
  * Throws error if validation fails.
  */
-export function validateDeductibleAmount(deductibleAmount: number | null, deductibleStatus: DeductibleStatus): void {
+export function validateDeductibleAmount(
+	deductibleAmount: number | null,
+	deductibleStatus: DeductibleStatus
+): void {
 	if (deductibleStatus === DeductibleStatus.NO_DEDUCTIBLE) {
 		if (deductibleAmount !== 0 && deductibleAmount !== null) {
 			throw new Error('Deductible amount must be $0 when status is NO_DEDUCTIBLE');

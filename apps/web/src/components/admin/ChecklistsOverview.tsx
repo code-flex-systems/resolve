@@ -31,42 +31,50 @@ export default function ChecklistsOverview() {
 	const totalActive = submitted + inProgress + blocked + unworked;
 	const completionRate = totalActive > 0 ? Math.round((submitted / totalActive) * 100) : 0;
 
-	const recentActivityColumns = useMemo<ColumnDef<any>[]>(() => [
-		{
-			accessorKey: 'checklist_name',
-			header: 'Checklist',
-			size: 200,
-		},
-		{
-			accessorKey: 'claim_number',
-			header: 'Claim #',
-			size: 120,
-		},
-		{
-			accessorKey: 'status',
-			header: 'Status',
-			size: 100,
-			cell: ({ getValue }) => {
-				const status = getValue() as string;
-				const color = status === 'Submitted' ? 'success' : status === 'In Progress' ? 'warning' : 'neutral';
-				return <Chip size="sm" color={color}>{status}</Chip>;
+	const recentActivityColumns = useMemo<ColumnDef<any>[]>(
+		() => [
+			{
+				accessorKey: 'checklist_name',
+				header: 'Checklist',
+				size: 200,
 			},
-		},
-		{
-			accessorKey: 'answered_today',
-			header: 'Answered Today',
-			size: 120,
-		},
-		{
-			accessorKey: 'last_opened',
-			header: 'Last Opened',
-			size: 120,
-			cell: ({ getValue }) => {
-				const val = getValue() as Date | null;
-				return val ? dayjs(val).fromNow() : '\u2014';
+			{
+				accessorKey: 'claim_number',
+				header: 'Claim #',
+				size: 120,
 			},
-		},
-	], []);
+			{
+				accessorKey: 'status',
+				header: 'Status',
+				size: 100,
+				cell: ({ getValue }) => {
+					const status = getValue() as string;
+					const color =
+						status === 'Submitted' ? 'success' : status === 'In Progress' ? 'warning' : 'neutral';
+					return (
+						<Chip size="sm" color={color}>
+							{status}
+						</Chip>
+					);
+				},
+			},
+			{
+				accessorKey: 'answered_today',
+				header: 'Answered Today',
+				size: 120,
+			},
+			{
+				accessorKey: 'last_opened',
+				header: 'Last Opened',
+				size: 120,
+				cell: ({ getValue }) => {
+					const val = getValue() as Date | null;
+					return val ? dayjs(val).fromNow() : '\u2014';
+				},
+			},
+		],
+		[]
+	);
 
 	if (isLoading) {
 		return <CardioLoadingIndicator message="Loading checklists data..." />;
@@ -111,7 +119,9 @@ export default function ChecklistsOverview() {
 			{recentActivityData && recentActivityData.length > 0 && (
 				<Card variant="beveled" padding="md">
 					<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-						<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>Recent Activity</span>
+						<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+							Recent Activity
+						</span>
 						<DataTable
 							rows={recentActivityData}
 							columns={recentActivityColumns}

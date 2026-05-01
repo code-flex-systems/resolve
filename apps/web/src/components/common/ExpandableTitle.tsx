@@ -35,9 +35,7 @@ export default function ExpandableTitle({
 				className={`${styles.titlePill} ${showTitle ? styles.titlePillExpanded : styles.titlePillCollapsed}`}
 				style={{ backgroundColor: bgcolor, paddingLeft: size }}
 			>
-				<span className={styles.titleText}>
-					{title}
-				</span>
+				<span className={styles.titleText}>{title}</span>
 			</div>
 		</div>
 	);

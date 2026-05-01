@@ -31,7 +31,9 @@ export default function PartyDetailDialog({ open, onClose, claimParty }: PartyDe
 	// Extract values before early return to avoid breaking hooks rules
 	const claimId = claimParty?.claim_id;
 	const claimPartyId = claimParty?.id;
-	const roleListEntity = claimParty?.role?.[0]?.includes('claimant') ? 'claimant_party_role' : 'adverse_party_role';
+	const roleListEntity = claimParty?.role?.[0]?.includes('claimant')
+		? 'claimant_party_role'
+		: 'adverse_party_role';
 
 	// Subscribe to the query to get fresh data after mutations
 	const { data: claimParties = [] } = partyTrpc.listClaimParties(
@@ -99,20 +101,21 @@ export default function PartyDetailDialog({ open, onClose, claimParty }: PartyDe
 							label="Role"
 							value={
 								<div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-									{Array.isArray(freshClaimParty.role) && freshClaimParty.role.map((r: string) => (
-										<Chip key={r}
-											
-											size="sm"
-											color="info"
-											style={{ height: 20, fontSize: 11 }}>{capitalize(r.replace(/_/g, ' '))}</Chip>
-									))}
+									{Array.isArray(freshClaimParty.role) &&
+										freshClaimParty.role.map((r: string) => (
+											<Chip key={r} size="sm" color="info" style={{ height: 20, fontSize: 11 }}>
+												{capitalize(r.replace(/_/g, ' '))}
+											</Chip>
+										))}
 								</div>
 							}
 						/>
 						{party.organization && <DetailRow label="Organization" value={party.organization} />}
 						{party.email && <DetailRow label="Email" value={party.email} />}
 						{party.phone && <DetailRow label="Phone" value={party.phone} />}
-						{formatAddressInline(party) && <DetailRow label="Address" value={formatAddressInline(party)} />}
+						{formatAddressInline(party) && (
+							<DetailRow label="Address" value={formatAddressInline(party)} />
+						)}
 						{party.notes && <DetailRow label="Notes" value={party.notes} />}
 					</Section>
 				)}
@@ -125,7 +128,9 @@ export default function PartyDetailDialog({ open, onClose, claimParty }: PartyDe
 						onEdit={() => setEditingAddress(true)}
 					>
 						<DetailRow label="Label" value={address.name || 'Unnamed'} />
-						{formatAddressInline(address) && <DetailRow label="Address" value={formatAddressInline(address)} />}
+						{formatAddressInline(address) && (
+							<DetailRow label="Address" value={formatAddressInline(address)} />
+						)}
 					</Section>
 				)}
 
@@ -160,7 +165,7 @@ export default function PartyDetailDialog({ open, onClose, claimParty }: PartyDe
 				{/* Claim Party Notes */}
 				{freshClaimParty.notes && (
 					<Section title="Linking Notes">
-						<span style={{ fontSize: 13,  color: 'var(--text-secondary)'  }}>
+						<span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
 							{freshClaimParty.notes}
 						</span>
 					</Section>
@@ -218,22 +223,26 @@ interface SectionProps {
 function Section({ title, editLabel, onEdit, children }: SectionProps) {
 	return (
 		<div>
-			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-				<span style={{ fontSize: 12, fontWeight: 600 }}>
-					{title}
-				</span>
+			<div
+				style={{
+					display: 'flex',
+					justifyContent: 'space-between',
+					alignItems: 'center',
+					marginBottom: 8,
+				}}
+			>
+				<span style={{ fontSize: 12, fontWeight: 600 }}>{title}</span>
 				{editLabel && onEdit && (
 					<span
-						onClick={onEdit} style={{ fontSize: 12, color: 'var(--text-accent)',
-							cursor: 'pointer', }}>
+						onClick={onEdit}
+						style={{ fontSize: 12, color: 'var(--text-accent)', cursor: 'pointer' }}
+					>
 						{editLabel}
 					</span>
 				)}
 			</div>
 			<Divider />
-			<div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-				{children}
-			</div>
+			<div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>{children}</div>
 		</div>
 	);
 }
@@ -246,14 +255,8 @@ interface DetailRowProps {
 function DetailRow({ label, value }: DetailRowProps) {
 	return (
 		<div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-			<span style={{ fontSize: 13,  color: 'var(--text-secondary)', minWidth: 100  }}>
-				{label}:
-			</span>
-			{typeof value === 'string' ? (
-				<span style={{ fontSize: 13 }}>{value}</span>
-			) : (
-				value
-			)}
+			<span style={{ fontSize: 13, color: 'var(--text-secondary)', minWidth: 100 }}>{label}:</span>
+			{typeof value === 'string' ? <span style={{ fontSize: 13 }}>{value}</span> : value}
 		</div>
 	);
 }

@@ -23,33 +23,26 @@ export default function CardioLoadingIndicator({
 }: CardioLoadingIndicatorProps) {
 	const content = (
 		<>
-			{message && (
-				<p className={styles.message}>
-					{message}
-				</p>
-			)}
-			<Cardio size={size.toString()} stroke={stroke.toString()} speed={speed.toString()} color="var(--text-accent)" />
+			{message && <p className={styles.message}>{message}</p>}
+			<Cardio
+				size={size.toString()}
+				stroke={stroke.toString()}
+				speed={speed.toString()}
+				color="var(--text-accent)"
+			/>
 		</>
 	);
 
 	const cardContent = showCard ? (
 		<div className={styles.card}>
-			<div className={styles.center}>
-				{content}
-			</div>
+			<div className={styles.center}>{content}</div>
 		</div>
 	) : (
-		<div className={styles.center}>
-			{content}
-		</div>
+		<div className={styles.center}>{content}</div>
 	);
 
 	if (fullScreen) {
-		return (
-			<div className={styles.fullScreen}>
-				{cardContent}
-			</div>
-		);
+		return <div className={styles.fullScreen}>{cardContent}</div>;
 	}
 
 	return cardContent;

@@ -132,7 +132,8 @@ export default function Feeds() {
 			),
 			cell: ({ row: { original: row } }: any) => (
 				<span style={{ fontSize: 13 }}>
-					{formatHour(row.schedule)} {row.schedule < 5 || row.schedule >= 19 ? '(nightly)' : '(daily)'}
+					{formatHour(row.schedule)}{' '}
+					{row.schedule < 5 || row.schedule >= 19 ? '(nightly)' : '(daily)'}
 				</span>
 			),
 		},
@@ -164,8 +165,16 @@ export default function Feeds() {
 				padding="md"
 				style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}
 			>
-				<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
-					Feeds are data sources that import claims into the system. Configure feed connections and monitor their status.
+				<p
+					style={{
+						color: 'var(--text-secondary)',
+						fontSize: 13,
+						margin: '0 0 12px',
+						lineHeight: 1.5,
+					}}
+				>
+					Feeds are data sources that import claims into the system. Configure feed connections and
+					monitor their status.
 				</p>
 				<Toolbar
 					left={undefined}

@@ -133,12 +133,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
 					{label && <label className={styles.label}>{label}</label>}
 					<div className={textareaWrapperClassNames} style={{ minHeight, ...style }}>
 						{startAdornment && <span className={styles.textareaAdornment}>{startAdornment}</span>}
-						<textarea
-							ref={ref}
-							className={styles.textareaInner}
-							disabled={disabled}
-							{...props}
-						/>
+						<textarea ref={ref} className={styles.textareaInner} disabled={disabled} {...props} />
 						{endAdornment && <span className={styles.textareaAdornment}>{endAdornment}</span>}
 					</div>
 					{error && errorText ? (
@@ -150,11 +145,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
 			);
 		}
 
-		const textareaClassNames = [
-			styles.textarea,
-			error && styles.error,
-			disabled && styles.disabled,
-		]
+		const textareaClassNames = [styles.textarea, error && styles.error, disabled && styles.disabled]
 			.filter(Boolean)
 			.join(' ');
 

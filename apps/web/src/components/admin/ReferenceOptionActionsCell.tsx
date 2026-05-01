@@ -42,7 +42,8 @@ export default function ReferenceOptionActionsCell(params: ReferenceOptionAction
 			}
 			setShowDeleteConfirm(false);
 		} catch (error: any) {
-			const message = error?.message || `Failed to ${isDeleted ? 'reactivate' : 'deactivate'} option`;
+			const message =
+				error?.message || `Failed to ${isDeleted ? 'reactivate' : 'deactivate'} option`;
 			showAlert(message, 'error');
 			setShowDeleteConfirm(false);
 		}
@@ -69,7 +70,7 @@ export default function ReferenceOptionActionsCell(params: ReferenceOptionAction
 					onClose={() => setShowDeleteConfirm(false)}
 					width={500}
 				>
-					<span style={{  fontStyle: 'italic' ,  fontWeight: 'bold'  }}>
+					<span style={{ fontStyle: 'italic', fontWeight: 'bold' }}>
 						Are you sure you want to {isDeleted ? 'reactivate' : 'deactivate'} this option?
 					</span>
 					<span style={{ paddingTop: '10px', fontStyle: 'italic' }}>
@@ -83,24 +84,41 @@ export default function ReferenceOptionActionsCell(params: ReferenceOptionAction
 			<div style={styles.container}>
 				<div style={{ marginRight: '10px' }}>
 					<Tooltip content="isDeleted ? 'Cannot edit deactivated option' : 'Edit option'">
-							<Button variant="icon" size="sm" color="neutral" onClick={() => setEditing(true)} disabled={isDeleted}>
+						<Button
+							variant="icon"
+							size="sm"
+							color="neutral"
+							onClick={() => setEditing(true)}
+							disabled={isDeleted}
+						>
 							<IconEdit size={15} />
 						</Button>
-						</Tooltip>
+					</Tooltip>
 				</div>
-				<Tooltip content="isSystemDefault && !isDeleted
+				<Tooltip
+					content="isSystemDefault && !isDeleted
 							? 'Cannot deactivate system default'
 							: isDeleted
 								? 'Reactivate option'
-								: 'Deactivate option'">
-							<Button variant="icon" size="sm" color="neutral" onClick={() => setShowDeleteConfirm(true)} disabled={isPending || (!isDeleted && isSystemDefault)}>
-							isDeleted ? (
-							<IconTrashOff size={15} style={{ color: 'var(--status-success)' }} />
+								: 'Deactivate option'"
+				>
+					<Button
+						variant="icon"
+						size="sm"
+						color="neutral"
+						onClick={() => setShowDeleteConfirm(true)}
+						disabled={isPending || (!isDeleted && isSystemDefault)}
+					>
+						isDeleted ? (
+						<IconTrashOff size={15} style={{ color: 'var(--status-success)' }} />
 						) : (
-							<IconTrash size={15} style={{ color: isSystemDefault ? '#bdbdbd' : 'var(--status-error)', }} />
+						<IconTrash
+							size={15}
+							style={{ color: isSystemDefault ? '#bdbdbd' : 'var(--status-error)' }}
+						/>
 						)
-						</Button>
-						</Tooltip>
+					</Button>
+				</Tooltip>
 			</div>
 		</>
 	);

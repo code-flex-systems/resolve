@@ -128,11 +128,7 @@ export default function CommandPalette() {
 	return (
 		<>
 			{/* Trigger button rendered in the header */}
-			<button
-				className="cmdkSearchHint"
-				onClick={() => setOpen(true)}
-				type="button"
-			>
+			<button className="cmdkSearchHint" onClick={() => setOpen(true)} type="button">
 				<IconSearch size={14} />
 				<span>Search</span>
 				<kbd>{isMac ? '\u2318' : 'Ctrl+'}K</kbd>
@@ -165,23 +161,16 @@ export default function CommandPalette() {
 					)}
 
 					{Object.entries(grouped).map(([type, items]) => (
-						<Command.Group
-							key={type}
-							heading={RESOURCE_LABELS[type] ?? type}
-						>
+						<Command.Group key={type} heading={RESOURCE_LABELS[type] ?? type}>
 							{items.map((result) => (
 								<Command.Item
 									key={result.id}
 									value={result.id}
 									onSelect={() => handleSelect(result.url)}
 								>
-									{RESOURCE_ICONS[result.resource_type] ?? (
-										<IconLink size={18} />
-									)}
+									{RESOURCE_ICONS[result.resource_type] ?? <IconLink size={18} />}
 									<div className="cmdkItemContent">
-										<span className="cmdkItemLabel">
-											{result.label}
-										</span>
+										<span className="cmdkItemLabel">{result.label}</span>
 										{result.secondary_label && (
 											<span className="cmdkItemSecondary">
 												{result.linked_resource_type
@@ -191,18 +180,19 @@ export default function CommandPalette() {
 										)}
 										{result.metadata && Object.keys(result.metadata).length > 0 && (
 											<span className="cmdkItemMeta">
-												{Object.entries(result.metadata).slice(0, 3).map(([key, value], i) => (
-													<span key={key}>
-														{i > 0 && ' \u00b7 '}
-														{key}: {value}
-													</span>
-												))}
+												{Object.entries(result.metadata)
+													.slice(0, 3)
+													.map(([key, value], i) => (
+														<span key={key}>
+															{i > 0 && ' \u00b7 '}
+															{key}: {value}
+														</span>
+													))}
 											</span>
 										)}
 									</div>
 									<span className="cmdkItemBadge">
-										{RESOURCE_LABELS[result.resource_type] ??
-											result.resource_type}
+										{RESOURCE_LABELS[result.resource_type] ?? result.resource_type}
 									</span>
 								</Command.Item>
 							))}

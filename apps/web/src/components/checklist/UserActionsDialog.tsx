@@ -72,8 +72,15 @@ export default function UserActionsDialog() {
 		watch,
 	} = useForm<
 		{
-			recipients: { email: string; first: string; last: string; id?: string; phone?: string | null }[];
-		} & ActionInput>({ mode: 'onChange' });
+			recipients: {
+				email: string;
+				first: string;
+				last: string;
+				id?: string;
+				phone?: string | null;
+			}[];
+		} & ActionInput
+	>({ mode: 'onChange' });
 	const recipients = watch('recipients');
 	const actionType = watch('type');
 
@@ -109,8 +116,16 @@ export default function UserActionsDialog() {
 			onClose={toggleActionDialog}
 			closeDisabled={isCreating}
 			width={800}
-			height={600}>
-			<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+			height={600}
+		>
+			<div
+				style={{
+					width: '100%',
+					display: 'flex',
+					justifyContent: 'flex-start',
+					alignItems: 'center',
+				}}
+			>
 				<Controller
 					name="type"
 					control={control}
@@ -138,7 +153,15 @@ export default function UserActionsDialog() {
 			</div>
 			{!!actionType && (
 				<div
-style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', paddingTop: '20px', height: 'fit-content' }}>
+					style={{
+						width: '100%',
+						display: 'flex',
+						justifyContent: 'flex-start',
+						alignItems: 'flex-start',
+						paddingTop: '20px',
+						height: 'fit-content',
+					}}
+				>
 					{actionType === ActionType.EMAIL && (
 						<>
 							<BasicAutocomplete

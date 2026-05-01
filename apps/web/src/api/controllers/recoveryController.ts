@@ -31,12 +31,20 @@ export async function createRecoveryEvent(
 		const event = await recoveryQueries.createRecoveryEvent({ ...ctx, db: trx }, claimId, params);
 
 		// Log recovery event creation
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: event.id,
-			entityName: EntityName.RECOVERY_EVENT,
-			action: AdminAction.CREATE,
-			value: { claimId, recovery_amount: event.recovery_amount, recovery_date: event.recovery_date, recovery_source: event.recovery_source },
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: event.id,
+				entityName: EntityName.RECOVERY_EVENT,
+				action: AdminAction.CREATE,
+				value: {
+					claimId,
+					recovery_amount: event.recovery_amount,
+					recovery_date: event.recovery_date,
+					recovery_source: event.recovery_source,
+				},
+			}
+		);
 
 		return event;
 	});
@@ -51,10 +59,7 @@ export async function createRecoveryEvent(
  * @param input - claim id
  * @returns list of recovery events
  */
-export async function listRecoveryEvents(
-	ctx: ProtectedContext,
-	{ claimId }: { claimId: string }
-) {
+export async function listRecoveryEvents(ctx: ProtectedContext, { claimId }: { claimId: string }) {
 	return await recoveryQueries.getRecoveryEvents(ctx, claimId);
 }
 
@@ -77,20 +82,27 @@ export async function deleteRecoveryEvent(
 	// Archive recovery event and log admin action within transaction
 	await ctx.db.transaction().execute(async (trx) => {
 		// Archive returns all fields needed for logging - no separate fetch required
-		const archived = await recoveryQueries.archiveRecoveryEvent({ ...ctx, db: trx }, recoveryEventId, claimId);
+		const archived = await recoveryQueries.archiveRecoveryEvent(
+			{ ...ctx, db: trx },
+			recoveryEventId,
+			claimId
+		);
 
 		// Log admin action using returned data
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: archived.id,
-			entityName: EntityName.RECOVERY_EVENT,
-			action: AdminAction.DELETE,
-			value: {
-				claimId: archived.claim_id,
-				recovery_amount: archived.recovery_amount,
-				recovery_date: archived.recovery_date,
-				recovery_source: archived.recovery_source,
-			},
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: archived.id,
+				entityName: EntityName.RECOVERY_EVENT,
+				action: AdminAction.DELETE,
+				value: {
+					claimId: archived.claim_id,
+					recovery_amount: archived.recovery_amount,
+					recovery_date: archived.recovery_date,
+					recovery_source: archived.recovery_source,
+				},
+			}
+		);
 	});
 }
 
@@ -113,15 +125,26 @@ export async function updateRecoveryEvent(
 ) {
 	// Update recovery event and log admin action within transaction
 	const updated = await ctx.db.transaction().execute(async (trx) => {
-		const event = await recoveryQueries.updateRecoveryEvent({ ...ctx, db: trx }, recoveryEventId, params);
+		const event = await recoveryQueries.updateRecoveryEvent(
+			{ ...ctx, db: trx },
+			recoveryEventId,
+			params
+		);
 
 		// Log admin action
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: recoveryEventId,
-			entityName: EntityName.RECOVERY_EVENT,
-			action: AdminAction.UPDATE,
-			value: { recovery_amount: event.recovery_amount, recovery_date: event.recovery_date, recovery_source: event.recovery_source },
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: recoveryEventId,
+				entityName: EntityName.RECOVERY_EVENT,
+				action: AdminAction.UPDATE,
+				value: {
+					recovery_amount: event.recovery_amount,
+					recovery_date: event.recovery_date,
+					recovery_source: event.recovery_source,
+				},
+			}
+		);
 
 		return event;
 	});

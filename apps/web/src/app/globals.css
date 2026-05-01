@@ -249,7 +249,9 @@ body {
 	overflow: hidden !important;
 }
 
-.MuiTextField-root:not(:has(.MuiInputLabel-root:not(:empty))) .MuiOutlinedInput-notchedOutline legend {
+.MuiTextField-root:not(:has(.MuiInputLabel-root:not(:empty)))
+	.MuiOutlinedInput-notchedOutline
+	legend {
 	padding: 0 !important;
 	max-width: 0 !important;
 	width: 0 !important;

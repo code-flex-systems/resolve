@@ -28,22 +28,29 @@ export async function createSettlement(
 ) {
 	// Create settlement and log admin action within transaction
 	const created = await ctx.db.transaction().execute(async (trx) => {
-		const settlement = await settlementQueries.createSettlement({ ...ctx, db: trx }, claimId, params);
+		const settlement = await settlementQueries.createSettlement(
+			{ ...ctx, db: trx },
+			claimId,
+			params
+		);
 
 		// Log settlement creation
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: settlement.id,
-			entityName: EntityName.SETTLEMENT,
-			action: AdminAction.CREATE,
-			value: {
-				claimId,
-				claim_party_id: settlement.claim_party_id,
-				coverage_id: settlement.coverage_id,
-				demand_amount: settlement.demand_amount,
-				demand_date: settlement.demand_date,
-				status: settlement.status,
-			},
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: settlement.id,
+				entityName: EntityName.SETTLEMENT,
+				action: AdminAction.CREATE,
+				value: {
+					claimId,
+					claim_party_id: settlement.claim_party_id,
+					coverage_id: settlement.coverage_id,
+					demand_amount: settlement.demand_amount,
+					demand_date: settlement.demand_date,
+					status: settlement.status,
+				},
+			}
+		);
 
 		return settlement;
 	});
@@ -72,10 +79,7 @@ export async function getSettlement(
  * @param input - claim id
  * @returns list of settlements with party and coverage details
  */
-export async function listSettlements(
-	ctx: ProtectedContext,
-	{ claimId }: { claimId: string }
-) {
+export async function listSettlements(ctx: ProtectedContext, { claimId }: { claimId: string }) {
 	return await settlementQueries.getSettlementsByClaimId(ctx, claimId);
 }
 
@@ -112,15 +116,22 @@ export async function updateSettlement(
 ) {
 	// Update settlement and log admin action within transaction
 	const updated = await ctx.db.transaction().execute(async (trx) => {
-		const settlement = await settlementQueries.updateSettlement({ ...ctx, db: trx }, settlementId, params);
+		const settlement = await settlementQueries.updateSettlement(
+			{ ...ctx, db: trx },
+			settlementId,
+			params
+		);
 
 		// Log settlement update
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: settlement.id,
-			entityName: EntityName.SETTLEMENT,
-			action: AdminAction.UPDATE,
-			value: params,
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: settlement.id,
+				entityName: EntityName.SETTLEMENT,
+				action: AdminAction.UPDATE,
+				value: params,
+			}
+		);
 
 		return settlement;
 	});
@@ -149,10 +160,18 @@ export async function deleteSettlement(
 		const trxCtx = { ...ctx, db: trx };
 
 		// Bulk archive recovery events - returns all archived data via RETURNING, updates claim.actual_recovery
-		const archivedEvents = await recoveryQueries.archiveRecoveryEventsForSettlement(trxCtx, settlementId, claimId);
+		const archivedEvents = await recoveryQueries.archiveRecoveryEventsForSettlement(
+			trxCtx,
+			settlementId,
+			claimId
+		);
 
 		// Archive settlement - returns all fields via RETURNING
-		const archivedSettlement = await settlementQueries.archiveSettlement(trxCtx, settlementId, claimId);
+		const archivedSettlement = await settlementQueries.archiveSettlement(
+			trxCtx,
+			settlementId,
+			claimId
+		);
 
 		// Calculate total for settlement log
 		const totalRecoveryDeducted = archivedEvents.reduce(
@@ -162,19 +181,22 @@ export async function deleteSettlement(
 
 		// Bulk log recovery event deletions (if any)
 		if (archivedEvents.length > 0) {
-			await logAdminActions(trxCtx, archivedEvents.map(event => ({
-				entityId: event.id,
-				entityName: EntityName.RECOVERY_EVENT,
-				action: AdminAction.DELETE,
-				value: {
-					claimId: event.claim_id,
-					settlementId,
-					recovery_amount: event.recovery_amount,
-					recovery_date: event.recovery_date,
-					recovery_source: event.recovery_source,
-					reason: 'Cascade from settlement archive',
-				},
-			})));
+			await logAdminActions(
+				trxCtx,
+				archivedEvents.map((event) => ({
+					entityId: event.id,
+					entityName: EntityName.RECOVERY_EVENT,
+					action: AdminAction.DELETE,
+					value: {
+						claimId: event.claim_id,
+						settlementId,
+						recovery_amount: event.recovery_amount,
+						recovery_date: event.recovery_date,
+						recovery_source: event.recovery_source,
+						reason: 'Cascade from settlement archive',
+					},
+				}))
+			);
 		}
 
 		// Log settlement archive

@@ -1,6 +1,15 @@
 'use client';
 
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
+import {
+	BarChart,
+	Bar,
+	XAxis,
+	YAxis,
+	Tooltip,
+	Legend,
+	ResponsiveContainer,
+	CartesianGrid,
+} from 'recharts';
 import Card from '@/components/ui/Card';
 import { formatCurrency } from '@/lib/utils/recoveryUtils';
 import type { NetRecoveryByLob } from '@/hooks/trpc/useFinancialReportingTrpc';

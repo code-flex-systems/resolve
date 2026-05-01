@@ -81,7 +81,10 @@ export function getFileExtension(filename: string): string {
 /**
  * Validate a file based on both MIME type and extension
  */
-export function validateFileType(filename: string, mimeType: string): {
+export function validateFileType(
+	filename: string,
+	mimeType: string
+): {
 	valid: boolean;
 	reason?: string;
 } {

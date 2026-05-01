@@ -16,10 +16,7 @@ import { Kysely, sql } from 'kysely';
 
 export async function up(db: Kysely<any>): Promise<void> {
 	// 1. Add external_reference to claim_party for feed matching
-	await db.schema
-		.alterTable('claim_party')
-		.addColumn('external_reference', 'text')
-		.execute();
+	await db.schema.alterTable('claim_party').addColumn('external_reference', 'text').execute();
 
 	await db.schema
 		.createIndex('idx_claim_party_external_ref')
@@ -197,39 +194,25 @@ export async function up(db: Kysely<any>): Promise<void> {
 	await db.schema.dropIndex('idx_claim_party_coverage_type').ifExists().execute();
 
 	// 7. Drop CHECK constraints from claim_party
-	await sql`ALTER TABLE claim_party DROP CONSTRAINT IF EXISTS claim_party_line_of_business_check`.execute(db);
-	await sql`ALTER TABLE claim_party DROP CONSTRAINT IF EXISTS claim_party_coverage_type_check`.execute(db);
+	await sql`ALTER TABLE claim_party DROP CONSTRAINT IF EXISTS claim_party_line_of_business_check`.execute(
+		db
+	);
+	await sql`ALTER TABLE claim_party DROP CONSTRAINT IF EXISTS claim_party_coverage_type_check`.execute(
+		db
+	);
 
 	// 8. Drop liability columns from claim_party
-	await db.schema
-		.alterTable('claim_party')
-		.dropColumn('liability_percentage')
-		.execute();
+	await db.schema.alterTable('claim_party').dropColumn('liability_percentage').execute();
 
-	await db.schema
-		.alterTable('claim_party')
-		.dropColumn('coverage_amount')
-		.execute();
+	await db.schema.alterTable('claim_party').dropColumn('coverage_amount').execute();
 
-	await db.schema
-		.alterTable('claim_party')
-		.dropColumn('line_of_business')
-		.execute();
+	await db.schema.alterTable('claim_party').dropColumn('line_of_business').execute();
 
-	await db.schema
-		.alterTable('claim_party')
-		.dropColumn('coverage_type')
-		.execute();
+	await db.schema.alterTable('claim_party').dropColumn('coverage_type').execute();
 
-	await db.schema
-		.alterTable('claim_party')
-		.dropColumn('paid_recovery')
-		.execute();
+	await db.schema.alterTable('claim_party').dropColumn('paid_recovery').execute();
 
-	await db.schema
-		.alterTable('claim_party')
-		.dropColumn('reserved_recovery')
-		.execute();
+	await db.schema.alterTable('claim_party').dropColumn('reserved_recovery').execute();
 
 	// 9. Drop unique constraint from claim_party (allows multiple liabilities per party-role)
 	await sql`ALTER TABLE claim_party DROP CONSTRAINT IF EXISTS unique_claim_party_role`.execute(db);
@@ -239,24 +222,28 @@ export async function up(db: Kysely<any>): Promise<void> {
 	await sql`ALTER TABLE claim DROP COLUMN IF EXISTS reserved_recovery`.execute(db);
 
 	// 11. Add column comments
-	await sql`COMMENT ON COLUMN claim_party.external_reference IS 'External ID from source system for feed matching'`.execute(db);
-	await sql`COMMENT ON COLUMN claim_liability.feed_id IS 'Which feed sourced this liability'`.execute(db);
-	await sql`COMMENT ON COLUMN claim_liability.external_reference IS 'External ID from source system (for upsert logic)'`.execute(db);
-	await sql`COMMENT ON COLUMN claim_liability.last_synced_at IS 'When feed last updated this record'`.execute(db);
-	await sql`COMMENT ON COLUMN claim_liability.manually_overridden IS 'User edited after feed sync - prevents feed overwrites'`.execute(db);
+	await sql`COMMENT ON COLUMN claim_party.external_reference IS 'External ID from source system for feed matching'`.execute(
+		db
+	);
+	await sql`COMMENT ON COLUMN claim_liability.feed_id IS 'Which feed sourced this liability'`.execute(
+		db
+	);
+	await sql`COMMENT ON COLUMN claim_liability.external_reference IS 'External ID from source system (for upsert logic)'`.execute(
+		db
+	);
+	await sql`COMMENT ON COLUMN claim_liability.last_synced_at IS 'When feed last updated this record'`.execute(
+		db
+	);
+	await sql`COMMENT ON COLUMN claim_liability.manually_overridden IS 'User edited after feed sync - prevents feed overwrites'`.execute(
+		db
+	);
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
 	// 1. Restore paid_recovery and reserved_recovery to claim table
-	await db.schema
-		.alterTable('claim')
-		.addColumn('paid_recovery', 'numeric')
-		.execute();
+	await db.schema.alterTable('claim').addColumn('paid_recovery', 'numeric').execute();
 
-	await db.schema
-		.alterTable('claim')
-		.addColumn('reserved_recovery', 'numeric')
-		.execute();
+	await db.schema.alterTable('claim').addColumn('reserved_recovery', 'numeric').execute();
 
 	// 2. Restore unique constraint on claim_party
 	await sql`
@@ -343,10 +330,7 @@ export async function down(db: Kysely<any>): Promise<void> {
 	// 7. Drop external_reference from claim_party
 	await db.schema.dropIndex('idx_claim_party_external_ref').ifExists().execute();
 
-	await db.schema
-		.alterTable('claim_party')
-		.dropColumn('external_reference')
-		.execute();
+	await db.schema.alterTable('claim_party').dropColumn('external_reference').execute();
 
 	// 8. Drop claim_liability table (cascade will handle references)
 	await db.schema.dropTable('claim_liability').cascade().execute();

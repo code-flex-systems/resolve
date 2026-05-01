@@ -77,7 +77,11 @@ export default function CapByCarrierTable({ data }: Props) {
 							<tr>
 								<td
 									colSpan={7}
-									style={{ ...cellStyle, textAlign: 'center', color: 'var(--color-text-secondary)' }}
+									style={{
+										...cellStyle,
+										textAlign: 'center',
+										color: 'var(--color-text-secondary)',
+									}}
 								>
 									No carrier data available
 								</td>

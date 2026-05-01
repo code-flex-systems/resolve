@@ -68,11 +68,7 @@ export async function createTestClaim(
 	// pick up claims from a freshly seeded fixture.
 	data.created_at = overrides.created_at ?? new Date();
 
-	return db
-		.insertInto('claim')
-		.values(data)
-		.returningAll()
-		.executeTakeFirstOrThrow();
+	return db.insertInto('claim').values(data).returningAll().executeTakeFirstOrThrow();
 }
 
 // NOTE: createTestClaimParty is defined in party.ts to avoid duplication
@@ -102,9 +98,5 @@ export async function createTestClaimCoverage(
 		created_by: overrides.created_by ?? null,
 	};
 
-	return db
-		.insertInto('claim_coverage')
-		.values(data)
-		.returningAll()
-		.executeTakeFirstOrThrow();
+	return db.insertInto('claim_coverage').values(data).returningAll().executeTakeFirstOrThrow();
 }

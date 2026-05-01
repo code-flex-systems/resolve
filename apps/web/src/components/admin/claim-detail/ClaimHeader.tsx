@@ -1,6 +1,12 @@
 'use client';
 
-import { IconArchive, IconArrowLeft, IconClipboard, IconEdit, IconPrinter } from '@tabler/icons-react';
+import {
+	IconArchive,
+	IconArrowLeft,
+	IconClipboard,
+	IconEdit,
+	IconPrinter,
+} from '@tabler/icons-react';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Skeleton from '@/components/ui/Skeleton';
@@ -44,52 +50,47 @@ export default function ClaimHeader({ claimId, onEdit }: { claimId: string; onEd
 	return (
 		<div style={styles.container}>
 			{/* Main Header Content */}
-			<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+			<div
+				style={{
+					display: 'flex',
+					justifyContent: 'space-between',
+					alignItems: 'flex-start',
+					flexWrap: 'wrap',
+				}}
+			>
 				{/* Left: Claim Number and Insured */}
 				<div>
 					<div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
 						<Button variant="icon" onClick={() => router.back()}>
 							<IconArrowLeft size={20} />
 						</Button>
-						<span style={{ color: 'var(--text-accent)' }}>
-							{claimDetail.claim_number}
-						</span>
+						<span style={{ color: 'var(--text-accent)' }}>{claimDetail.claim_number}</span>
 					</div>
-					<span style={{ color: 'var(--text-secondary)' }}>
-						{claimDetail.insured || 'N/A'}
-					</span>
+					<span style={{ color: 'var(--text-secondary)' }}>{claimDetail.insured || 'N/A'}</span>
 				</div>
 
 				{/* Right: Key Metrics */}
 				<div style={{ display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}>
 					<div style={{ display: 'flex', flexDirection: 'column' as const }}>
-						<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-							Claim Amount
-						</span>
+						<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Claim Amount</span>
 						<span style={{ fontSize: 18 }}>
 							{formatCurrencyExact(Number(claimDetail.claim_amount) || 0)}
 						</span>
 					</div>
 					<div style={{ display: 'flex', flexDirection: 'column' as const }}>
-						<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-							Total Incurred
-						</span>
+						<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Total Incurred</span>
 						<span style={{ fontSize: 18 }}>
 							{formatCurrencyExact(Number(claimDetail.total_incurred) || 0)}
 						</span>
 					</div>
 					<div style={{ display: 'flex', flexDirection: 'column' as const }}>
-						<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-							Expected Recovery
-						</span>
+						<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Expected Recovery</span>
 						<span style={{ fontSize: 18 }}>
 							{formatCurrencyExact(Number(claimDetail.expected_recovery) || 0)}
 						</span>
 					</div>
 					<div style={{ display: 'flex', flexDirection: 'column' as const }}>
-						<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-							Actual Recovery
-						</span>
+						<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Actual Recovery</span>
 						<span style={{ fontSize: 18 }}>
 							{formatCurrencyExact(Number(claimDetail.actual_recovery) || 0)}
 						</span>
@@ -99,7 +100,15 @@ export default function ClaimHeader({ claimId, onEdit }: { claimId: string; onEd
 
 			{/* Action Toolbar */}
 			<div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginTop: 16 }}>
-				<div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'flex-start', alignItems: 'center' }}>
+				<div
+					style={{
+						display: 'flex',
+						flexWrap: 'wrap',
+						gap: 8,
+						justifyContent: 'flex-start',
+						alignItems: 'center',
+					}}
+				>
 					{claimDetail.line_of_business && (
 						<LineOfBusinessChip value={claimDetail.line_of_business} />
 					)}
@@ -108,7 +117,10 @@ export default function ClaimHeader({ claimId, onEdit }: { claimId: string; onEd
 						claimDetail.aggregated_loss_type.map((lt: string) => (
 							<LossTypeChip key={lt} value={lt} />
 						))}
-					<ClaimStatusChip recoveryStatus={claimDetail.recovery_status} substatus={claimDetail.substatus} />
+					<ClaimStatusChip
+						recoveryStatus={claimDetail.recovery_status}
+						substatus={claimDetail.substatus}
+					/>
 					{claimDetail.feed_name && (
 						<Chip size="sm" variant="outlined">{`Feed: ${claimDetail.feed_name}`}</Chip>
 					)}

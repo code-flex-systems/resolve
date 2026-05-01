@@ -1,6 +1,11 @@
 import * as docQueries from '@/api/queries/docQueries';
 import { ProtectedContext } from '@/server/trpc/trpc';
-import type { DocParams, UpdateDocParams, DocGroupParams, UpdateDocGroupParams } from '@/schemas/docSchemas';
+import type {
+	DocParams,
+	UpdateDocParams,
+	DocGroupParams,
+	UpdateDocGroupParams,
+} from '@/schemas/docSchemas';
 import * as blobStorage from '@/lib/azure/blobStorage';
 import { logAdminAction, logAdminActions, AdminAction } from '@/api/utils/adminActionLogger';
 import { EntityName } from '@/api/utils/activityLogger';
@@ -35,25 +40,31 @@ export async function createDoc(
 		// If autoOrganize is true, set doc_group_id to the user's folder
 		let finalParams = params;
 		if (autoOrganize) {
-			const userFolderId = await docQueries.getOrCreateUserFolder({ ...ctx, db: trx }, ctx.session.user.id);
+			const userFolderId = await docQueries.getOrCreateUserFolder(
+				{ ...ctx, db: trx },
+				ctx.session.user.id
+			);
 			finalParams = { ...params, doc_group_id: userFolderId };
 		}
 
 		const doc = await docQueries.createDoc({ ...ctx, db: trx }, finalParams, storageKey);
 
 		// Log document creation
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: doc.id,
-			entityName: EntityName.DOCUMENT,
-			action: AdminAction.CREATE,
-			value: {
-				filename: doc.filename,
-				alias: doc.alias,
-				doc_type: doc.doc_type,
-				claim_id: doc.claim_id,
-				doc_group_id: doc.doc_group_id,
-			},
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: doc.id,
+				entityName: EntityName.DOCUMENT,
+				action: AdminAction.CREATE,
+				value: {
+					filename: doc.filename,
+					alias: doc.alias,
+					doc_type: doc.doc_type,
+					claim_id: doc.claim_id,
+					doc_group_id: doc.doc_group_id,
+				},
+			}
+		);
 
 		return doc;
 	});
@@ -68,10 +79,7 @@ export async function createDoc(
  * @param input - document id
  * @returns the document
  */
-export async function getDoc(
-	ctx: ProtectedContext,
-	{ docId }: { docId: string }
-) {
+export async function getDoc(ctx: ProtectedContext, { docId }: { docId: string }) {
 	return await docQueries.getDoc(ctx, docId);
 }
 
@@ -124,12 +132,15 @@ export async function updateDoc(
 		const doc = await docQueries.updateDoc({ ...ctx, db: trx }, docId, params);
 
 		// Log admin action for document update
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: docId,
-			entityName: EntityName.DOCUMENT,
-			action: AdminAction.UPDATE,
-			value: params,
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: docId,
+				entityName: EntityName.DOCUMENT,
+				action: AdminAction.UPDATE,
+				value: params,
+			}
+		);
 
 		return doc;
 	});
@@ -144,10 +155,7 @@ export async function updateDoc(
  * @param ctx - request context
  * @param input - document id
  */
-export async function deleteDoc(
-	ctx: ProtectedContext,
-	{ docId }: { docId: string }
-) {
+export async function deleteDoc(ctx: ProtectedContext, { docId }: { docId: string }) {
 	// Archive document and log admin action within transaction
 	await ctx.db.transaction().execute(async (trx) => {
 		const trxCtx = { ...ctx, db: trx };
@@ -184,10 +192,7 @@ export async function deleteDoc(
  * @param input - document id
  * @returns file buffer and metadata
  */
-export async function downloadDoc(
-	ctx: ProtectedContext,
-	{ docId }: { docId: string }
-) {
+export async function downloadDoc(ctx: ProtectedContext, { docId }: { docId: string }) {
 	// Get document metadata
 	const doc = await docQueries.getDoc(ctx, docId);
 
@@ -221,17 +226,20 @@ export async function createDocGroup(
 		const group = await docQueries.createDocGroup({ ...ctx, db: trx }, params);
 
 		// Log doc group creation
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: group.id,
-			entityName: EntityName.DOC_GROUP,
-			action: AdminAction.CREATE,
-			value: {
-				name: group.name,
-				group_type: group.group_type,
-				parent_group_id: group.parent_group_id,
-				claim_id: group.claim_id,
-			},
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: group.id,
+				entityName: EntityName.DOC_GROUP,
+				action: AdminAction.CREATE,
+				value: {
+					name: group.name,
+					group_type: group.group_type,
+					parent_group_id: group.parent_group_id,
+					claim_id: group.claim_id,
+				},
+			}
+		);
 
 		return group;
 	});
@@ -246,10 +254,7 @@ export async function createDocGroup(
  * @param input - group id
  * @returns the group
  */
-export async function getDocGroup(
-	ctx: ProtectedContext,
-	{ groupId }: { groupId: string }
-) {
+export async function getDocGroup(ctx: ProtectedContext, { groupId }: { groupId: string }) {
 	return await docQueries.getDocGroup(ctx, groupId);
 }
 
@@ -295,12 +300,15 @@ export async function updateDocGroup(
 		const group = await docQueries.updateDocGroup({ ...ctx, db: trx }, groupId, params);
 
 		// Log admin action for doc group update
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: groupId,
-			entityName: EntityName.DOC_GROUP,
-			action: AdminAction.UPDATE,
-			value: params,
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: groupId,
+				entityName: EntityName.DOC_GROUP,
+				action: AdminAction.UPDATE,
+				value: params,
+			}
+		);
 
 		return group;
 	});
@@ -316,10 +324,7 @@ export async function updateDocGroup(
  * @param ctx - request context
  * @param input - group id
  */
-export async function deleteDocGroup(
-	ctx: ProtectedContext,
-	{ groupId }: { groupId: string }
-) {
+export async function deleteDocGroup(ctx: ProtectedContext, { groupId }: { groupId: string }) {
 	// Archive doc group and log admin action within transaction
 	await ctx.db.transaction().execute(async (trx) => {
 		const trxCtx = { ...ctx, db: trx };

@@ -17,7 +17,11 @@ interface TaskCancellationDialogProps {
 	onCancelled?: () => void;
 }
 
-export default function TaskCancellationDialog({ task, onClose, onCancelled }: TaskCancellationDialogProps) {
+export default function TaskCancellationDialog({
+	task,
+	onClose,
+	onCancelled,
+}: TaskCancellationDialogProps) {
 	const showAlert = useAlertStore((state) => state.showAlert);
 	const { mutateAsync: cancelTask, isPending } = useTaskTrpc().cancel;
 
@@ -69,7 +73,15 @@ export default function TaskCancellationDialog({ task, onClose, onCancelled }: T
 			onClose={onClose}
 			width={450}
 		>
-			<div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+			<div
+				style={{
+					width: '100%',
+					display: 'flex',
+					flexDirection: 'column',
+					alignItems: 'center',
+					gap: 16,
+				}}
+			>
 				<p style={{ fontSize: 14, width: 380, marginBottom: 8 }}>
 					<strong>Task:</strong> {task.title}
 				</p>

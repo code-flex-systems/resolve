@@ -27,18 +27,11 @@ export default function SettlementFunnelChart({ data }: SettlementFunnelChartPro
 
 	return (
 		<Card variant="beveled" padding="none" style={{ padding: '24px' }}>
-			<h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 600 }}>
-				Settlement Funnel
-			</h3>
+			<h3 style={{ margin: '0 0 16px', fontSize: '16px', fontWeight: 600 }}>Settlement Funnel</h3>
 			<ResponsiveContainer width="100%" height={350}>
 				<BarChart data={chartData} layout="vertical" barCategoryGap="20%">
 					<XAxis type="number" tick={{ fontSize: 11 }} />
-					<YAxis
-						dataKey="label"
-						type="category"
-						width={140}
-						tick={{ fontSize: 11 }}
-					/>
+					<YAxis dataKey="label" type="category" width={140} tick={{ fontSize: 11 }} />
 					<Tooltip
 						content={({ active, payload }) => {
 							if (!active || !payload?.length) return null;

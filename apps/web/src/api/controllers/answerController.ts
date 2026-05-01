@@ -26,15 +26,23 @@ export async function createAnswer(
 ) {
 	// Create answer and log admin action within transaction
 	const results = await ctx.db.transaction().execute(async (trx) => {
-		const created = await answerQueries.createAnswer({ ...ctx, db: trx }, pageId, questionId, params);
+		const created = await answerQueries.createAnswer(
+			{ ...ctx, db: trx },
+			pageId,
+			questionId,
+			params
+		);
 
 		// Log answer creation
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: created.id,
-			entityName: EntityName.ANSWER,
-			action: AdminAction.CREATE,
-			value: { text: created.text, grade: created.grade, questionId, pageId },
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: created.id,
+				entityName: EntityName.ANSWER,
+				action: AdminAction.CREATE,
+				value: { text: created.text, grade: created.grade, questionId, pageId },
+			}
+		);
 
 		return created;
 	});
@@ -62,15 +70,30 @@ export async function copyAnswer(
 ) {
 	// Copy answer and log admin action within transaction
 	const created = await ctx.db.transaction().execute(async (trx) => {
-		const newAnswer = await answerQueries.copyAnswer({ ...ctx, db: trx }, pageId, questionId, answerId);
+		const newAnswer = await answerQueries.copyAnswer(
+			{ ...ctx, db: trx },
+			pageId,
+			questionId,
+			answerId
+		);
 
 		// Log answer creation (copied from source)
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: newAnswer.id,
-			entityName: EntityName.ANSWER,
-			action: AdminAction.CREATE,
-			value: { text: newAnswer.text, grade: newAnswer.grade, questionId, pageId, sourceAnswerId: answerId, copied: true },
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: newAnswer.id,
+				entityName: EntityName.ANSWER,
+				action: AdminAction.CREATE,
+				value: {
+					text: newAnswer.text,
+					grade: newAnswer.grade,
+					questionId,
+					pageId,
+					sourceAnswerId: answerId,
+					copied: true,
+				},
+			}
+		);
 
 		return newAnswer;
 	});
@@ -84,19 +107,25 @@ export async function copyAnswer(
  * @param ctx - request context
  * @param input - page and answer identifiers
  */
-export async function deleteAnswer(ctx: ProtectedContext, { pageId, answerId }: { pageId: string; answerId: string }) {
+export async function deleteAnswer(
+	ctx: ProtectedContext,
+	{ pageId, answerId }: { pageId: string; answerId: string }
+) {
 	// Delete answer and log admin action within transaction
 	await ctx.db.transaction().execute(async (trx) => {
 		// Delete the answer (uses RETURNING to get fields for logging)
 		const deleted = await answerQueries.deleteAnswer({ ...ctx, db: trx }, pageId, answerId);
 
 		// Log admin action for answer deletion
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: answerId,
-			entityName: EntityName.ANSWER,
-			action: AdminAction.DELETE,
-			value: { text: deleted.text, grade: deleted.grade, questionId: deleted.question_id },
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: answerId,
+				entityName: EntityName.ANSWER,
+				action: AdminAction.DELETE,
+				value: { text: deleted.text, grade: deleted.grade, questionId: deleted.question_id },
+			}
+		);
 	});
 }
 
@@ -136,12 +165,15 @@ export async function modifyAnswer(
 		const updated = await answerQueries.modifyAnswer({ ...ctx, db: trx }, pageId, answerId, params);
 
 		// Log admin action for answer update
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: answerId,
-			entityName: EntityName.ANSWER,
-			action: AdminAction.UPDATE,
-			value: params,
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: answerId,
+				entityName: EntityName.ANSWER,
+				action: AdminAction.UPDATE,
+				value: params,
+			}
+		);
 
 		return updated;
 	});
@@ -156,6 +188,9 @@ export async function modifyAnswer(
  * @param input - checklist id
  * @returns array of answer calls (from instance -> to instance)
  */
-export async function getAnswerCallGraph(ctx: ProtectedContext, { checklistId }: { checklistId: string }) {
+export async function getAnswerCallGraph(
+	ctx: ProtectedContext,
+	{ checklistId }: { checklistId: string }
+) {
 	return await answerQueries.getAnswerCallGraph(ctx, checklistId);
 }

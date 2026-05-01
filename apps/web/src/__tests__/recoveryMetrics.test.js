@@ -25,7 +25,11 @@ async function main() {
 	try {
 		// Get test client and user
 		const client = await db.selectFrom('client').select(['id']).executeTakeFirst();
-		const user = await db.selectFrom('users').select(['id']).where('client_id', '=', client.id).executeTakeFirst();
+		const user = await db
+			.selectFrom('users')
+			.select(['id'])
+			.where('client_id', '=', client.id)
+			.executeTakeFirst();
 
 		console.log(`✓ Using client_id: ${client.id}`);
 		console.log(`✓ Using user_id: ${user.id}\n`);

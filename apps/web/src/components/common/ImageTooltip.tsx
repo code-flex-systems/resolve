@@ -43,9 +43,7 @@ export default function ImageTooltip({
 				<div style={{ padding: 8 }}>
 					{!imageLoaded && (
 						<div style={{ padding: 16, textAlign: 'center' }}>
-							<span style={{ fontSize: 12, color: 'rgba(255,255,255,0.9)' }}>
-								Loading image...
-							</span>
+							<span style={{ fontSize: 12, color: 'rgba(255,255,255,0.9)' }}>Loading image...</span>
 						</div>
 					)}
 					<img
@@ -75,7 +73,10 @@ export default function ImageTooltip({
 			}
 		>
 			<Button variant="icon" size="sm">
-				<IconInfoCircle size={16} style={{ color: imageLoaded ? 'var(--text-accent)' : 'var(--text-secondary)' }} />
+				<IconInfoCircle
+					size={16}
+					style={{ color: imageLoaded ? 'var(--text-accent)' : 'var(--text-secondary)' }}
+				/>
 			</Button>
 		</Tooltip>
 	);

@@ -196,4 +196,3 @@ export async function evaluateConditions(
 		deskLocationId: row.desk_location_id,
 	}));
 }
-

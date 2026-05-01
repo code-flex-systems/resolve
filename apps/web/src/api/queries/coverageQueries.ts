@@ -184,8 +184,7 @@ export async function updateCoverage(
 		updateSet.deductible_amount = params.deductible_amount;
 	if (params.deductible_status !== undefined)
 		updateSet.deductible_status = params.deductible_status;
-	if (params.subro_applicable !== undefined)
-		updateSet.subro_applicable = params.subro_applicable;
+	if (params.subro_applicable !== undefined) updateSet.subro_applicable = params.subro_applicable;
 	if (params.statute_preserved !== undefined)
 		updateSet.statute_preserved = params.statute_preserved;
 
@@ -241,7 +240,9 @@ export async function archiveCoverage(ctx: ProtectedContext, id: string) {
 
 	// Calculate total impact to reverse (reserve + deductible if included)
 	const reserveImpact = coverage.amount_reserved ?? 0;
-	const deductibleImpact = shouldIncludeDeductibleInClaimAmount(coverage.deductible_status as DeductibleStatus)
+	const deductibleImpact = shouldIncludeDeductibleInClaimAmount(
+		coverage.deductible_status as DeductibleStatus
+	)
 		? (coverage.deductible_amount ?? 0)
 		: 0;
 	const totalImpact = Number(reserveImpact) + Number(deductibleImpact);
@@ -281,7 +282,9 @@ export async function deleteCoverage(ctx: ProtectedContext, id: string) {
 
 	// Calculate total impact to reverse (reserve + deductible if included)
 	const reserveImpact = coverage.amount_reserved ?? 0;
-	const deductibleImpact = shouldIncludeDeductibleInClaimAmount(coverage.deductible_status as DeductibleStatus)
+	const deductibleImpact = shouldIncludeDeductibleInClaimAmount(
+		coverage.deductible_status as DeductibleStatus
+	)
 		? (coverage.deductible_amount ?? 0)
 		: 0;
 	const totalImpact = Number(reserveImpact) + Number(deductibleImpact);

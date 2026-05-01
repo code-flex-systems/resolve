@@ -86,7 +86,9 @@ export async function getClerkSession(): Promise<AppSession | null> {
 	}
 
 	// Primary email (required to look up internal user)
-	const email = clerkUser.emailAddresses.find((e) => e.id === clerkUser.primaryEmailAddressId)?.emailAddress || null;
+	const email =
+		clerkUser.emailAddresses.find((e) => e.id === clerkUser.primaryEmailAddressId)?.emailAddress ||
+		null;
 	if (!email) {
 		return null;
 	}
@@ -111,7 +113,8 @@ export async function getClerkSession(): Promise<AppSession | null> {
 	// This handles the case where user signs in before webhook has synced them
 	if (!internalUser) {
 		const clerkPhone =
-			clerkUser.phoneNumbers.find((p) => p.id === clerkUser.primaryPhoneNumberId)?.phoneNumber || null;
+			clerkUser.phoneNumbers.find((p) => p.id === clerkUser.primaryPhoneNumberId)?.phoneNumber ||
+			null;
 
 		internalUser = await createUserFromClerk({
 			email,

@@ -32,22 +32,22 @@ export type UpdateFeedParams = Partial<NewFeedParams>;
  * @returns list of feeds
  */
 export async function getFeeds(ctx: ProtectedContext): Promise<Feed[]> {
-        return await ctx.db
-                .selectFrom('feeds')
-                .selectAll()
-                .where('feeds.client_id', '=', ctx.session.user.client_id)
-                .where('status', '<>', FeedStatus.INACTIVE)
-                .orderBy('name')
-                .execute() as Feed[];
+	return (await ctx.db
+		.selectFrom('feeds')
+		.selectAll()
+		.where('feeds.client_id', '=', ctx.session.user.client_id)
+		.where('status', '<>', FeedStatus.INACTIVE)
+		.orderBy('name')
+		.execute()) as Feed[];
 }
 
 export async function getFeedCount(ctx: ProtectedContext, clientId: string) {
-        const results = await ctx.db
-                .selectFrom('feeds')
-                .select(({ fn }) => ['status', fn.count('id').as('count')])
-                .where('feeds.client_id', '=', clientId)
-                .groupBy('status')
-                .execute();
+	const results = await ctx.db
+		.selectFrom('feeds')
+		.select(({ fn }) => ['status', fn.count('id').as('count')])
+		.where('feeds.client_id', '=', clientId)
+		.groupBy('status')
+		.execute();
 	const formattedResults: Partial<Record<FeedStatus, number>> & { total: number } = {
 		total: 0,
 	};
@@ -68,47 +68,47 @@ export async function getFeedCount(ctx: ProtectedContext, clientId: string) {
  * @returns the feed if found
  */
 export async function getFeed(ctx: ProtectedContext, id: string): Promise<Feed | undefined> {
-        return await ctx.db
-                .selectFrom('feeds')
-                .selectAll()
-                .where('feeds.client_id', '=', ctx.session.user.client_id)
-                .where('id', '=', id)
-                .executeTakeFirst() as Feed | undefined;
+	return (await ctx.db
+		.selectFrom('feeds')
+		.selectAll()
+		.where('feeds.client_id', '=', ctx.session.user.client_id)
+		.where('id', '=', id)
+		.executeTakeFirst()) as Feed | undefined;
 }
 
 export async function getLastSyncedFeed(ctx: ProtectedContext) {
-        return await ctx.db
-                .selectFrom((eb) =>
-                        eb
-                                .selectFrom('feeds')
-                                .innerJoin('claim', 'feeds.id', 'claim.feed_id')
-                                .selectAll('feeds')
-                                .select(({ eb, fn }) =>
-                                        fn
-                                                .sum(
-                                                        eb
-                                                                .case()
-                                                                .when(
-                                                                        eb.exists(
-                                                                                eb
-                                                                                        .selectFrom('checklist_claim')
-                                                                                        .select(sql.raw('1').as('row'))
-                                                                                        .whereRef('checklist_claim.claim_id', '=', 'claim.id')
-                                                                        )
-                                                                )
-                                                                .then(0)
-                                                                .else(1)
-                                                                .end()
-                                                )
-                                                .as('count_unassigned')
-                                )
-                                .where('feeds.client_id', '=', ctx.session.user.client_id)
-                                .where('feeds.status', '=', FeedStatus.ONLINE)
-                                .groupBy('feeds.id')
-                                .as('a')
-                )
-                .selectAll('a')
-                .where('a.count_unassigned', '>', 0)
+	return await ctx.db
+		.selectFrom((eb) =>
+			eb
+				.selectFrom('feeds')
+				.innerJoin('claim', 'feeds.id', 'claim.feed_id')
+				.selectAll('feeds')
+				.select(({ eb, fn }) =>
+					fn
+						.sum(
+							eb
+								.case()
+								.when(
+									eb.exists(
+										eb
+											.selectFrom('checklist_claim')
+											.select(sql.raw('1').as('row'))
+											.whereRef('checklist_claim.claim_id', '=', 'claim.id')
+									)
+								)
+								.then(0)
+								.else(1)
+								.end()
+						)
+						.as('count_unassigned')
+				)
+				.where('feeds.client_id', '=', ctx.session.user.client_id)
+				.where('feeds.status', '=', FeedStatus.ONLINE)
+				.groupBy('feeds.id')
+				.as('a')
+		)
+		.selectAll('a')
+		.where('a.count_unassigned', '>', 0)
 		.orderBy('a.last_synced_at desc')
 		.limit(1)
 		.executeTakeFirst();
@@ -147,7 +147,11 @@ export async function createFeed(ctx: ProtectedContext, params: NewFeedParams): 
  * @param params - fields to update
  * @returns updated feed
  */
-export async function updateFeed(ctx: ProtectedContext, id: string, params: UpdateFeedParams): Promise<Feed> {
+export async function updateFeed(
+	ctx: ProtectedContext,
+	id: string,
+	params: UpdateFeedParams
+): Promise<Feed> {
 	const [feed] = await ctx.db
 		.updateTable('feeds')
 		.set({

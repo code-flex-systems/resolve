@@ -14,19 +14,13 @@ import { Kysely, sql } from 'kysely';
 
 export async function up(db: Kysely<any>): Promise<void> {
 	// 1. Add desk_location_id to claim table
-	await db.schema
-		.alterTable('claim')
-		.addColumn('desk_location_id', 'integer')
-		.execute();
+	await db.schema.alterTable('claim').addColumn('desk_location_id', 'integer').execute();
 
 	await db.schema
 		.alterTable('claim')
-		.addForeignKeyConstraint(
-			'claim_desk_location_id_fkey',
-			['desk_location_id'],
-			'desk_location',
-			['id']
-		)
+		.addForeignKeyConstraint('claim_desk_location_id_fkey', ['desk_location_id'], 'desk_location', [
+			'id',
+		])
 		.execute();
 
 	await db.schema
@@ -54,10 +48,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 
 	// 3. Update task table: remove checklist_id, keep only claim_id
 	// First drop the composite foreign key constraint
-	await db.schema
-		.alterTable('task')
-		.dropConstraint('task_checklist_claim_fkey')
-		.execute();
+	await db.schema.alterTable('task').dropConstraint('task_checklist_claim_fkey').execute();
 
 	// Drop the composite index
 	await db.schema.dropIndex('idx_task_checklist_claim').execute();
@@ -108,10 +99,7 @@ export async function down(db: Kysely<any>): Promise<void> {
 		.execute();
 
 	// Restore desk_location_id on checklist_claim
-	await db.schema
-		.alterTable('checklist_claim')
-		.addColumn('desk_location_id', 'integer')
-		.execute();
+	await db.schema.alterTable('checklist_claim').addColumn('desk_location_id', 'integer').execute();
 
 	await db.schema
 		.createIndex('idx_checklist_claim_desk_location_id')

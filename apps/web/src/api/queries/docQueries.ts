@@ -1,6 +1,11 @@
 import { sql } from 'kysely';
 import { ProtectedContext } from '@/server/trpc/trpc';
-import type { DocParams, UpdateDocParams, DocGroupParams, UpdateDocGroupParams } from '@/schemas/docSchemas';
+import type {
+	DocParams,
+	UpdateDocParams,
+	DocGroupParams,
+	UpdateDocGroupParams,
+} from '@/schemas/docSchemas';
 import { DocType, DocStatus, DocGroupType } from '@/config/enums';
 
 // =====================================================================
@@ -195,9 +200,7 @@ export async function listDocsWithCount(
 	// Run count and rows queries in parallel
 	const [countResult, rows] = await Promise.all([
 		// Count query
-		baseQuery
-			.select((eb) => eb.fn.countAll().as('count'))
-			.executeTakeFirst(),
+		baseQuery.select((eb) => eb.fn.countAll().as('count')).executeTakeFirst(),
 		// Rows query with pagination and narrowed select for efficiency
 		baseQuery
 			.select([
@@ -416,7 +419,11 @@ export async function getDocGroupHierarchy(ctx: ProtectedContext) {
  * @param params - fields to update
  * @returns updated group
  */
-export async function updateDocGroup(ctx: ProtectedContext, groupId: string, params: UpdateDocGroupParams) {
+export async function updateDocGroup(
+	ctx: ProtectedContext,
+	groupId: string,
+	params: UpdateDocGroupParams
+) {
 	// Validate new name if being changed
 	if (params.name) {
 		validateFolderName(params.name);
@@ -633,7 +640,10 @@ export async function archiveDoc(ctx: ProtectedContext, docId: string) {
  * @param claimId - claim identifier
  * @returns document count
  */
-export async function getDocCountByClaimId(ctx: ProtectedContext, claimId: string): Promise<number> {
+export async function getDocCountByClaimId(
+	ctx: ProtectedContext,
+	claimId: string
+): Promise<number> {
 	const result = await ctx.db
 		.selectFrom('doc')
 		.select((eb) => eb.fn.count<string>('id').as('count'))
@@ -652,7 +662,10 @@ export async function getDocCountByClaimId(ctx: ProtectedContext, claimId: strin
  * @param groupId - group identifier
  * @returns document count
  */
-export async function getDocCountByGroupId(ctx: ProtectedContext, groupId: string): Promise<number> {
+export async function getDocCountByGroupId(
+	ctx: ProtectedContext,
+	groupId: string
+): Promise<number> {
 	const result = await ctx.db
 		.selectFrom('doc')
 		.select((eb) => eb.fn.count<string>('id').as('count'))
@@ -732,7 +745,10 @@ export async function getOrCreateUsersFolder(ctx: ProtectedContext): Promise<str
  * @param userId - user identifier
  * @returns the user folder id
  */
-export async function getOrCreateUserFolder(ctx: ProtectedContext, userId: string): Promise<string> {
+export async function getOrCreateUserFolder(
+	ctx: ProtectedContext,
+	userId: string
+): Promise<string> {
 	// Ensure parent Users folder exists
 	const usersRootFolderId = await getOrCreateUsersFolder(ctx);
 
@@ -872,10 +888,7 @@ export async function getDocCountsByGroupIds(ctx: ProtectedContext, groupIds: st
 
 	const results = await ctx.db
 		.selectFrom('doc')
-		.select([
-			'doc_group_id',
-			({ fn }) => fn.count<number>('id').as('count'),
-		])
+		.select(['doc_group_id', ({ fn }) => fn.count<number>('id').as('count')])
 		.where('client_id', '=', ctx.session.user.client_id)
 		.where('deleted_at', 'is', null)
 		.where('doc_group_id', 'in', groupIds)
@@ -900,7 +913,9 @@ export async function getDocumentStats(ctx: ProtectedContext) {
 			.where('deleted_at', 'is', null)
 			.select(({ fn }) => [
 				fn.countAll<number>().as('total'),
-				sql<number>`count(*) filter (where created_at >= now() - interval '7 days')`.as('recent_uploads'),
+				sql<number>`count(*) filter (where created_at >= now() - interval '7 days')`.as(
+					'recent_uploads'
+				),
 			])
 			.executeTakeFirstOrThrow(),
 		ctx.db
@@ -908,16 +923,13 @@ export async function getDocumentStats(ctx: ProtectedContext) {
 			.where('client_id', '=', clientId)
 			.where('deleted_at', 'is', null)
 			.groupBy('doc_type')
-			.select(({ fn }) => [
-				'doc_type',
-				fn.countAll<number>().as('count'),
-			])
+			.select(({ fn }) => ['doc_type', fn.countAll<number>().as('count')])
 			.execute(),
 	]);
 
 	return {
 		total: Number(counts.total),
 		recentUploads: Number(counts.recent_uploads),
-		byType: byType.map(r => ({ type: r.doc_type, count: Number(r.count) })),
+		byType: byType.map((r) => ({ type: r.doc_type, count: Number(r.count) })),
 	};
 }

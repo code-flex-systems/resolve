@@ -86,10 +86,7 @@ export default function ClaimListItem({
 
 					{/* Claim Amount Badge */}
 					{showAmount && claimAmount !== null && (
-						<div
-							className={css.amountBadge}
-							style={{ backgroundColor: 'var(--status-info-bg)' }}
-						>
+						<div className={css.amountBadge} style={{ backgroundColor: 'var(--status-info-bg)' }}>
 							<IconCurrencyDollar size={14} style={{ color: 'white' }} />
 							<span style={{ fontSize: 12, fontWeight: 600, color: 'white' }}>
 								{formatCurrencyExact(claimAmount)}
@@ -101,18 +98,10 @@ export default function ClaimListItem({
 
 			{/* Second row: Client and Insured */}
 			<div className={css.infoRow}>
-				{claim?.client && (
-					<span style={{ fontSize: 13 }}>
-						{claim.client}
-					</span>
-				)}
-				{claim?.client && claim?.insured && (
-					<div className={css.dot} />
-				)}
+				{claim?.client && <span style={{ fontSize: 13 }}>{claim.client}</span>}
+				{claim?.client && claim?.insured && <div className={css.dot} />}
 				{claim?.insured && (
-					<span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
-						{claim.insured}
-					</span>
+					<span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{claim.insured}</span>
 				)}
 			</div>
 
@@ -128,12 +117,18 @@ export default function ClaimListItem({
 				{/* Show desk location for list rows */}
 				{variant === 'listRow' && showDeskLocation && claim?.desk_location_name && (
 					<>
-						<span style={{ fontSize: 12, color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+						<span
+							style={{
+								fontSize: 12,
+								color: 'var(--text-muted)',
+								whiteSpace: 'nowrap',
+								overflow: 'hidden',
+								textOverflow: 'ellipsis',
+							}}
+						>
 							{claim.desk_location_name}
 						</span>
-						{showLastUpdate && claim?.last_update && (
-							<div className={css.dot} />
-						)}
+						{showLastUpdate && claim?.last_update && <div className={css.dot} />}
 					</>
 				)}
 
@@ -149,7 +144,11 @@ export default function ClaimListItem({
 
 	if (variant === 'menuItem') {
 		return (
-			<div className={css.menuItem} onClick={onClick} style={{ padding: '8px 12px', borderRadius: 6, cursor: 'pointer' }}>
+			<div
+				className={css.menuItem}
+				onClick={onClick}
+				style={{ padding: '8px 12px', borderRadius: 6, cursor: 'pointer' }}
+			>
 				{content}
 			</div>
 		);

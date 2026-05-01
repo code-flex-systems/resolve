@@ -42,9 +42,7 @@ export default function LogsFiltersPopperBase({
 	return (
 		<BasicPopper anchorEl={anchorEl} setAnchorEl={() => onClose()} placement="bottom-start">
 			<div style={{ ...styles.filtersPaper, minWidth }}>
-				<span style={{ fontSize: 14, fontWeight: 600 }}>
-					{title}
-				</span>
+				<span style={{ fontSize: 14, fontWeight: 600 }}>{title}</span>
 				<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 					<div>
 						<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
@@ -66,9 +64,7 @@ export default function LogsFiltersPopperBase({
 						<AdminLogsEntityFilter value={draftEntity} onChange={setDraftEntity} height={32} />
 					</div>
 					<div>
-						<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
-							User
-						</span>
+						<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>User</span>
 						<UserFilter
 							users={draftUsers}
 							setUsers={setDraftUsers}

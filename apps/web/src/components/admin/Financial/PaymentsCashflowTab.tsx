@@ -22,7 +22,11 @@ function getCurrentQuarterRange(): [Dayjs, Dayjs] {
 	const startMonth = (now.quarter() - 1) * 3;
 	return [
 		dayjs.utc().year(now.year()).month(startMonth).startOf('month'),
-		dayjs.utc().year(now.year()).month(startMonth + 2).endOf('month'),
+		dayjs
+			.utc()
+			.year(now.year())
+			.month(startMonth + 2)
+			.endOf('month'),
 	];
 }
 
@@ -38,27 +42,29 @@ export default function PaymentsCashflowTab() {
 		[range]
 	);
 
-	const { data: monthlyData, isLoading: loadingMonthly } = api.getNetRecoveryByMonth(
-		rangeISO!,
-		{ ...REPORTING_CACHE.MEDIUM, enabled: !!rangeISO }
-	);
-	const { data: lobData, isLoading: loadingLob } = api.getNetRecoveryByLineOfBusiness(
-		rangeISO!,
-		{ ...REPORTING_CACHE.MEDIUM, enabled: !!rangeISO }
-	);
+	const { data: monthlyData, isLoading: loadingMonthly } = api.getNetRecoveryByMonth(rangeISO!, {
+		...REPORTING_CACHE.MEDIUM,
+		enabled: !!rangeISO,
+	});
+	const { data: lobData, isLoading: loadingLob } = api.getNetRecoveryByLineOfBusiness(rangeISO!, {
+		...REPORTING_CACHE.MEDIUM,
+		enabled: !!rangeISO,
+	});
 	const { data: timelineData, isLoading: loadingTimeline } = api.getPaymentToRecoveryTimeline(
 		rangeISO!,
 		{ ...REPORTING_CACHE.LONG, enabled: !!rangeISO }
 	);
-	const { data: distributionData, isLoading: loadingDistribution } = api.getRecoveryTimeDistribution(
-		rangeISO!,
-		{ ...REPORTING_CACHE.LONG, enabled: !!rangeISO }
-	);
+	const { data: distributionData, isLoading: loadingDistribution } =
+		api.getRecoveryTimeDistribution(rangeISO!, { ...REPORTING_CACHE.LONG, enabled: !!rangeISO });
 
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 			<div>
-				<BasicMonthRangePicker defaultLabel="This Quarter" defaultValue={range} onConfirm={setRange} />
+				<BasicMonthRangePicker
+					defaultLabel="This Quarter"
+					defaultValue={range}
+					onConfirm={setRange}
+				/>
 			</div>
 
 			<Card variant="beveled" padding="none" style={{ padding: '24px' }}>

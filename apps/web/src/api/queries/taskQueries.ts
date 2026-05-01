@@ -570,11 +570,7 @@ export async function updateTask(
  * Complete task and sync linked deadline status to 'met' or 'missed'
  * Uses transaction to ensure task and deadline are updated atomically
  */
-export async function completeTask(
-	ctx: ProtectedContext,
-	id: string,
-	completionNotes?: string
-) {
+export async function completeTask(ctx: ProtectedContext, id: string, completionNotes?: string) {
 	const executeOperation = async (db: typeof ctx.db) => {
 		// Update task completion fields
 		const task = await db
@@ -624,11 +620,7 @@ export async function completeTask(
  * Cancel task
  * Sets task status to CANCELLED and cancels linked deadline
  */
-export async function cancelTask(
-	ctx: ProtectedContext,
-	id: string,
-	cancellationReason: string
-) {
+export async function cancelTask(ctx: ProtectedContext, id: string, cancellationReason: string) {
 	// Update task status to cancelled
 	const task = await ctx.db
 		.updateTable('task')
@@ -697,10 +689,7 @@ export async function getDeskCapacity(
 		.where('task.client_id', '=', ctx.session.user.client_id)
 		.where('task.completed_at', 'is', null)
 		.where((eb) =>
-			eb.or([
-				eb('deadline.status', '=', DeadlineStatus.PENDING),
-				eb('deadline.status', 'is', null),
-			])
+			eb.or([eb('deadline.status', '=', DeadlineStatus.PENDING), eb('deadline.status', 'is', null)])
 		)
 		.where(sql<boolean>`DATE(task.assigned_at) = ${targetDate}::date`)
 		.executeTakeFirst();
@@ -741,7 +730,9 @@ export async function getTaskCountsByStatus(ctx: ProtectedContext, deskLocationI
 		.execute();
 
 	return {
-		available: Number(result.find((r) => r.derived_status === DerivedTaskStatus.AVAILABLE)?.count || 0),
+		available: Number(
+			result.find((r) => r.derived_status === DerivedTaskStatus.AVAILABLE)?.count || 0
+		),
 		in_progress: Number(
 			result.find((r) => r.derived_status === DerivedTaskStatus.IN_PROGRESS)?.count || 0
 		),

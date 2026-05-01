@@ -1,6 +1,14 @@
 'use client';
 
-import { IconChevronLeft, IconChevronRight, IconCircleX, IconExternalLink, IconFilter, IconRefresh, IconSubtask } from '@tabler/icons-react';
+import {
+	IconChevronLeft,
+	IconChevronRight,
+	IconCircleX,
+	IconExternalLink,
+	IconFilter,
+	IconRefresh,
+	IconSubtask,
+} from '@tabler/icons-react';
 import Combobox, { type ComboboxOption } from '@/components/ui/Combobox';
 import Tooltip from '@/components/ui/Tooltip';
 import Card from '@/components/ui/Card';
@@ -50,7 +58,10 @@ function getWeekEnd(weekStart: dayjs.Dayjs): dayjs.Dayjs {
 
 function NoRows() {
 	return (
-		<CustomNoRowsOverlay text="No tasks found" icon={<IconSubtask size={35} style={{ color: 'var(--text-muted)' }} />} />
+		<CustomNoRowsOverlay
+			text="No tasks found"
+			icon={<IconSubtask size={35} style={{ color: 'var(--text-muted)' }} />}
+		/>
 	);
 }
 
@@ -63,7 +74,10 @@ export default function TasksTab() {
 	const [manageMode, setManageMode] = useState(false);
 	const [selectedRows, setSelectedRows] = useState<Record<string, boolean>>({});
 
-	const pinnedColumns = useMemo<{ left?: string[]; right?: string[] }>(() => (manageMode ? { right: ['actions'] } : {}), [manageMode]);
+	const pinnedColumns = useMemo<{ left?: string[]; right?: string[] }>(
+		() => (manageMode ? { right: ['actions'] } : {}),
+		[manageMode]
+	);
 
 	// Bulk cancellation dialog state
 	const [showBulkCancel, setShowBulkCancel] = useState(false);
@@ -153,7 +167,9 @@ export default function TasksTab() {
 
 		// Filter by open only (pending + in progress)
 		if (showOnlyOpen) {
-			tasks = tasks.filter((t) => t.status === TaskStatus.PENDING || t.status === TaskStatus.IN_PROGRESS);
+			tasks = tasks.filter(
+				(t) => t.status === TaskStatus.PENDING || t.status === TaskStatus.IN_PROGRESS
+			);
 		}
 
 		// Filter by assigned to (user assigned to task)
@@ -220,7 +236,8 @@ export default function TasksTab() {
 				accessorKey: 'task_type',
 				header: 'Type',
 				size: 150,
-				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
+				cell: (info: any) => {
+					const params = { row: info.row.original, value: info.getValue() };
 					const taskType = params.value as TaskType;
 					const config = TASK_TYPE_CONFIG[taskType];
 					if (!config) return params.value || '-';
@@ -236,7 +253,8 @@ export default function TasksTab() {
 				accessorKey: 'claim_number',
 				header: 'Claim',
 				size: 150,
-				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
+				cell: (info: any) => {
+					const params = { row: info.row.original, value: info.getValue() };
 					const claimId = params.row.claim_id;
 					return (
 						<div style={{ display: 'flex', flexDirection: 'row', gap: 4, alignItems: 'center' }}>
@@ -264,7 +282,9 @@ export default function TasksTab() {
 				cell: (info: any) => {
 					const status = info.getValue() as TaskStatus;
 					return (
-						<Chip color={STATUS_COLORS[status]} size="sm">{STATUS_LABELS[status]}</Chip>
+						<Chip color={STATUS_COLORS[status]} size="sm">
+							{STATUS_LABELS[status]}
+						</Chip>
 					);
 				},
 			},
@@ -272,7 +292,8 @@ export default function TasksTab() {
 				accessorKey: 'due_date',
 				header: 'Due Date',
 				size: 110,
-				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
+				cell: (info: any) => {
+					const params = { row: info.row.original, value: info.getValue() };
 					if (!params.value) return '-';
 					const dueDate = dayjs(params.value);
 					const isOverdue =
@@ -290,14 +311,14 @@ export default function TasksTab() {
 				accessorKey: 'assigned_to_name',
 				header: 'Assigned To',
 				size: 140,
-
 			},
 			{
 				accessorKey: 'actions',
 				header: '',
 				size: 60,
 				enableSorting: false,
-				cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() };
+				cell: (info: any) => {
+					const params = { row: info.row.original, value: info.getValue() };
 					const task = params.row;
 					const status = task.status as TaskStatus;
 
@@ -307,12 +328,20 @@ export default function TasksTab() {
 					}
 
 					return (
-						<div style={{ display: 'flex', flexDirection: 'row', gap: 4, justifyContent: 'flex-end', width: '100%' }}>
+						<div
+							style={{
+								display: 'flex',
+								flexDirection: 'row',
+								gap: 4,
+								justifyContent: 'flex-end',
+								width: '100%',
+							}}
+						>
 							<Tooltip content="Cancel task">
-							<Button variant="icon" size="sm" color="neutral">
-							<IconCircleX size={15} style={{ color: 'var(--status-error)' }} />
-						</Button>
-						</Tooltip>
+								<Button variant="icon" size="sm" color="neutral">
+									<IconCircleX size={15} style={{ color: 'var(--status-error)' }} />
+								</Button>
+							</Tooltip>
 						</div>
 					);
 				},
@@ -367,7 +396,7 @@ export default function TasksTab() {
 	}));
 
 	const selectedUserOption: ComboboxOption | null = draftAssignedTo
-		? userComboboxOptions.find((u) => u.value === draftAssignedTo) ?? null
+		? (userComboboxOptions.find((u) => u.value === draftAssignedTo) ?? null)
 		: null;
 
 	const selectedClaimNumberOption: ComboboxOption | null = draftClaimNumber
@@ -379,8 +408,16 @@ export default function TasksTab() {
 			<div style={styles.container}>
 				<Card variant="beveled" padding="md" style={styles.paper}>
 					<div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
-						<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
-							Tasks are work items assigned to desk locations. They track specific actions that need to be completed for claims.
+						<p
+							style={{
+								color: 'var(--text-secondary)',
+								fontSize: 13,
+								margin: '0 0 12px',
+								lineHeight: 1.5,
+							}}
+						>
+							Tasks are work items assigned to desk locations. They track specific actions that need
+							to be completed for claims.
 						</p>
 						{/* Metrics */}
 						<TaskMetrics
@@ -392,13 +429,29 @@ export default function TasksTab() {
 
 						{/* Toolbar */}
 						<div style={{ padding: 12, marginBottom: 16 }}>
-							<div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+							<div
+								style={{
+									display: 'flex',
+									flexDirection: 'row',
+									justifyContent: 'space-between',
+									alignItems: 'center',
+								}}
+							>
 								{/* Left: Week navigation */}
-								<div style={{ display: 'flex', flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+								<div
+									style={{ display: 'flex', flexDirection: 'row', gap: 8, alignItems: 'center' }}
+								>
 									<Button variant="icon" size="sm" onClick={handlePreviousWeek}>
 										<IconChevronLeft size={20} />
 									</Button>
-									<span style={{  fontSize: 14, fontWeight: 500 ,  minWidth: 160, textAlign: 'center', cursor: 'pointer'  }}
+									<span
+										style={{
+											fontSize: 14,
+											fontWeight: 500,
+											minWidth: 160,
+											textAlign: 'center',
+											cursor: 'pointer',
+										}}
 										onClick={handleGoToCurrentWeek}
 									>
 										{weekDisplay}
@@ -412,14 +465,21 @@ export default function TasksTab() {
 										</Button>
 									)}
 									<Tooltip content="Refresh">
-										<Button variant="icon" size="sm" onClick={() => refetch()} disabled={isFetching}>
+										<Button
+											variant="icon"
+											size="sm"
+											onClick={() => refetch()}
+											disabled={isFetching}
+										>
 											<IconRefresh size={20} />
 										</Button>
 									</Tooltip>
 								</div>
 
 								{/* Right: Filters and manage */}
-								<div style={{ display: 'flex', flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+								<div
+									style={{ display: 'flex', flexDirection: 'row', gap: 8, alignItems: 'center' }}
+								>
 									{/* Show only open tasks toggle */}
 									<div style={{ marginRight: 8 }}>
 										<Switch
@@ -442,14 +502,17 @@ export default function TasksTab() {
 											<Chip
 												size="sm"
 												color="info"
-												style={{ marginLeft: 4, height: 18, fontSize: 11 }}>{activeFilterCount}</Chip>
+												style={{ marginLeft: 4, height: 18, fontSize: 11 }}
+											>
+												{activeFilterCount}
+											</Chip>
 										)}
 									</Button>
 
 									{/* Manage mode */}
 									{manageMode ? (
 										<>
-											{Object.keys(selectedRows).filter(k => selectedRows[k]).length > 0 && (
+											{Object.keys(selectedRows).filter((k) => selectedRows[k]).length > 0 && (
 												<Button
 													size="sm"
 													variant="outlined"
@@ -457,7 +520,7 @@ export default function TasksTab() {
 													startIcon={<IconCircleX size={20} />}
 													onClick={handleBulkCancel}
 												>
-													Cancel ({Object.keys(selectedRows).filter(k => selectedRows[k]).length})
+													Cancel ({Object.keys(selectedRows).filter((k) => selectedRows[k]).length})
 												</Button>
 											)}
 											<Button size="sm" variant="outlined" onClick={handleToggleManageMode}>
@@ -480,9 +543,7 @@ export default function TasksTab() {
 							placement="bottom-end"
 						>
 							<div style={{ padding: 16, minWidth: 300 }}>
-								<span>
-									Filter Tasks
-								</span>
+								<span>Filter Tasks</span>
 
 								<div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 									{/* User filter */}
@@ -506,7 +567,14 @@ export default function TasksTab() {
 										fullWidth
 									/>
 
-									<div style={{ display: 'flex', flexDirection: 'row', gap: 8, justifyContent: 'flex-end' }}>
+									<div
+										style={{
+											display: 'flex',
+											flexDirection: 'row',
+											gap: 8,
+											justifyContent: 'flex-end',
+										}}
+									>
 										<Button
 											size="sm"
 											onClick={handleClearFilters}
@@ -536,13 +604,14 @@ export default function TasksTab() {
 						</div>
 
 						{/* Bulk Cancellation Dialog */}
-						{showBulkCancel && Object.keys(selectedRows).filter(k => selectedRows[k]).length > 0 && (
-							<TaskBulkCancellationDialog
-								taskIds={Object.keys(selectedRows).filter(k => selectedRows[k])}
-								onClose={() => setShowBulkCancel(false)}
-								onCancelled={handleBulkCancelComplete}
-							/>
-						)}
+						{showBulkCancel &&
+							Object.keys(selectedRows).filter((k) => selectedRows[k]).length > 0 && (
+								<TaskBulkCancellationDialog
+									taskIds={Object.keys(selectedRows).filter((k) => selectedRows[k])}
+									onClose={() => setShowBulkCancel(false)}
+									onCancelled={handleBulkCancelComplete}
+								/>
+							)}
 					</div>
 				</Card>
 			</div>

@@ -1,5 +1,11 @@
 import { sql } from 'kysely';
-import { ClaimSearch, ClaimStatus, ClaimSubstatus, FeedStatus, RecoveryStatus } from '@/config/enums';
+import {
+	ClaimSearch,
+	ClaimStatus,
+	ClaimSubstatus,
+	FeedStatus,
+	RecoveryStatus,
+} from '@/config/enums';
 import { Claim } from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { getCurrentFiscalQuarterStart } from '@/lib/utils/utils';
@@ -16,7 +22,9 @@ import type { ClaimData } from '@/schemas/claimSchemas';
  * @throws TRPCError if checklist is not found or not accessible
  */
 async function assertChecklistPublished(ctx: ProtectedContext, checklistId: string) {
-	const isAdmin = ctx.session.user.role === config.ROLES.ADMIN || ctx.session.user.role === config.ROLES.SUPER_ADMIN;
+	const isAdmin =
+		ctx.session.user.role === config.ROLES.ADMIN ||
+		ctx.session.user.role === config.ROLES.SUPER_ADMIN;
 	const checklist = await ctx.db
 		.selectFrom('checklist')
 		.select(['id'])
@@ -32,7 +40,12 @@ async function assertChecklistPublished(ctx: ProtectedContext, checklistId: stri
 	}
 }
 
-export async function assignClaim(ctx: ProtectedContext, checklistId: string, claimId: string, assignee: string) {
+export async function assignClaim(
+	ctx: ProtectedContext,
+	checklistId: string,
+	claimId: string,
+	assignee: string
+) {
 	await assertChecklistPublished(ctx, checklistId);
 	return await ctx.db
 		.insertInto('checklist_claim')
@@ -68,7 +81,9 @@ export async function getClaim(ctx: ProtectedContext, claimId: string, checklist
 				status: ClaimStatus.UNWORKED,
 				assignee: ctx.session.user.id,
 			})
-			.onConflict((oc) => oc.columns(['checklist_id', 'claim_id']).doUpdateSet({ last_opened: sql`now()` }))
+			.onConflict((oc) =>
+				oc.columns(['checklist_id', 'claim_id']).doUpdateSet({ last_opened: sql`now()` })
+			)
 			.execute();
 	}
 	return await ctx.db
@@ -98,9 +113,17 @@ export async function getNextClaimToAssign(ctx: ProtectedContext, feedId: string
 					)
 				)
 		)
-		.with('totals', (qb) => qb.selectFrom('base').select(sql<number>`count(*)`.as('total_unassigned')))
+		.with('totals', (qb) =>
+			qb.selectFrom('base').select(sql<number>`count(*)`.as('total_unassigned'))
+		)
 		.with('next_row', (qb) =>
-			qb.selectFrom('base').selectAll().orderBy('created_at asc').orderBy('id asc').offset(offset).limit(1)
+			qb
+				.selectFrom('base')
+				.selectAll()
+				.orderBy('created_at asc')
+				.orderBy('id asc')
+				.offset(offset)
+				.limit(1)
 		)
 		.selectFrom('totals')
 		// ON TRUE; Kysely trick: 1 = 1
@@ -111,7 +134,8 @@ export async function getNextClaimToAssign(ctx: ProtectedContext, feedId: string
 
 	const { total_unassigned = 0, ...maybeClaim } = (row ?? {}) as any;
 	// If next_row didn't exist, all its cols are null => claim = null
-	const claim = row && maybeClaim.id != null ? (maybeClaim as Awaited<ReturnType<typeof getClaim>>) : null;
+	const claim =
+		row && maybeClaim.id != null ? (maybeClaim as Awaited<ReturnType<typeof getClaim>>) : null;
 
 	return { claim, total: parseInt(total_unassigned.toString()) };
 }
@@ -149,7 +173,9 @@ export async function getClaims(
 		offset?: number;
 	}
 ): Promise<{ rows: any[]; count: number }> {
-	const isAdmin = ctx.session.user.role === config.ROLES.ADMIN || ctx.session.user.role === config.ROLES.SUPER_ADMIN;
+	const isAdmin =
+		ctx.session.user.role === config.ROLES.ADMIN ||
+		ctx.session.user.role === config.ROLES.SUPER_ADMIN;
 
 	// Build base query with all filters
 	let baseQuery = ctx.db
@@ -327,7 +353,10 @@ export async function getRolloverClaimCount(ctx: ProtectedContext) {
 		.where('claim.client_id', '=', ctx.session.user.client_id)
 		.where((eb) =>
 			eb.or([
-				eb.and([eb('checklist_claim.claim_id', 'is', null), eb('claim.created_at', '<', currentFQStartDate)]),
+				eb.and([
+					eb('checklist_claim.claim_id', 'is', null),
+					eb('claim.created_at', '<', currentFQStartDate),
+				]),
 				eb('checklist_claim.created_at', '<', currentFQStartDate),
 			])
 		)
@@ -499,7 +528,9 @@ export async function recalculateClaimExpectedRecovery(ctx: ProtectedContext, cl
 	const partyResult = await ctx.db
 		.selectFrom('claim_party')
 		.select(({ fn }) => [
-			fn.coalesce(fn.sum<string>('liability_percentage'), sql<string>`'0'`).as('total_liability_percentage'),
+			fn
+				.coalesce(fn.sum<string>('liability_percentage'), sql<string>`'0'`)
+				.as('total_liability_percentage'),
 		])
 		.where('claim_id', '=', claimId)
 		.where('deleted_at', 'is', null)
@@ -518,7 +549,9 @@ export async function recalculateClaimExpectedRecovery(ctx: ProtectedContext, cl
 	const totalLiabilityPercentage = partyResult?.total_liability_percentage
 		? parseFloat(partyResult.total_liability_percentage)
 		: 0;
-	const claimAmount = claimResult?.claim_amount ? parseFloat(claimResult.claim_amount.toString()) : 0;
+	const claimAmount = claimResult?.claim_amount
+		? parseFloat(claimResult.claim_amount.toString())
+		: 0;
 
 	// Calculate our liability percentage (100% - total other parties' liability)
 	// Business logic: If no liability is assigned to other parties, we assume 100% liability on our side
@@ -587,7 +620,9 @@ export async function recalculateTotalIncurred(ctx: ProtectedContext, claimId: s
  * @returns detailed claim information
  */
 export async function getClaimDetail(ctx: ProtectedContext, claimId: string) {
-	const isAdmin = ctx.session.user.role === config.ROLES.ADMIN || ctx.session.user.role === config.ROLES.SUPER_ADMIN;
+	const isAdmin =
+		ctx.session.user.role === config.ROLES.ADMIN ||
+		ctx.session.user.role === config.ROLES.SUPER_ADMIN;
 
 	// Get basic claim info with feed info and client adjuster name
 	// Note: actual_recovery is already a column on claim table (sum of recovery_event records)
@@ -743,9 +778,14 @@ export async function getClaimDetail(ctx: ProtectedContext, claimId: string) {
 	});
 
 	// Extract party aggregate values
-	const facilitatorCount = partyAggregates?.facilitator_count ? parseInt(partyAggregates.facilitator_count) : 0;
-	const entityLiability = partyAggregates?.entity_liability ? parseFloat(partyAggregates.entity_liability) : 0;
-	const lossTypes = partyAggregates?.loss_type_array?.filter((lt: string | null) => lt !== null) || [];
+	const facilitatorCount = partyAggregates?.facilitator_count
+		? parseInt(partyAggregates.facilitator_count)
+		: 0;
+	const entityLiability = partyAggregates?.entity_liability
+		? parseFloat(partyAggregates.entity_liability)
+		: 0;
+	const lossTypes =
+		partyAggregates?.loss_type_array?.filter((lt: string | null) => lt !== null) || [];
 
 	return {
 		...claim,
@@ -864,7 +904,9 @@ export async function listMyClaims(
 		.select([
 			sql<string>`COUNT(*) OVER()`.as('total_count'),
 			sql<string>`SUM(claim_amount) OVER()`.as('total_value'),
-			sql<string>`AVG(EXTRACT(EPOCH FROM (NOW() - assigned_at)) / 86400) OVER()`.as('avg_days_in_queue'),
+			sql<string>`AVG(EXTRACT(EPOCH FROM (NOW() - assigned_at)) / 86400) OVER()`.as(
+				'avg_days_in_queue'
+			),
 		])
 		.where('ranked_claims.row_num', '=', 1)
 		.orderBy(sortColumn as any, sortDirection)
@@ -874,11 +916,15 @@ export async function listMyClaims(
 
 	// Extract metrics from first row (or defaults if empty)
 	const count = rowsWithMetrics.length > 0 ? parseInt(rowsWithMetrics[0].total_count ?? '0') : 0;
-	const totalValue = rowsWithMetrics.length > 0 ? parseFloat(rowsWithMetrics[0].total_value ?? '0') : 0;
-	const avgDaysInQueue = rowsWithMetrics.length > 0 ? parseFloat(rowsWithMetrics[0].avg_days_in_queue ?? '0') : 0;
+	const totalValue =
+		rowsWithMetrics.length > 0 ? parseFloat(rowsWithMetrics[0].total_value ?? '0') : 0;
+	const avgDaysInQueue =
+		rowsWithMetrics.length > 0 ? parseFloat(rowsWithMetrics[0].avg_days_in_queue ?? '0') : 0;
 
 	// Strip window columns from result
-	const rows = rowsWithMetrics.map(({ total_count, total_value, avg_days_in_queue, ...rest }) => rest);
+	const rows = rowsWithMetrics.map(
+		({ total_count, total_value, avg_days_in_queue, ...rest }) => rest
+	);
 
 	return {
 		rows,
@@ -972,7 +1018,9 @@ export async function listMyDeskClaims(
 		.select([
 			sql<string>`COUNT(*) OVER()`.as('total_count'),
 			sql<string>`SUM(claim_amount) OVER()`.as('total_value'),
-			sql<string>`AVG(EXTRACT(EPOCH FROM (NOW() - created_at)) / 86400) OVER()`.as('avg_days_in_queue'),
+			sql<string>`AVG(EXTRACT(EPOCH FROM (NOW() - created_at)) / 86400) OVER()`.as(
+				'avg_days_in_queue'
+			),
 		])
 		.where('ranked_claims.row_num', '=', 1)
 		.orderBy('ranked_claims.last_update', 'desc')
@@ -983,11 +1031,15 @@ export async function listMyDeskClaims(
 
 	// Extract metrics from first row (or defaults if empty)
 	const count = rowsWithMetrics.length > 0 ? parseInt(rowsWithMetrics[0].total_count ?? '0') : 0;
-	const totalValue = rowsWithMetrics.length > 0 ? parseFloat(rowsWithMetrics[0].total_value ?? '0') : 0;
-	const avgDaysInQueue = rowsWithMetrics.length > 0 ? parseFloat(rowsWithMetrics[0].avg_days_in_queue ?? '0') : 0;
+	const totalValue =
+		rowsWithMetrics.length > 0 ? parseFloat(rowsWithMetrics[0].total_value ?? '0') : 0;
+	const avgDaysInQueue =
+		rowsWithMetrics.length > 0 ? parseFloat(rowsWithMetrics[0].avg_days_in_queue ?? '0') : 0;
 
 	// Strip window columns from result
-	const rows = rowsWithMetrics.map(({ total_count, total_value, avg_days_in_queue, ...rest }) => rest);
+	const rows = rowsWithMetrics.map(
+		({ total_count, total_value, avg_days_in_queue, ...rest }) => rest
+	);
 
 	return {
 		rows,
@@ -1011,19 +1063,13 @@ export async function getClaimStatusBreakdown(ctx: ProtectedContext) {
 			.selectFrom('claim')
 			.where('client_id', '=', clientId)
 			.groupBy('recovery_status')
-			.select(({ fn }) => [
-				'recovery_status as status',
-				fn.countAll<number>().as('count'),
-			])
+			.select(({ fn }) => ['recovery_status as status', fn.countAll<number>().as('count')])
 			.execute(),
 		ctx.db
 			.selectFrom('claim')
 			.where('client_id', '=', clientId)
 			.groupBy('substatus')
-			.select(({ fn }) => [
-				'substatus',
-				fn.countAll<number>().as('count'),
-			])
+			.select(({ fn }) => ['substatus', fn.countAll<number>().as('count')])
 			.execute(),
 	]);
 

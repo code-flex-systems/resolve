@@ -52,7 +52,7 @@
 }
 
 .menuItem:hover {
-	background-color: #F0F7F5 !important;
+	background-color: #f0f7f5 !important;
 }
 
 .menuItem:last-child {
@@ -68,7 +68,7 @@
 }
 
 .listRow:hover {
-	background-color: #F0F7F5 !important;
+	background-color: #f0f7f5 !important;
 	transform: translateX(4px);
 }
 

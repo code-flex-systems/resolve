@@ -45,7 +45,10 @@ describe('commentQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -65,7 +68,12 @@ describe('commentQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const comment = await createComment(ctx, {
 				checklistId: checklist.id,
@@ -88,7 +96,10 @@ describe('commentQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -96,7 +107,12 @@ describe('commentQueries integration tests', () => {
 				checklist_id: checklist.id,
 				page_id: page.id,
 			});
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const comment = await createComment(ctx, {
 				checklistId: checklist.id,
@@ -115,7 +131,10 @@ describe('commentQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -123,7 +142,12 @@ describe('commentQueries integration tests', () => {
 				checklist_id: checklist.id,
 				page_id: page.id,
 			});
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const comment = await createComment(ctx, {
 				checklistId: checklist.id,
@@ -150,7 +174,10 @@ describe('commentQueries integration tests', () => {
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
 			const claimB = await createTestClaim(db, { client_id: clientB.id, created_by: userB.id });
-			const checklistB = await createTestChecklist(db, { client_id: clientB.id, created_by: userB.id });
+			const checklistB = await createTestChecklist(db, {
+				client_id: clientB.id,
+				created_by: userB.id,
+			});
 			const pageB = await createTestPage(db, { client_id: clientB.id, created_by: userB.id });
 			const instanceB = await createTestPageInstance(db, {
 				client_id: clientB.id,
@@ -158,7 +185,12 @@ describe('commentQueries integration tests', () => {
 				checklist_id: checklistB.id,
 				page_id: pageB.id,
 			});
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			// Create comment for client B
 			const commentB = await db
@@ -189,9 +221,14 @@ describe('commentQueries integration tests', () => {
 		it('should throw when deleting non-existent comment', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
-			await expect(deleteComment(ctx, 999999)).rejects.toThrow();
+			await expect(deleteComment(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow();
 		});
 	});
 
@@ -200,7 +237,10 @@ describe('commentQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -208,7 +248,12 @@ describe('commentQueries integration tests', () => {
 				checklist_id: checklist.id,
 				page_id: page.id,
 			});
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const created = await createComment(ctx, {
 				checklistId: checklist.id,
@@ -232,7 +277,10 @@ describe('commentQueries integration tests', () => {
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
 			const claimB = await createTestClaim(db, { client_id: clientB.id, created_by: userB.id });
-			const checklistB = await createTestChecklist(db, { client_id: clientB.id, created_by: userB.id });
+			const checklistB = await createTestChecklist(db, {
+				client_id: clientB.id,
+				created_by: userB.id,
+			});
 			const pageB = await createTestPage(db, { client_id: clientB.id, created_by: userB.id });
 			const instanceB = await createTestPageInstance(db, {
 				client_id: clientB.id,
@@ -240,7 +288,12 @@ describe('commentQueries integration tests', () => {
 				checklist_id: checklistB.id,
 				page_id: pageB.id,
 			});
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			// Create comment for client B
 			const commentB = await db
@@ -263,9 +316,14 @@ describe('commentQueries integration tests', () => {
 		it('should throw when comment does not exist', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
-			await expect(getComment(ctx, 999999)).rejects.toThrow();
+			await expect(getComment(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow();
 		});
 	});
 
@@ -274,7 +332,10 @@ describe('commentQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -282,7 +343,12 @@ describe('commentQueries integration tests', () => {
 				checklist_id: checklist.id,
 				page_id: page.id,
 			});
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await createComment(ctx, {
 				checklistId: checklist.id,
@@ -305,8 +371,14 @@ describe('commentQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist1 = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
-			const checklist2 = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist1 = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
+			const checklist2 = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance1 = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -320,7 +392,12 @@ describe('commentQueries integration tests', () => {
 				checklist_id: checklist2.id,
 				page_id: page.id,
 			});
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await createComment(ctx, {
 				checklistId: checklist1.id,
@@ -344,7 +421,10 @@ describe('commentQueries integration tests', () => {
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim1 = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			const claim2 = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -352,7 +432,12 @@ describe('commentQueries integration tests', () => {
 				checklist_id: checklist.id,
 				page_id: page.id,
 			});
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await createComment(ctx, {
 				checklistId: checklist.id,
@@ -375,7 +460,10 @@ describe('commentQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance1 = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -389,7 +477,12 @@ describe('commentQueries integration tests', () => {
 				checklist_id: checklist.id,
 				page_id: page.id,
 			});
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await createComment(ctx, {
 				checklistId: checklist.id,
@@ -412,7 +505,10 @@ describe('commentQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -444,7 +540,12 @@ describe('commentQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await createComment(ctx, {
 				checklistId: checklist.id,
@@ -469,7 +570,10 @@ describe('commentQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -489,7 +593,12 @@ describe('commentQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await createComment(ctx, {
 				checklistId: checklist.id,
@@ -521,8 +630,14 @@ describe('commentQueries integration tests', () => {
 			const userB = await createTestUser(db, { client_id: clientB.id });
 			const claimA = await createTestClaim(db, { client_id: clientA.id, created_by: userA.id });
 			const claimB = await createTestClaim(db, { client_id: clientB.id, created_by: userB.id });
-			const checklistA = await createTestChecklist(db, { client_id: clientA.id, created_by: userA.id });
-			const checklistB = await createTestChecklist(db, { client_id: clientB.id, created_by: userB.id });
+			const checklistA = await createTestChecklist(db, {
+				client_id: clientA.id,
+				created_by: userA.id,
+			});
+			const checklistB = await createTestChecklist(db, {
+				client_id: clientB.id,
+				created_by: userB.id,
+			});
 			const pageA = await createTestPage(db, { client_id: clientA.id, created_by: userA.id });
 			const pageB = await createTestPage(db, { client_id: clientB.id, created_by: userB.id });
 			const instanceA = await createTestPageInstance(db, {
@@ -537,7 +652,12 @@ describe('commentQueries integration tests', () => {
 				checklist_id: checklistB.id,
 				page_id: pageB.id,
 			});
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			await createComment(ctxA, {
 				checklistId: checklistA.id,
@@ -570,7 +690,10 @@ describe('commentQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -578,7 +701,12 @@ describe('commentQueries integration tests', () => {
 				checklist_id: checklist.id,
 				page_id: page.id,
 			});
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			// Create multiple comments
 			for (let i = 0; i < 5; i++) {
@@ -599,7 +727,10 @@ describe('commentQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -607,7 +738,12 @@ describe('commentQueries integration tests', () => {
 				checklist_id: checklist.id,
 				page_id: page.id,
 			});
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await createComment(ctx, {
 				checklistId: checklist.id,
@@ -627,7 +763,10 @@ describe('commentQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -647,7 +786,12 @@ describe('commentQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await createComment(ctx, {
 				checklistId: checklist.id,
@@ -681,8 +825,14 @@ describe('commentQueries integration tests', () => {
 			const other = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: owner.id });
 			const otherClaim = await createTestClaim(db, { client_id: client.id, created_by: other.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: owner.id });
-			const otherChecklist = await createTestChecklist(db, { client_id: client.id, created_by: other.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: owner.id,
+			});
+			const otherChecklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: other.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: owner.id });
 			const otherPage = await createTestPage(db, { client_id: client.id, created_by: other.id });
 			const instance = await createTestPageInstance(db, {
@@ -748,8 +898,14 @@ describe('commentQueries integration tests', () => {
 			const userB = await createTestUser(db, { client_id: clientB.id });
 			const claimA = await createTestClaim(db, { client_id: clientA.id, created_by: userA.id });
 			const claimB = await createTestClaim(db, { client_id: clientB.id, created_by: userB.id });
-			const checklistA = await createTestChecklist(db, { client_id: clientA.id, created_by: userA.id });
-			const checklistB = await createTestChecklist(db, { client_id: clientB.id, created_by: userB.id });
+			const checklistA = await createTestChecklist(db, {
+				client_id: clientA.id,
+				created_by: userA.id,
+			});
+			const checklistB = await createTestChecklist(db, {
+				client_id: clientB.id,
+				created_by: userB.id,
+			});
 			const pageA = await createTestPage(db, { client_id: clientA.id, created_by: userA.id });
 			const pageB = await createTestPage(db, { client_id: clientB.id, created_by: userB.id });
 			const instanceA = await createTestPageInstance(db, {
@@ -764,7 +920,12 @@ describe('commentQueries integration tests', () => {
 				checklist_id: checklistB.id,
 				page_id: pageB.id,
 			});
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			await createComment(ctxA, {
 				checklistId: checklistA.id,
@@ -797,7 +958,10 @@ describe('commentQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -817,7 +981,12 @@ describe('commentQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			// Create comments with question_id (should be returned)
 			await createComment(ctx, {
@@ -853,7 +1022,10 @@ describe('commentQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -873,7 +1045,12 @@ describe('commentQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await createComment(ctx, {
 				checklistId: checklist.id,
@@ -896,7 +1073,10 @@ describe('commentQueries integration tests', () => {
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
 			const claimB = await createTestClaim(db, { client_id: clientB.id, created_by: userB.id });
-			const checklistB = await createTestChecklist(db, { client_id: clientB.id, created_by: userB.id });
+			const checklistB = await createTestChecklist(db, {
+				client_id: clientB.id,
+				created_by: userB.id,
+			});
 			const pageB = await createTestPage(db, { client_id: clientB.id, created_by: userB.id });
 			const instanceB = await createTestPageInstance(db, {
 				client_id: clientB.id,
@@ -916,7 +1096,12 @@ describe('commentQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			// Create comment for client B
 			await db

@@ -12,7 +12,15 @@ export default function Toolbar(props: {
 	rightWidth?: string;
 	backgroundColor?: string;
 }) {
-	const { height = 36, padding = '0 12px', left, leftWidth, right, rightWidth, backgroundColor } = props;
+	const {
+		height = 36,
+		padding = '0 12px',
+		left,
+		leftWidth,
+		right,
+		rightWidth,
+		backgroundColor,
+	} = props;
 	return (
 		<div
 			className={css.toolbar}

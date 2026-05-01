@@ -35,11 +35,7 @@ export default function SearchInput({
 				startAdornment={<IconSearch size={18} className={css.searchIcon} />}
 				endAdornment={
 					value ? (
-						<button
-							type="button"
-							className={css.clearButton}
-							onClick={() => onChange('')}
-						>
+						<button type="button" className={css.clearButton} onClick={() => onChange('')}>
 							<IconX size={16} />
 						</button>
 					) : undefined

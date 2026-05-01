@@ -55,7 +55,7 @@ describe('getChecklistClaimProgress', () => {
 				}),
 			} as any);
 
-			const result = await getChecklistClaimProgress(mockContext, 1, 100);
+			const result = await getChecklistClaimProgress(mockContext, 'checklist-1', 'claim-100');
 
 			expect(result).toEqual({
 				answerCount: 0,
@@ -79,7 +79,7 @@ describe('getChecklistClaimProgress', () => {
 				}),
 			} as any);
 
-			const result = await getChecklistClaimProgress(mockContext, 1, 100);
+			const result = await getChecklistClaimProgress(mockContext, 'checklist-1', 'claim-100');
 
 			expect(result).toEqual({
 				answerCount: 0,
@@ -103,7 +103,7 @@ describe('getChecklistClaimProgress', () => {
 				}),
 			} as any);
 
-			const result = await getChecklistClaimProgress(mockContext, 1, 100);
+			const result = await getChecklistClaimProgress(mockContext, 'checklist-1', 'claim-100');
 
 			// parseInt('not-a-number') returns NaN, which is coerced to 0 by || operator
 			expect(result.answerCount).toBe(0);

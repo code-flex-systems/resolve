@@ -677,7 +677,9 @@ function validateCondition(condition: RuleCondition): string[] {
 		// For enum fields, validate values are in the allowed options
 		if (fieldDef.source === 'enum' && fieldDef.enumOptions) {
 			const validValues = fieldDef.enumOptions.map((o) => o.value);
-			const invalidEnumValues = (condition.value as string[]).filter((v) => !validValues.includes(v));
+			const invalidEnumValues = (condition.value as string[]).filter(
+				(v) => !validValues.includes(v)
+			);
 			if (invalidEnumValues.length > 0) {
 				errors.push(`Invalid value(s) for '${fieldDef.label}': ${invalidEnumValues.join(', ')}`);
 			}
@@ -781,7 +783,9 @@ export function operatorRequiresArray(operator: ConditionOperator): boolean {
  * @param field - The field identifier
  * @returns Input type hint for UI rendering
  */
-export function getFieldInputType(field: string): 'select' | 'multiselect' | 'number' | 'text' | 'date' | null {
+export function getFieldInputType(
+	field: string
+): 'select' | 'multiselect' | 'number' | 'text' | 'date' | null {
 	const fieldDef = getFieldDefinition(field);
 	if (!fieldDef) return null;
 

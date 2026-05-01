@@ -1,6 +1,13 @@
 'use client';
 
-import { IconAlertTriangle, IconCircleCheck, IconGauge, IconShieldCheck, IconTrendingUp, IconUsers } from '@tabler/icons-react';
+import {
+	IconAlertTriangle,
+	IconCircleCheck,
+	IconGauge,
+	IconShieldCheck,
+	IconTrendingUp,
+	IconUsers,
+} from '@tabler/icons-react';
 import CardioLoadingIndicator from '@/components/common/CardioLoadingIndicator';
 import KpiCard from '@/components/ui/KpiCard';
 import Card from '@/components/ui/Card';
@@ -15,13 +22,14 @@ import { useWorkflowAnalyticsTrpc } from '@/hooks/trpc/useWorkflowAnalyticsTrpc'
  * Displays top-level metrics: workload utilization, queue depth, and task throughput
  */
 export default function WorkflowManagementOverview() {
-	const { data: workloadData, isLoading: isLoadingWorkload } = useWorkflowAnalyticsTrpc().getDeskWorkLoad({});
+	const { data: workloadData, isLoading: isLoadingWorkload } =
+		useWorkflowAnalyticsTrpc().getDeskWorkLoad({});
 
-	const { data: queueData, isLoading: isLoadingQueue } = useWorkflowAnalyticsTrpc().getDeskQueueDepth({});
+	const { data: queueData, isLoading: isLoadingQueue } =
+		useWorkflowAnalyticsTrpc().getDeskQueueDepth({});
 
-	const { data: throughputData, isLoading: isLoadingThroughput } = useWorkflowAnalyticsTrpc().getTaskThroughputToday(
-		{}
-	);
+	const { data: throughputData, isLoading: isLoadingThroughput } =
+		useWorkflowAnalyticsTrpc().getTaskThroughputToday({});
 
 	const {
 		data: suggestionsData,
@@ -32,7 +40,9 @@ export default function WorkflowManagementOverview() {
 	});
 
 	const { data: slaData } = useWorkflowAnalyticsTrpc().getClaimsApproachingSLABreach({ limit: 10 });
-	const { data: healthData } = useWorkflowAnalyticsTrpc().getConfigurationHealthCheck(undefined as void);
+	const { data: healthData } = useWorkflowAnalyticsTrpc().getConfigurationHealthCheck(
+		undefined as void
+	);
 	const { data: workloadUsers } = useWorkflowAnalyticsTrpc().getUserWorkload({});
 
 	const isLoading = isLoadingWorkload || isLoadingQueue || isLoadingThroughput;
@@ -74,8 +84,16 @@ export default function WorkflowManagementOverview() {
 				>
 					Real-time metrics and operational insights across all workflow stages
 				</span>
-				<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '8px 0 0', lineHeight: 1.5 }}>
-					Monitor workflow health and take action on suggested changes. KPIs show real-time workload and capacity metrics.
+				<p
+					style={{
+						color: 'var(--text-secondary)',
+						fontSize: 13,
+						margin: '8px 0 0',
+						lineHeight: 1.5,
+					}}
+				>
+					Monitor workflow health and take action on suggested changes. KPIs show real-time workload
+					and capacity metrics.
 				</p>
 			</div>
 
@@ -122,35 +140,86 @@ export default function WorkflowManagementOverview() {
 
 			{/* Suggestions panel */}
 			<div style={{ marginTop: 24 }}>
-				<SuggestionsPanel data={suggestionsData} isFetching={isFetchingSuggestions} refetch={refetchSuggestions} />
+				<SuggestionsPanel
+					data={suggestionsData}
+					isFetching={isFetchingSuggestions}
+					refetch={refetchSuggestions}
+				/>
 			</div>
 
 			{/* SLA Alerts */}
 			<div style={{ marginTop: 24 }}>
 				<Card variant="beveled" padding="md">
 					<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-						<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>SLA Alerts</span>
-						{(!slaData || slaData.length === 0) ? (
-							<div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 0', color: 'var(--status-success)' }}>
+						<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+							SLA Alerts
+						</span>
+						{!slaData || slaData.length === 0 ? (
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									gap: 8,
+									padding: '12px 0',
+									color: 'var(--status-success)',
+								}}
+							>
 								<IconCircleCheck size={18} />
 								<span style={{ fontSize: 13 }}>No SLA concerns</span>
 							</div>
 						) : (
 							<div style={{ display: 'flex', flexDirection: 'column' }}>
 								{slaData.map((item) => (
-									<div key={item.claimId} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid var(--border-primary)' }}>
+									<div
+										key={item.claimId}
+										style={{
+											display: 'flex',
+											alignItems: 'center',
+											gap: 12,
+											padding: '8px 0',
+											borderBottom: '1px solid var(--border-primary)',
+										}}
+									>
 										<Chip
 											size="sm"
-											color={item.slaStatus === 'breached' ? 'error' : item.slaStatus === 'critical' ? 'warning' : 'neutral'}
+											color={
+												item.slaStatus === 'breached'
+													? 'error'
+													: item.slaStatus === 'critical'
+														? 'warning'
+														: 'neutral'
+											}
 										>
 											{item.slaStatus}
 										</Chip>
-										<span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', minWidth: 100 }}>{item.claimNumber}</span>
-										<span style={{ fontSize: 12, color: 'var(--text-muted)', flex: 1 }}>{item.deskLocationName}</span>
+										<span
+											style={{
+												fontSize: 13,
+												fontWeight: 500,
+												color: 'var(--text-primary)',
+												minWidth: 100,
+											}}
+										>
+											{item.claimNumber}
+										</span>
+										<span style={{ fontSize: 12, color: 'var(--text-muted)', flex: 1 }}>
+											{item.deskLocationName}
+										</span>
 										<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
 											{item.adjusterName || '—'}
 										</span>
-										<span style={{ fontSize: 12, fontWeight: 600, color: item.hoursRemaining <= 0 ? 'var(--status-error)' : 'var(--text-secondary)', minWidth: 60, textAlign: 'right' }}>
+										<span
+											style={{
+												fontSize: 12,
+												fontWeight: 600,
+												color:
+													item.hoursRemaining <= 0
+														? 'var(--status-error)'
+														: 'var(--text-secondary)',
+												minWidth: 60,
+												textAlign: 'right',
+											}}
+										>
 											{Math.round(item.hoursRemaining)}h left
 										</span>
 									</div>
@@ -165,14 +234,22 @@ export default function WorkflowManagementOverview() {
 			<div style={{ marginTop: 24 }}>
 				<Card variant="beveled" padding="md">
 					<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-						<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>Configuration Health</span>
-						{healthData && (healthData.locationsWithoutWorkflow.length > 0 || healthData.workflowsWithoutThreshold.length > 0 || healthData.locationsMissingCapacity.length > 0 || healthData.usersWithoutAssignments.length > 0) ? (
+						<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+							Configuration Health
+						</span>
+						{healthData &&
+						(healthData.locationsWithoutWorkflow.length > 0 ||
+							healthData.workflowsWithoutThreshold.length > 0 ||
+							healthData.locationsMissingCapacity.length > 0 ||
+							healthData.usersWithoutAssignments.length > 0) ? (
 							<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 								{healthData.locationsWithoutWorkflow.length > 0 && (
 									<div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
 										<IconAlertTriangle size={16} style={{ color: 'var(--status-warning)' }} />
 										<span style={{ fontSize: 13, color: 'var(--text-primary)' }}>
-											{healthData.locationsWithoutWorkflow.length} desk location{healthData.locationsWithoutWorkflow.length !== 1 ? 's' : ''} without workflows
+											{healthData.locationsWithoutWorkflow.length} desk location
+											{healthData.locationsWithoutWorkflow.length !== 1 ? 's' : ''} without
+											workflows
 										</span>
 									</div>
 								)}
@@ -180,7 +257,9 @@ export default function WorkflowManagementOverview() {
 									<div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
 										<IconAlertTriangle size={16} style={{ color: 'var(--status-warning)' }} />
 										<span style={{ fontSize: 13, color: 'var(--text-primary)' }}>
-											{healthData.workflowsWithoutThreshold.length} workflow{healthData.workflowsWithoutThreshold.length !== 1 ? 's' : ''} without thresholds
+											{healthData.workflowsWithoutThreshold.length} workflow
+											{healthData.workflowsWithoutThreshold.length !== 1 ? 's' : ''} without
+											thresholds
 										</span>
 									</div>
 								)}
@@ -188,7 +267,9 @@ export default function WorkflowManagementOverview() {
 									<div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
 										<IconAlertTriangle size={16} style={{ color: 'var(--status-warning)' }} />
 										<span style={{ fontSize: 13, color: 'var(--text-primary)' }}>
-											{healthData.locationsMissingCapacity.length} location{healthData.locationsMissingCapacity.length !== 1 ? 's' : ''} missing capacity settings
+											{healthData.locationsMissingCapacity.length} location
+											{healthData.locationsMissingCapacity.length !== 1 ? 's' : ''} missing capacity
+											settings
 										</span>
 									</div>
 								)}
@@ -196,13 +277,23 @@ export default function WorkflowManagementOverview() {
 									<div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0' }}>
 										<IconAlertTriangle size={16} style={{ color: 'var(--status-error)' }} />
 										<span style={{ fontSize: 13, color: 'var(--text-primary)' }}>
-											{healthData.usersWithoutAssignments.length} user{healthData.usersWithoutAssignments.length !== 1 ? 's' : ''} without desk assignments
+											{healthData.usersWithoutAssignments.length} user
+											{healthData.usersWithoutAssignments.length !== 1 ? 's' : ''} without desk
+											assignments
 										</span>
 									</div>
 								)}
 							</div>
 						) : (
-							<div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 0', color: 'var(--status-success)' }}>
+							<div
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									gap: 8,
+									padding: '12px 0',
+									color: 'var(--status-success)',
+								}}
+							>
 								<IconShieldCheck size={18} />
 								<span style={{ fontSize: 13 }}>All systems configured</span>
 							</div>
@@ -216,29 +307,52 @@ export default function WorkflowManagementOverview() {
 				<div style={{ marginTop: 24 }}>
 					<Card variant="beveled" padding="md">
 						<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-							<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>User Workload</span>
-							<ResponsiveContainer width="100%" height={Math.min(workloadUsers.length * 36 + 20, 400)}>
+							<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+								User Workload
+							</span>
+							<ResponsiveContainer
+								width="100%"
+								height={Math.min(workloadUsers.length * 36 + 20, 400)}
+							>
 								<BarChart
 									data={[...workloadUsers]
 										.sort((a, b) => (b.utilizationRatio ?? 0) - (a.utilizationRatio ?? 0))
 										.slice(0, 10)
-										.map(u => ({
+										.map((u) => ({
 											name: `${u.firstName} ${u.lastName}`,
 											utilization: Math.round((u.utilizationRatio ?? 0) * 100),
 										}))}
 									layout="vertical"
 									margin={{ left: 100, right: 20, top: 5, bottom: 5 }}
 								>
-									<XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} fontSize={11} />
-									<YAxis type="category" dataKey="name" width={90} fontSize={11} tick={{ fill: 'var(--text-secondary)' }} />
+									<XAxis
+										type="number"
+										domain={[0, 100]}
+										tickFormatter={(v) => `${v}%`}
+										fontSize={11}
+									/>
+									<YAxis
+										type="category"
+										dataKey="name"
+										width={90}
+										fontSize={11}
+										tick={{ fill: 'var(--text-secondary)' }}
+									/>
 									<Bar dataKey="utilization" radius={[0, 4, 4, 0]} barSize={20}>
 										{[...workloadUsers]
 											.sort((a, b) => (b.utilizationRatio ?? 0) - (a.utilizationRatio ?? 0))
 											.slice(0, 10)
 											.map((_, i) => {
-												const val = [...workloadUsers].sort((a, b) => (b.utilizationRatio ?? 0) - (a.utilizationRatio ?? 0))[i];
+												const val = [...workloadUsers].sort(
+													(a, b) => (b.utilizationRatio ?? 0) - (a.utilizationRatio ?? 0)
+												)[i];
 												const pct = Math.round((val?.utilizationRatio ?? 0) * 100);
-												const color = pct > 90 ? 'var(--status-error)' : pct > 70 ? 'var(--status-warning)' : 'var(--status-success)';
+												const color =
+													pct > 90
+														? 'var(--status-error)'
+														: pct > 70
+															? 'var(--status-warning)'
+															: 'var(--status-success)';
 												return <Cell key={i} fill={color} />;
 											})}
 									</Bar>

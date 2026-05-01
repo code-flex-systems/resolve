@@ -34,9 +34,12 @@ export default function MyClaimsDeadlines() {
 	const { counts, filteredDeadlines } = useMemo(() => {
 		const now = dayjs();
 
-		const isOverdue = (d: Deadline) => d.status === DeadlineStatus.PENDING && dayjs(d.deadline_date).isBefore(now);
-		const isPending = (d: Deadline) => d.status === DeadlineStatus.PENDING && !dayjs(d.deadline_date).isBefore(now);
-		const isCompleted = (d: Deadline) => d.status === DeadlineStatus.MET || d.status === DeadlineStatus.MISSED;
+		const isOverdue = (d: Deadline) =>
+			d.status === DeadlineStatus.PENDING && dayjs(d.deadline_date).isBefore(now);
+		const isPending = (d: Deadline) =>
+			d.status === DeadlineStatus.PENDING && !dayjs(d.deadline_date).isBefore(now);
+		const isCompleted = (d: Deadline) =>
+			d.status === DeadlineStatus.MET || d.status === DeadlineStatus.MISSED;
 
 		const overdueList = deadlines.filter(isOverdue);
 		const pendingList = deadlines.filter(isPending);

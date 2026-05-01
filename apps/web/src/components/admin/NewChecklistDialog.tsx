@@ -54,11 +54,10 @@ export default function NewChecklistDialog() {
 			onClose={toggleNewChecklistDialog}
 			width={475}
 		>
+			<span style={{ fontStyle: 'italic' }}>The new checklist will be unpublished by default.</span>
 			<span style={{ fontStyle: 'italic' }}>
-				The new checklist will be unpublished by default.
-			</span>
-			<span style={{ fontStyle: 'italic' }}>
-				This gives you a chance to finalize pages, questions, and answers before making it available to users.
+				This gives you a chance to finalize pages, questions, and answers before making it available
+				to users.
 			</span>
 			<form>
 				<div className="flex-row-left" style={styles.row}>
@@ -74,7 +73,17 @@ export default function NewChecklistDialog() {
 				</div>
 				<div className="flex-row-left" style={styles.row}>
 					<div>
-						<label style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>Choose a checklist to copy from (optional)</label>
+						<label
+							style={{
+								fontSize: 13,
+								fontWeight: 500,
+								color: 'var(--text-secondary)',
+								marginBottom: 4,
+								display: 'block',
+							}}
+						>
+							Choose a checklist to copy from (optional)
+						</label>
 						<Dropdown
 							options={[
 								{ value: '', label: 'None' },
@@ -104,5 +113,5 @@ const styles = {
 	},
 	textFieldOverrides: {
 		width: 300,
-		},
+	},
 };

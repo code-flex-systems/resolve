@@ -14,7 +14,11 @@ export interface BadgeProps {
 function Badge({ active, content, color = 'primary', children, className }: BadgeProps) {
 	const wrapperClasses = [styles.wrapper, className].filter(Boolean).join(' ');
 
-	const badgeClasses = [styles.badge, styles[`color-${color}`], content != null ? styles.content : styles.dot]
+	const badgeClasses = [
+		styles.badge,
+		styles[`color-${color}`],
+		content != null ? styles.content : styles.dot,
+	]
 		.filter(Boolean)
 		.join(' ');
 

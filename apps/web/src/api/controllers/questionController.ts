@@ -20,12 +20,15 @@ export async function createQuestion(
 		const created = await questionQueries.createQuestion({ ...ctx, db: trx }, pageId, params);
 
 		// Log question creation
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: created.id,
-			entityName: EntityName.QUESTION,
-			action: AdminAction.CREATE,
-			value: { text: created.text, type: created.type, pageId },
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: created.id,
+				entityName: EntityName.QUESTION,
+				action: AdminAction.CREATE,
+				value: { text: created.text, type: created.type, pageId },
+			}
+		);
 
 		return created;
 	});
@@ -48,12 +51,21 @@ export async function copyQuestion(
 		const created = await questionQueries.copyQuestion({ ...ctx, db: trx }, pageId, questionId);
 
 		// Log question creation (copied from source)
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: created.id,
-			entityName: EntityName.QUESTION,
-			action: AdminAction.CREATE,
-			value: { text: created.text, type: created.type, pageId, sourceQuestionId: questionId, copied: true },
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: created.id,
+				entityName: EntityName.QUESTION,
+				action: AdminAction.CREATE,
+				value: {
+					text: created.text,
+					type: created.type,
+					pageId,
+					sourceQuestionId: questionId,
+					copied: true,
+				},
+			}
+		);
 
 		return created;
 	});
@@ -81,12 +93,15 @@ export async function deleteQuestion(
 
 		// Log admin action for question deletion
 		if (question) {
-			await logAdminAction({ ...ctx, db: trx }, {
-				entityId: questionId,
-				entityName: EntityName.QUESTION,
-				action: AdminAction.DELETE,
-				value: { text: question.text, type: question.type, pageId: question.page_id },
-			});
+			await logAdminAction(
+				{ ...ctx, db: trx },
+				{
+					entityId: questionId,
+					entityName: EntityName.QUESTION,
+					action: AdminAction.DELETE,
+					value: { text: question.text, type: question.type, pageId: question.page_id },
+				}
+			);
 		}
 	});
 }
@@ -121,7 +136,10 @@ export async function getQuestions(ctx: ProtectedContext, { pageId }: { pageId: 
  */
 export async function getQuestionStats(
 	ctx: ProtectedContext,
-	{ pageId, filters }: { pageId: string; filters: { claimId?: string; range: DateRangeStrict; users?: string[] } }
+	{
+		pageId,
+		filters,
+	}: { pageId: string; filters: { claimId?: string; range: DateRangeStrict; users?: string[] } }
 ) {
 	const results = await questionQueries.getQuestionStats(ctx, pageId, filters);
 	const formattedResults: QuestionStat[] = [];
@@ -168,15 +186,23 @@ export async function modifyQuestion(
 ) {
 	// Update question and log admin action within transaction
 	const results = await ctx.db.transaction().execute(async (trx) => {
-		const updated = await questionQueries.modifyQuestion({ ...ctx, db: trx }, pageId, questionId, params);
+		const updated = await questionQueries.modifyQuestion(
+			{ ...ctx, db: trx },
+			pageId,
+			questionId,
+			params
+		);
 
 		// Log admin action for question update
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: questionId,
-			entityName: EntityName.QUESTION,
-			action: AdminAction.UPDATE,
-			value: params,
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: questionId,
+				entityName: EntityName.QUESTION,
+				action: AdminAction.UPDATE,
+				value: params,
+			}
+		);
 
 		return updated;
 	});

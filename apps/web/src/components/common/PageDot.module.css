@@ -2,7 +2,10 @@
 	margin: 4px;
 	border-radius: 25px;
 	border: 1px solid #1976d2;
-	transition: background-color 300ms ease, width 300ms ease, height 100ms ease;
+	transition:
+		background-color 300ms ease,
+		width 300ms ease,
+		height 100ms ease;
 }
 
 .active {

@@ -23,7 +23,9 @@ export const feedRouter = router({
 		} else {
 			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		}
-		return feedController.getFeedCount(ctx, { clientId: input.clientId ?? ctx.session.user.client_id! });
+		return feedController.getFeedCount(ctx, {
+			clientId: input.clientId ?? ctx.session.user.client_id!,
+		});
 	}),
 
 	getFeed: protectedProcedure.input(getFeedOptions).query(async ({ input, ctx }) => {

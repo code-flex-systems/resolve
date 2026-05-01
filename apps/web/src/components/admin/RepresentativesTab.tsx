@@ -98,13 +98,27 @@ const getColumns = (isAdminContext: boolean, isManageMode: boolean): ColumnDef<a
 	{
 		header: 'Primary',
 		accessorKey: 'is_primary',
-		cell: ({ row: { original: row } }) => (row.is_primary ? <Chip  color="info" size="sm">Primary</Chip> : null),
+		cell: ({ row: { original: row } }) =>
+			row.is_primary ? (
+				<Chip color="info" size="sm">
+					Primary
+				</Chip>
+			) : null,
 		size: 90,
 	},
 	{
 		header: '',
 		accessorKey: 'actions',
-		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return <RepresentativeActionsCell {...params} isAdminContext={isAdminContext} isManageMode={isManageMode} />; },
+		cell: (info: any) => {
+			const params = { row: info.row.original, value: info.getValue() };
+			return (
+				<RepresentativeActionsCell
+					{...params}
+					isAdminContext={isAdminContext}
+					isManageMode={isManageMode}
+				/>
+			);
+		},
 		size: isAdminContext ? 100 : 50,
 	},
 ];
@@ -121,14 +135,20 @@ function NoRows() {
 export default function RepresentativesTab({ isAdminContext = true }: RepresentativesTabProps) {
 	const showNewRepresentativeDialog = useAdminStore((state) => state.showNewRepresentativeDialog);
 	const representativeConstraints = useAdminStore((state) => state.representativeConstraints);
-	const toggleNewRepresentativeDialog = useAdminStore((state) => state.toggleNewRepresentativeDialog);
-	const updateRepresentativeConstraints = useAdminStore((state) => state.updateRepresentativeConstraints);
+	const toggleNewRepresentativeDialog = useAdminStore(
+		(state) => state.toggleNewRepresentativeDialog
+	);
+	const updateRepresentativeConstraints = useAdminStore(
+		(state) => state.updateRepresentativeConstraints
+	);
 
 	// Deep linking: edit representative via URL param
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const editRepresentativeId = searchParams.get('edit');
-	const [editingRepresentativeFromUrl, setEditingRepresentativeFromUrl] = useState<any | null>(null);
+	const [editingRepresentativeFromUrl, setEditingRepresentativeFromUrl] = useState<any | null>(
+		null
+	);
 	const partyTrpc = usePartyTrpc();
 
 	// Query to fetch representative by ID for deep linking (only when edit param is present)
@@ -162,7 +182,10 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 	};
 
 	// Memoize columns based on isAdminContext and isManageMode
-	const columns = useMemo(() => getColumns(isAdminContext, isManageMode), [isAdminContext, isManageMode]);
+	const columns = useMemo(
+		() => getColumns(isAdminContext, isManageMode),
+		[isAdminContext, isManageMode]
+	);
 
 	// Pinned columns - pin actions to right when in manage mode
 	const pinnedColumns = useMemo<{ left?: string[]; right?: string[] }>(
@@ -196,8 +219,16 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading representatives...">
 			<div style={styles.container}>
 				<Card variant="beveled" padding="md" style={styles.paper}>
-					<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
-						Representatives are contacts at party organizations — attorneys, adjusters, and other professional contacts.
+					<p
+						style={{
+							color: 'var(--text-secondary)',
+							fontSize: 13,
+							margin: '0 0 12px',
+							lineHeight: 1.5,
+						}}
+					>
+						Representatives are contacts at party organizations — attorneys, adjusters, and other
+						professional contacts.
 					</p>
 					<Toolbar
 						left={
@@ -211,9 +242,7 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 											color="warning"
 											style={{ marginLeft: '10px' }}
 										/>
-										<span style={{ fontSize: 14, fontStyle: 'italic' }}>
-											Show Archived Only
-										</span>
+										<span style={{ fontSize: 14, fontStyle: 'italic' }}>Show Archived Only</span>
 									</>
 								)}
 							</>
@@ -241,11 +270,19 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 									Representative
 								</Button>
 								<Tooltip content="Manage">
-									<Button variant="icon" size="sm"
+									<Button
+										variant="icon"
+										size="sm"
 										onClick={() => setIsManageMode(!isManageMode)}
-										style={{ marginLeft: 8, backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined }}
+										style={{
+											marginLeft: 8,
+											backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined,
+										}}
 									>
-										<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+										<IconSettings
+											size={20}
+											style={{ color: isManageMode ? 'primary.main' : undefined }}
+										/>
 									</Button>
 								</Tooltip>
 							</>
@@ -270,7 +307,10 @@ export default function RepresentativesTab({ isAdminContext = true }: Representa
 
 					{showNewRepresentativeDialog && <RepresentativeDialog />}
 					{editingRepresentativeFromUrl && (
-						<RepresentativeDialog representative={editingRepresentativeFromUrl} onClose={handleCloseEditDialog} />
+						<RepresentativeDialog
+							representative={editingRepresentativeFromUrl}
+							onClose={handleCloseEditDialog}
+						/>
 					)}
 				</Card>
 			</div>

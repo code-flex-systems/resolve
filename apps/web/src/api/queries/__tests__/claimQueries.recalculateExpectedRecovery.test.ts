@@ -87,7 +87,7 @@ describe('recalculateClaimExpectedRecovery', () => {
 				execute: mockUpdateExecute,
 			}));
 
-			const result = await recalculateClaimExpectedRecovery(mockContext, 1);
+			const result = await recalculateClaimExpectedRecovery(mockContext, 'claim-1');
 
 			expect(result).toBe(7000);
 			expect(mockUpdateExecute).toHaveBeenCalled();
@@ -123,7 +123,7 @@ describe('recalculateClaimExpectedRecovery', () => {
 				execute: vi.fn().mockResolvedValue(undefined),
 			}));
 
-			const result = await recalculateClaimExpectedRecovery(mockContext, 1);
+			const result = await recalculateClaimExpectedRecovery(mockContext, 'claim-1');
 
 			expect(result).toBe(5000);
 		});
@@ -158,7 +158,7 @@ describe('recalculateClaimExpectedRecovery', () => {
 				execute: vi.fn().mockResolvedValue(undefined),
 			}));
 
-			const result = await recalculateClaimExpectedRecovery(mockContext, 1);
+			const result = await recalculateClaimExpectedRecovery(mockContext, 'claim-1');
 
 			expect(result).toBe(0);
 		});
@@ -193,7 +193,7 @@ describe('recalculateClaimExpectedRecovery', () => {
 				execute: vi.fn().mockResolvedValue(undefined),
 			}));
 
-			const result = await recalculateClaimExpectedRecovery(mockContext, 1);
+			const result = await recalculateClaimExpectedRecovery(mockContext, 'claim-1');
 
 			// (100 - 33.33) / 100 * 9000 = 66.67 / 100 * 9000 = 6000.3
 			expect(result).toBeCloseTo(6000.3, 2);
@@ -229,7 +229,7 @@ describe('recalculateClaimExpectedRecovery', () => {
 				execute: vi.fn().mockResolvedValue(undefined),
 			}));
 
-			const result = await recalculateClaimExpectedRecovery(mockContext, 1);
+			const result = await recalculateClaimExpectedRecovery(mockContext, 'claim-1');
 
 			expect(result).toBe(750000);
 		});
@@ -264,7 +264,7 @@ describe('recalculateClaimExpectedRecovery', () => {
 				execute: vi.fn().mockResolvedValue(undefined),
 			}));
 
-			const result = await recalculateClaimExpectedRecovery(mockContext, 1);
+			const result = await recalculateClaimExpectedRecovery(mockContext, 'claim-1');
 
 			// No party liability = 100% our liability, so full recovery
 			expect(result).toBe(10000);
@@ -298,7 +298,7 @@ describe('recalculateClaimExpectedRecovery', () => {
 				execute: vi.fn().mockResolvedValue(undefined),
 			}));
 
-			const result = await recalculateClaimExpectedRecovery(mockContext, 1);
+			const result = await recalculateClaimExpectedRecovery(mockContext, 'claim-1');
 
 			// No amount paid = 0 recovery
 			expect(result).toBe(0);
@@ -332,7 +332,7 @@ describe('recalculateClaimExpectedRecovery', () => {
 				execute: vi.fn().mockResolvedValue(undefined),
 			}));
 
-			const result = await recalculateClaimExpectedRecovery(mockContext, 1);
+			const result = await recalculateClaimExpectedRecovery(mockContext, 'claim-1');
 
 			// 100% of 0 = 0
 			expect(result).toBe(0);
@@ -364,7 +364,7 @@ describe('recalculateClaimExpectedRecovery', () => {
 				execute: vi.fn().mockResolvedValue(undefined),
 			}));
 
-			const result = await recalculateClaimExpectedRecovery(mockContext, 1);
+			const result = await recalculateClaimExpectedRecovery(mockContext, 'claim-1');
 
 			expect(result).toBe(0);
 		});
@@ -401,7 +401,7 @@ describe('recalculateClaimExpectedRecovery', () => {
 				execute: vi.fn().mockResolvedValue(undefined),
 			}));
 
-			const result = await recalculateClaimExpectedRecovery(mockContext, 1);
+			const result = await recalculateClaimExpectedRecovery(mockContext, 'claim-1');
 
 			// Math.max(0, 100 - 120) = 0, so 0% recovery
 			expect(result).toBe(0);
@@ -437,7 +437,7 @@ describe('recalculateClaimExpectedRecovery', () => {
 				execute: vi.fn().mockResolvedValue(undefined),
 			}));
 
-			const result = await recalculateClaimExpectedRecovery(mockContext, 1);
+			const result = await recalculateClaimExpectedRecovery(mockContext, 'claim-1');
 
 			// (100 - 0.01) / 100 * 100000 = 99990
 			expect(result).toBeCloseTo(99990, 0);
@@ -473,7 +473,7 @@ describe('recalculateClaimExpectedRecovery', () => {
 				execute: vi.fn().mockResolvedValue(undefined),
 			}));
 
-			const result = await recalculateClaimExpectedRecovery(mockContext, 1);
+			const result = await recalculateClaimExpectedRecovery(mockContext, 'claim-1');
 
 			expect(result).toBeCloseTo(0.005, 4);
 		});
@@ -512,11 +512,11 @@ describe('recalculateClaimExpectedRecovery', () => {
 				execute: mockExecute,
 			}));
 
-			await recalculateClaimExpectedRecovery(mockContext, 1);
+			await recalculateClaimExpectedRecovery(mockContext, 'claim-1');
 
 			// Verify update was called with formatted value (2 decimal places)
 			expect(mockSet).toHaveBeenCalledWith({ expected_recovery: '7000.00' });
-			expect(mockWhere).toHaveBeenCalledWith('id', '=', 1);
+			expect(mockWhere).toHaveBeenCalledWith('id', '=', 'claim-1');
 		});
 
 		it('should format expected_recovery with 2 decimal places', async () => {
@@ -549,7 +549,7 @@ describe('recalculateClaimExpectedRecovery', () => {
 				execute: vi.fn().mockResolvedValue(undefined),
 			}));
 
-			await recalculateClaimExpectedRecovery(mockContext, 1);
+			await recalculateClaimExpectedRecovery(mockContext, 'claim-1');
 
 			// Verify value is formatted to 2 decimal places
 			const setCall = mockSet.mock.calls[0][0];
@@ -586,7 +586,7 @@ describe('recalculateClaimExpectedRecovery', () => {
 				execute: vi.fn().mockResolvedValue(undefined),
 			}));
 
-			const result = await recalculateClaimExpectedRecovery(mockContext, 1);
+			const result = await recalculateClaimExpectedRecovery(mockContext, 'claim-1');
 
 			expect(typeof result).toBe('number');
 			expect(result).toBe(6000); // 75% of 8000
@@ -619,7 +619,7 @@ describe('getClaimPartyAggregates', () => {
 				executeTakeFirst: vi.fn().mockResolvedValue(mockResult),
 			} as any);
 
-			const result = await getClaimPartyAggregates(mockContext, 1);
+			const result = await getClaimPartyAggregates(mockContext, 'claim-1');
 
 			expect(result.loss_type).toEqual(['Collision', 'Fire']); // nulls filtered
 			expect(result.total_liability_percentage).toBe(40);
@@ -638,7 +638,7 @@ describe('getClaimPartyAggregates', () => {
 				executeTakeFirst: vi.fn().mockResolvedValue(mockResult),
 			} as any);
 
-			const result = await getClaimPartyAggregates(mockContext, 1);
+			const result = await getClaimPartyAggregates(mockContext, 'claim-1');
 
 			expect(result.loss_type).toEqual([]);
 			expect(result.our_liability_percentage).toBe(80);
@@ -651,7 +651,7 @@ describe('getClaimPartyAggregates', () => {
 				executeTakeFirst: vi.fn().mockResolvedValue(null),
 			} as any);
 
-			const result = await getClaimPartyAggregates(mockContext, 1);
+			const result = await getClaimPartyAggregates(mockContext, 'claim-1');
 
 			expect(result.loss_type).toEqual([]);
 			expect(result.total_liability_percentage).toBe(0);
@@ -670,7 +670,7 @@ describe('getClaimPartyAggregates', () => {
 				executeTakeFirst: vi.fn().mockResolvedValue(mockResult),
 			} as any);
 
-			const result = await getClaimPartyAggregates(mockContext, 1);
+			const result = await getClaimPartyAggregates(mockContext, 'claim-1');
 
 			expect(result.total_liability_percentage).toBe(150);
 			expect(result.our_liability_percentage).toBe(0); // Capped at 0

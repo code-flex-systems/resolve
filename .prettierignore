@@ -1,0 +1,39 @@
+# Build output
+.next/
+dist/
+dist-migrator/
+build/
+out/
+
+# Dependencies
+node_modules/
+
+# Lock files (managed by package managers)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Generated types
+apps/web/src/api/database/types.d.ts
+apps/web/next-env.d.ts
+apps/web/tsconfig.tsbuildinfo
+
+# Environment files (besides examples)
+.env
+.env.local
+.env.*.local
+
+# Local storage / runtime data
+azurite-data/
+apps/web/azurite-data/
+
+# Coverage reports
+coverage/
+
+# Editor / OS
+.DS_Store
+.vscode/
+
+# Email templates have hand-tuned HTML; let prettier touch them only if you want.
+# Comment this out if you'd prefer prettier to manage them.
+apps/web/src/api/email-templates/

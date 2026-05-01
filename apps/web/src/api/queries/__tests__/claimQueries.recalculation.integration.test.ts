@@ -23,7 +23,11 @@ import {
 	createTestParty,
 	createTestClaimParty,
 } from '@/__tests__/integration/fixtures';
-import { assignClaim, recalculateClaimExpectedRecovery, recalculateTotalIncurred } from '../claimQueries';
+import {
+	assignClaim,
+	recalculateClaimExpectedRecovery,
+	recalculateTotalIncurred,
+} from '../claimQueries';
 import { ClaimStatus } from '@/config/enums';
 
 describe('claimQueries recalculation integration tests', () => {
@@ -178,7 +182,9 @@ describe('claimQueries recalculation integration tests', () => {
 				role: 'Admin',
 			});
 
-			await expect(assignClaim(ctx, '00000000-0000-0000-0000-000000000000', claim.id, user.id)).rejects.toThrow('Checklist not found');
+			await expect(
+				assignClaim(ctx, '00000000-0000-0000-0000-000000000000', claim.id, user.id)
+			).rejects.toThrow('Checklist not found');
 		});
 	});
 

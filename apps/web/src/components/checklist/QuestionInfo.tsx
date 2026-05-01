@@ -17,9 +17,12 @@ export default function QuestionInfo(props: {
 	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
 	// Fetch attached document for this question
-	const { data: attachedDocsResult } = useDocTrpc().listDocs({
-		filters: { question_id: questionId },
-	}, { enabled: !!questionId });
+	const { data: attachedDocsResult } = useDocTrpc().listDocs(
+		{
+			filters: { question_id: questionId },
+		},
+		{ enabled: !!questionId }
+	);
 	const attachedDocs = attachedDocsResult?.rows ?? [];
 
 	const attachedDoc = attachedDocs.length > 0 ? attachedDocs[0] : null;
@@ -38,16 +41,23 @@ export default function QuestionInfo(props: {
 						/>
 					</Tooltip>
 
-					<BasicPopper
-						anchorEl={anchorEl}
-						setAnchorEl={setAnchorEl}
-						placement="right"
-						zIndex={100}
-					>
-						<div style={{ width: 250, height: 'fit-content', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', padding: 10, marginTop: 5, backgroundColor: 'var(--bg-primary)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-md)' }}>
-							<span style={{ fontSize: 17, fontWeight: 'bold' }}>
-								{description}
-							</span>
+					<BasicPopper anchorEl={anchorEl} setAnchorEl={setAnchorEl} placement="right" zIndex={100}>
+						<div
+							style={{
+								width: 250,
+								height: 'fit-content',
+								display: 'flex',
+								flexDirection: 'column',
+								justifyContent: 'flex-start',
+								alignItems: 'flex-start',
+								padding: 10,
+								marginTop: 5,
+								backgroundColor: 'var(--bg-primary)',
+								borderRadius: 'var(--radius-lg)',
+								boxShadow: 'var(--shadow-md)',
+							}}
+						>
+							<span style={{ fontSize: 17, fontWeight: 'bold' }}>{description}</span>
 						</div>
 					</BasicPopper>
 				</>

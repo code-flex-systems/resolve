@@ -15,7 +15,9 @@ export async function up(db: Kysely<any>): Promise<void> {
 	// 1. Add parent_claim_party_id column to claim_party for entity-facilitator hierarchy
 	await db.schema
 		.alterTable('claim_party')
-		.addColumn('parent_claim_party_id', 'integer', (col) => col.references('claim_party.id').onDelete('set null'))
+		.addColumn('parent_claim_party_id', 'integer', (col) =>
+			col.references('claim_party.id').onDelete('set null')
+		)
 		.execute();
 
 	// 2. Add index for parent lookups

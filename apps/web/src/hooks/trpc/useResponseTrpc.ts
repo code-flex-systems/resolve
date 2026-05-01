@@ -46,7 +46,12 @@ export function useResponseTrpc() {
 				if (status) {
 					trpcUtils.page.getPageInstanceTree.setData({ checklistId, claimId }, (old) => {
 						if (!old) return old;
-						const updatedTree = utils.updatePropertyInTree(old.tree, updatedInstanceId, 'status', status);
+						const updatedTree = utils.updatePropertyInTree(
+							old.tree,
+							updatedInstanceId,
+							'status',
+							status
+						);
 						return { ...old, tree: updatedTree };
 					});
 					useChecklistStore.getState().updateSelectedPageInfoStatus(status);

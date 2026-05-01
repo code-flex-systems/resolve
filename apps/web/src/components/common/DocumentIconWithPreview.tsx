@@ -34,7 +34,9 @@ export default function DocumentIconWithPreview({
 				</Button>
 			</Tooltip>
 
-			{showPreview && <DocumentPreviewDialog onClose={() => setShowPreview(false)} document={document} />}
+			{showPreview && (
+				<DocumentPreviewDialog onClose={() => setShowPreview(false)} document={document} />
+			)}
 		</>
 	);
 }

@@ -57,7 +57,12 @@ export async function getCommentCount(ctx: ProtectedContext, filters: CommentFil
 	return parseInt(result.count.toString());
 }
 
-export async function getComments(ctx: ProtectedContext, filters: CommentFilters, limit?: number, offset?: number) {
+export async function getComments(
+	ctx: ProtectedContext,
+	filters: CommentFilters,
+	limit?: number,
+	offset?: number
+) {
 	// Base query
 	const baseQuery = ctx.db
 		.selectFrom('comment')
@@ -69,7 +74,8 @@ export async function getComments(ctx: ProtectedContext, filters: CommentFilters
 		)
 		.where('comment.client_id', '=', ctx.session.user.client_id)
 		.where((eb) => {
-			const andClause: ExpressionWrapper<DB, 'comment' | 'checklist_claim' | 'users', SqlBool>[] = [];
+			const andClause: ExpressionWrapper<DB, 'comment' | 'checklist_claim' | 'users', SqlBool>[] =
+				[];
 			if (filters.userId) {
 				andClause.push(
 					eb.or([
@@ -91,7 +97,13 @@ export async function getComments(ctx: ProtectedContext, filters: CommentFilters
 		.leftJoin('page', 'page_instance.page_id', 'page.id')
 		.leftJoin('question', 'comment.question_id', 'question.id')
 		.selectAll('comment')
-		.select(['users.first', 'users.last', 'users.email', 'page.title as page_title', 'question.position'])
+		.select([
+			'users.first',
+			'users.last',
+			'users.email',
+			'page.title as page_title',
+			'question.position',
+		])
 		.orderBy(['comment.updated_at desc', 'comment.created_at desc']);
 	if (limit) dataQuery = dataQuery.limit(limit);
 	if (offset) dataQuery = dataQuery.offset(offset);

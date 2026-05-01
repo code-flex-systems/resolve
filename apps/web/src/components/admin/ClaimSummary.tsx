@@ -1,6 +1,15 @@
 'use client';
 
-import { IconChecklist, IconCircleCheck, IconEdit, IconExternalLink, IconListCheck, IconShield, IconSubtask, IconUsersGroup } from '@tabler/icons-react';
+import {
+	IconChecklist,
+	IconCircleCheck,
+	IconEdit,
+	IconExternalLink,
+	IconListCheck,
+	IconShield,
+	IconSubtask,
+	IconUsersGroup,
+} from '@tabler/icons-react';
 import Card from '@/components/ui/Card';
 import Skeleton from '@/components/ui/Skeleton';
 import Divider from '@/components/ui/Divider';
@@ -32,7 +41,11 @@ interface ClaimSummaryProps {
 	showChecklistProgress?: boolean;
 }
 
-export default function ClaimSummary({ claimId, onStartChecklist, showChecklistProgress = true }: ClaimSummaryProps) {
+export default function ClaimSummary({
+	claimId,
+	onStartChecklist,
+	showChecklistProgress = true,
+}: ClaimSummaryProps) {
 	const router = useRouter();
 	const pathname = usePathname();
 	const isAdmin = useIsAdmin();
@@ -44,7 +57,10 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 		{ enabled: !!claimId }
 	);
 	const { listByClaim } = useAdminLogsTrpc();
-	const { data: adminLogs = [], isLoading: logsLoading } = listByClaim({ claimId, limit: 5 }, { enabled: !!claimId });
+	const { data: adminLogs = [], isLoading: logsLoading } = listByClaim(
+		{ claimId, limit: 5 },
+		{ enabled: !!claimId }
+	);
 
 	const getViewRoute = () => {
 		return pathname.startsWith('/admin') && (isAdmin || isSuperAdmin)
@@ -93,7 +109,15 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 			<div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
 				{/* Scrollable Content */}
 				<div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
-					<div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingRight: 4, paddingBottom: 8 }}>
+					<div
+						style={{
+							display: 'flex',
+							flexDirection: 'column',
+							gap: 16,
+							paddingRight: 4,
+							paddingBottom: 8,
+						}}
+					>
 						{/* Header with status badges */}
 						<div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
 							{claimDetail.line_of_business && (
@@ -115,26 +139,55 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 							<span style={{ color: 'var(--text-accent)', marginBottom: '10px' }}>
 								{claimDetail.claim_number}
 							</span>
-							<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-								<div style={{ display: 'flex', flexDirection: 'column' as const, width: '50%', padding: 8 }}>
-									<span style={{ color: 'var(--text-muted)', fontSize: 13 }}>
-										Claim Amount
-									</span>
+							<div
+								style={{
+									display: 'flex',
+									justifyContent: 'space-between',
+									alignItems: 'flex-start',
+								}}
+							>
+								<div
+									style={{
+										display: 'flex',
+										flexDirection: 'column' as const,
+										width: '50%',
+										padding: 8,
+									}}
+								>
+									<span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Claim Amount</span>
 									<span style={{ fontSize: 16 }}>
 										{formatCurrencyExact(Number(claimDetail.claim_amount) || 0)}
 									</span>
 								</div>
-								<div style={{ display: 'flex', flexDirection: 'column' as const, width: '50%', padding: 8 }}>
-									<span style={{ color: 'var(--text-muted)', fontSize: 13 }}>
-										Total Incurred
-									</span>
+								<div
+									style={{
+										display: 'flex',
+										flexDirection: 'column' as const,
+										width: '50%',
+										padding: 8,
+									}}
+								>
+									<span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Total Incurred</span>
 									<span style={{ fontSize: 16 }}>
 										{formatCurrencyExact(Number(claimDetail.total_incurred) || 0)}
 									</span>
 								</div>
 							</div>
-							<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-								<div style={{ display: 'flex', flexDirection: 'column' as const, width: '50%', padding: 8 }}>
+							<div
+								style={{
+									display: 'flex',
+									justifyContent: 'space-between',
+									alignItems: 'flex-start',
+								}}
+							>
+								<div
+									style={{
+										display: 'flex',
+										flexDirection: 'column' as const,
+										width: '50%',
+										padding: 8,
+									}}
+								>
 									<span style={{ color: 'var(--text-muted)', fontSize: 13 }}>
 										Expected Recovery
 									</span>
@@ -142,10 +195,15 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 										{formatCurrencyExact(Number(claimDetail.expected_recovery) || 0)}
 									</span>
 								</div>
-								<div style={{ display: 'flex', flexDirection: 'column' as const, width: '50%', padding: 8 }}>
-									<span style={{ color: 'var(--text-muted)', fontSize: 13 }}>
-										Actual Recovery
-									</span>
+								<div
+									style={{
+										display: 'flex',
+										flexDirection: 'column' as const,
+										width: '50%',
+										padding: 8,
+									}}
+								>
+									<span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Actual Recovery</span>
 									<span style={{ fontSize: 16 }}>
 										{formatCurrencyExact(Number(claimDetail.actual_recovery) || 0)}
 									</span>
@@ -155,7 +213,14 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 
 						{/* Quick Summary: Coverage, Parties, Tasks */}
 						<Card variant="beveled" padding="md" style={{ height: 'fit-content' }}>
-							<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 10, display: 'block' }}>
+							<span
+								style={{
+									fontSize: 13,
+									color: 'var(--text-muted)',
+									marginBottom: 10,
+									display: 'block',
+								}}
+							>
 								Quick Summary
 							</span>
 							<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -185,7 +250,9 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 									<span style={{ fontSize: 13, display: 'flex' }}>
 										<Highlight bold={false}>Liability:</Highlight>{' '}
 										{claimDetail.partySummary.count === 0 ? (
-											<span style={{ fontStyle: 'italic', color: 'var(--text-muted)', marginLeft: 4 }}>
+											<span
+												style={{ fontStyle: 'italic', color: 'var(--text-muted)', marginLeft: 4 }}
+											>
 												None linked
 											</span>
 										) : (
@@ -194,7 +261,7 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 												{claimDetail.partySummary.count} part
 												{claimDetail.partySummary.count === 1 ? 'y' : 'ies'}
 												{claimDetail.partySummary.totalLiability === 100 && (
-													<IconCircleCheck size={14} style={{ color: 'var(--status-success)', }} />
+													<IconCircleCheck size={14} style={{ color: 'var(--status-success)' }} />
 												)}
 											</div>
 										)}
@@ -288,15 +355,21 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 									<span style={{ fontSize: 13 }}>
 										Assigned to{' '}
 										<Highlight>
-											{currentAssignment.assignee_first_name}{' '}
-											{currentAssignment.assignee_last_name}
+											{currentAssignment.assignee_first_name} {currentAssignment.assignee_last_name}
 										</Highlight>{' '}
 										working through <Highlight>{currentAssignment.checklist_name}</Highlight>
 									</span>
 								)}
 								{!currentAssignment && (
 									<div>
-										<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: '10px', fontStyle: 'italic' }}>
+										<span
+											style={{
+												fontSize: 13,
+												color: 'var(--text-muted)',
+												marginBottom: '10px',
+												fontStyle: 'italic',
+											}}
+										>
 											Not currently assigned to a checklist
 										</span>
 										{onStartChecklist && (
@@ -325,7 +398,9 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 								</span>
 								<span style={{ fontSize: 13 }}>
 									<Highlight bold={false}>Date of Loss:</Highlight>{' '}
-									{claimDetail.date_of_loss ? formatMDY(claimDetail.date_of_loss?.toString()) : 'N/A'}
+									{claimDetail.date_of_loss
+										? formatMDY(claimDetail.date_of_loss?.toString())
+										: 'N/A'}
 								</span>
 								<span style={{ fontSize: 13 }}>
 									<Highlight bold={false}>Loss Location:</Highlight>{' '}
@@ -335,10 +410,7 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 									<>
 										<Divider />
 										<span style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic' }}>
-											Ingested from{' '}
-											<div style={{ fontWeight: 600 }}>
-												{claimDetail.feed_name}
-											</div>
+											Ingested from <div style={{ fontWeight: 600 }}>{claimDetail.feed_name}</div>
 										</span>
 									</>
 								)}
@@ -392,7 +464,12 @@ export default function ClaimSummary({ claimId, onStartChecklist, showChecklistP
 					}}
 				>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-						<Button variant="contained" startIcon={<IconExternalLink size={20} />} onClick={handleViewFullDetails} fullWidth>
+						<Button
+							variant="contained"
+							startIcon={<IconExternalLink size={20} />}
+							onClick={handleViewFullDetails}
+							fullWidth
+						>
 							View Full Details
 						</Button>
 						<Button

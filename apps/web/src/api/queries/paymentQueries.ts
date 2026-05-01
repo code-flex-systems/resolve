@@ -170,14 +170,14 @@ export async function updatePayment(
 	// Update claim.claim_amount using delta increment if amount or subrogable flag changed
 	const oldIsSubrogable = existing.is_subrogable;
 	const oldAmount = existing.payment_amount;
-	const newIsSubrogable = params.is_subrogable !== undefined ? params.is_subrogable : oldIsSubrogable;
+	const newIsSubrogable =
+		params.is_subrogable !== undefined ? params.is_subrogable : oldIsSubrogable;
 	const newAmount = params.payment_amount !== undefined ? params.payment_amount : oldAmount;
 
 	// Check if contribution to claim_amount changed (only subrogable payments count)
 	// Need to check for changes to avoid unnecessary queries
 	const contributionChanged =
-		(oldIsSubrogable !== newIsSubrogable) ||
-		(newIsSubrogable && oldAmount !== newAmount);
+		oldIsSubrogable !== newIsSubrogable || (newIsSubrogable && oldAmount !== newAmount);
 
 	if (contributionChanged) {
 		await ctx.db

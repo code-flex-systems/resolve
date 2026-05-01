@@ -9,16 +9,10 @@ import { Kysely, sql } from 'kysely';
 
 export async function up(db: Kysely<any>): Promise<void> {
 	// Add deleted_at column to claim_liability table for soft deletes
-	await db.schema
-		.alterTable('claim_liability')
-		.addColumn('deleted_at', 'timestamptz')
-		.execute();
+	await db.schema.alterTable('claim_liability').addColumn('deleted_at', 'timestamptz').execute();
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
 	// Remove deleted_at column from claim_liability table
-	await db.schema
-		.alterTable('claim_liability')
-		.dropColumn('deleted_at')
-		.execute();
+	await db.schema.alterTable('claim_liability').dropColumn('deleted_at').execute();
 }

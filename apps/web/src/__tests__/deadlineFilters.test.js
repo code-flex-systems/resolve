@@ -226,7 +226,8 @@ async function runTests() {
 			.execute();
 		console.log(`✓ Contributor sees ${contributorDeadlines.length} deadlines (expected: 2)`);
 		console.log(`  Deadline IDs: ${contributorDeadlines.map((d) => d.id).join(', ')}`);
-		if (contributorDeadlines.length !== 2) throw new Error('Contributor should see only 2 deadlines (claim1)');
+		if (contributorDeadlines.length !== 2)
+			throw new Error('Contributor should see only 2 deadlines (claim1)');
 
 		// Test 3: Date range filtering - next 7 days
 		console.log('\n🔍 Test 3: Date range filter - next 7 days');
@@ -276,7 +277,9 @@ async function runTests() {
 				])
 			)
 			.execute();
-		console.log(`✓ Contributor sees ${contributorWeekDeadlines.length} deadlines in next 7 days (expected: 1)`);
+		console.log(
+			`✓ Contributor sees ${contributorWeekDeadlines.length} deadlines in next 7 days (expected: 1)`
+		);
 		console.log(`  Deadline IDs: ${contributorWeekDeadlines.map((d) => d.id).join(', ')}`);
 		if (contributorWeekDeadlines.length !== 1)
 			throw new Error('Contributor should see 1 deadline in next 7 days (deadline1 only)');

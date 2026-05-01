@@ -7,9 +7,7 @@ import { JSX, PropsWithChildren, forwardRef } from 'react';
 import css from './BasicButton.module.css';
 
 /** Map MUI color names to our custom Button color names */
-function mapColor(
-	color: string | undefined
-): UiButtonProps['color'] {
+function mapColor(color: string | undefined): UiButtonProps['color'] {
 	switch (color) {
 		case 'success':
 			return 'success';

@@ -1,7 +1,7 @@
 /**
  * Setup Test Database
  *
- * This script creates the manifest_test database and test schema,
+ * This script creates the resolve_test database and test schema,
  * then runs all migrations to set up the schema structure.
  *
  * Run with: npx tsx src/__tests__/integration/setup-test-db.ts
@@ -19,7 +19,8 @@ const POSTGRES_CONFIG = {
 	port: parseInt(process.env.DB_PORT || '5432', 10),
 };
 
-const TEST_DB_NAME = 'manifest_test';
+const TEST_DB_NAME = 'resolve_test';
+const SOURCE_DB_NAME = process.env.DB_DATABASE || 'resolve';
 const TEST_SCHEMA = 'test';
 
 async function createTestDatabase(): Promise<void> {
@@ -29,10 +30,9 @@ async function createTestDatabase(): Promise<void> {
 	});
 
 	try {
-		const result = await adminPool.query(
-			'SELECT 1 FROM pg_database WHERE datname = $1',
-			[TEST_DB_NAME]
-		);
+		const result = await adminPool.query('SELECT 1 FROM pg_database WHERE datname = $1', [
+			TEST_DB_NAME,
+		]);
 
 		if (result.rows.length === 0) {
 			console.log(`Creating database: ${TEST_DB_NAME}`);
@@ -57,7 +57,7 @@ async function setupSchema(): Promise<void> {
 		console.log(`Dropping schema if exists: ${TEST_SCHEMA}`);
 		await testPool.query(`DROP SCHEMA IF EXISTS ${TEST_SCHEMA} CASCADE`);
 
-		// Drop analytics schema too — the dump from manifest DB will recreate it,
+		// Drop analytics schema too — the dump from the source DB will recreate it,
 		// and CREATE SCHEMA without IF NOT EXISTS will fail if it already exists.
 		console.log('Dropping schema if exists: analytics');
 		await testPool.query(`DROP SCHEMA IF EXISTS analytics CASCADE`);
@@ -67,12 +67,12 @@ async function setupSchema(): Promise<void> {
 		await testPool.query(`CREATE SCHEMA ${TEST_SCHEMA}`);
 		console.log(`Schema ${TEST_SCHEMA} created successfully`);
 
-		// Clone schema from production manifest database
-		console.log('Cloning schema from manifest database...');
+		// Clone schema from the source database
+		console.log(`Cloning schema from ${SOURCE_DB_NAME} database...`);
 		const { execSync } = await import('child_process');
 
-		// Dump schema only from manifest database
-		const pgDumpCmd = `pg_dump -h ${POSTGRES_CONFIG.host} -p ${POSTGRES_CONFIG.port} -U ${POSTGRES_CONFIG.user} -d manifest --schema-only --no-owner --no-privileges 2>&1`;
+		// Dump schema only from the source database
+		const pgDumpCmd = `pg_dump -h ${POSTGRES_CONFIG.host} -p ${POSTGRES_CONFIG.port} -U ${POSTGRES_CONFIG.user} -d ${SOURCE_DB_NAME} --schema-only --no-owner --no-privileges 2>&1`;
 		let schemaSql: string;
 		try {
 			schemaSql = execSync(pgDumpCmd, {
@@ -104,11 +104,14 @@ async function setupSchema(): Promise<void> {
 			.map((f) => f.replace('.ts', ''));
 
 		for (const migration of migrations) {
-			await testPool.query(`
+			await testPool.query(
+				`
 				INSERT INTO ${TEST_SCHEMA}.kysely_migration (name, timestamp)
 				VALUES ($1, $2)
 				ON CONFLICT (name) DO NOTHING
-			`, [migration, new Date().toISOString()]);
+			`,
+				[migration, new Date().toISOString()]
+			);
 		}
 		console.log(`Marked ${migrations.length} migrations as executed`);
 	} finally {
@@ -168,7 +171,7 @@ async function main(): Promise<void> {
 
 	await createTestDatabase();
 	await setupSchema();
-	// Note: runMigrations() is not needed since we clone the schema from manifest
+	// Note: runMigrations() is not needed since we clone the schema from the source DB
 	// and mark all migrations as executed
 
 	console.log('\n=== Test database setup complete ===');

@@ -85,7 +85,13 @@ export async function getActionStats(ctx: ProtectedContext) {
  */
 export async function getActionStatsDetail(
 	ctx: ProtectedContext,
-	filters: { checklistId?: string; claimId?: string; users?: string[]; range?: DateRange; searchTerm?: string }
+	filters: {
+		checklistId?: string;
+		claimId?: string;
+		users?: string[];
+		range?: DateRange;
+		searchTerm?: string;
+	}
 ) {
 	return await ctx.db
 		.selectFrom('action_log')
@@ -114,7 +120,8 @@ export async function getActionStatsDetail(
 		.where('action_log.client_id', '=', ctx.session.user.client_id)
 		.where((eb) => {
 			const whereClause: ExpressionWrapper<DB, any, SqlBool>[] = [];
-			if (filters.checklistId) whereClause.push(eb('page_instance.checklist_id', '=', filters.checklistId));
+			if (filters.checklistId)
+				whereClause.push(eb('page_instance.checklist_id', '=', filters.checklistId));
 			if (filters.claimId) whereClause.push(eb('question_response.claim_id', '=', filters.claimId));
 			if (filters.users?.length) whereClause.push(eb('action_log.created_by', 'in', filters.users));
 			if (filters.range && filters.range.some((d) => !!d)) {
@@ -127,13 +134,7 @@ export async function getActionStatsDetail(
 			}
 			return eb.and(whereClause);
 		})
-		.groupBy([
-			'action.id',
-			'answer.text',
-			'question.text',
-			'page.id',
-			'page_instance.id',
-		])
+		.groupBy(['action.id', 'answer.text', 'question.text', 'page.id', 'page_instance.id'])
 		.orderBy('count desc')
 		.execute();
 }
@@ -141,7 +142,12 @@ export async function getActionStatsDetail(
 export async function logAction(ctx: ProtectedContext, actionId: string, status: ActionLogStatus) {
 	await ctx.db
 		.insertInto('action_log')
-		.values({ client_id: ctx.session.user.client_id!, action_id: actionId, status, created_by: ctx.session.user.id })
+		.values({
+			client_id: ctx.session.user.client_id!,
+			action_id: actionId,
+			status,
+			created_by: ctx.session.user.id,
+		})
 		.execute();
 }
 
@@ -173,7 +179,8 @@ export async function updateAction(
 		definition?: ActionDefinition;
 	}
 ) {
-	if (!Object.keys(updates).length) throw new TRPCError({ code: 'BAD_REQUEST', message: 'No updates' });
+	if (!Object.keys(updates).length)
+		throw new TRPCError({ code: 'BAD_REQUEST', message: 'No updates' });
 	await ctx.db
 		.updateTable('action')
 		.set({

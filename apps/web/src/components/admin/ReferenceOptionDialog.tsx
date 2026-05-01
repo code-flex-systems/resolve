@@ -23,7 +23,9 @@ interface ReferenceOptionDialogProps {
 }
 
 export default function ReferenceOptionDialog({ option, onClose }: ReferenceOptionDialogProps) {
-	const toggleNewReferenceOptionDialog = useAdminStore((state) => state.toggleNewReferenceOptionDialog);
+	const toggleNewReferenceOptionDialog = useAdminStore(
+		(state) => state.toggleNewReferenceOptionDialog
+	);
 	const selectedReferenceEntity = useAdminStore((state) => state.selectedReferenceEntity);
 	const referenceDataTrpc = useReferenceDataTrpc();
 	const { mutateAsync: createOption, isPending: creating } = referenceDataTrpc.createOption;
@@ -113,7 +115,15 @@ export default function ReferenceOptionDialog({ option, onClose }: ReferenceOpti
 			onClose={handleClose}
 			width={500}
 		>
-			<div style={{ width: '100%', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 16 }}>
+			<div
+				style={{
+					width: '100%',
+					display: 'flex',
+					alignItems: 'center',
+					flexDirection: 'column',
+					gap: 16,
+				}}
+			>
 				<Controller
 					name="value"
 					control={control}
@@ -132,7 +142,9 @@ export default function ReferenceOptionDialog({ option, onClose }: ReferenceOpti
 							placeholder="lowercase_value"
 							error={!!errors.value}
 							errorText={errors.value?.message}
-							helperText={!errors.value ? 'Unique identifier (lowercase, underscores only)' : undefined}
+							helperText={
+								!errors.value ? 'Unique identifier (lowercase, underscores only)' : undefined
+							}
 							{...field}
 							disabled={isSubmitting || isEditMode}
 							style={styles.textFieldOverrides}
@@ -206,13 +218,18 @@ export default function ReferenceOptionDialog({ option, onClose }: ReferenceOpti
 					control={control}
 					render={({ field }) => (
 						<div style={{ width: 400 }}>
-							<Switch checked={field.value} onChange={(checked) => field.onChange(checked)} disabled={isSubmitting} label="Active" />
+							<Switch
+								checked={field.value}
+								onChange={(checked) => field.onChange(checked)}
+								disabled={isSubmitting}
+								label="Active"
+							/>
 						</div>
 					)}
 				/>
 
 				{option?.is_system_default && (
-					<span style={{  color: 'var(--text-secondary)' ,  width: 400  }}>
+					<span style={{ color: 'var(--text-secondary)', width: 400 }}>
 						This is a system default option and cannot be deleted.
 					</span>
 				)}
@@ -225,5 +242,5 @@ const styles = {
 	textFieldOverrides: {
 		width: 400,
 		margin: '5px 0px',
-		},
+	},
 };

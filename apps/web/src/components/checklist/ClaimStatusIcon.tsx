@@ -4,7 +4,13 @@ import { IconCircleCheck, IconCircle, IconPlayerStop } from '@tabler/icons-react
 import { ClaimStatus } from '@/config/enums';
 import CheckGradient from '../common/CheckGradient';
 
-export default function ClaimStatusIcon({ status, fontSize = 20 }: { status: ClaimStatus; fontSize?: number }) {
+export default function ClaimStatusIcon({
+	status,
+	fontSize = 20,
+}: {
+	status: ClaimStatus;
+	fontSize?: number;
+}) {
 	switch (status) {
 		case ClaimStatus.BLOCKED:
 			return <IconPlayerStop size={fontSize} style={{ color: 'var(--status-error)' }} />;

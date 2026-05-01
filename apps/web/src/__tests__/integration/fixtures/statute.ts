@@ -29,11 +29,15 @@ export async function updateTestStatuteRule(
 		.updateTable('statute_rule')
 		.set({
 			...(overrides.rules !== undefined && { rules: JSON.stringify(overrides.rules) }),
-			...(overrides.negligence_type !== undefined && { negligence_type: overrides.negligence_type }),
+			...(overrides.negligence_type !== undefined && {
+				negligence_type: overrides.negligence_type,
+			}),
 			...(overrides.negligence_bar_percent !== undefined && {
 				negligence_bar_percent: overrides.negligence_bar_percent,
 			}),
-			...(overrides.negligence_notes !== undefined && { negligence_notes: overrides.negligence_notes }),
+			...(overrides.negligence_notes !== undefined && {
+				negligence_notes: overrides.negligence_notes,
+			}),
 			...(overrides.updated_by !== undefined && { updated_by: overrides.updated_by }),
 			updated_at: sql`now()`,
 		})

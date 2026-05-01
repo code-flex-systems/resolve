@@ -16,7 +16,14 @@ import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
 import ImageTooltip from '../common/ImageTooltip';
 import DocumentIconWithPreview from '../common/DocumentIconWithPreview';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
-import { IconCheck, IconCircleCheck, IconCopy, IconPaperclip, IconTrash, IconX } from '@tabler/icons-react';
+import {
+	IconCheck,
+	IconCircleCheck,
+	IconCopy,
+	IconPaperclip,
+	IconTrash,
+	IconX,
+} from '@tabler/icons-react';
 import Input from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Input';
 import Dropdown from '../ui/Dropdown';
@@ -43,7 +50,9 @@ export default function FormQuestion() {
 	const { isPending: updating, mutateAsync: updateQuestion } = update;
 	const { isPending: copying, mutateAsync: copyQuestion } = copy;
 	const { isPending: deleting, mutateAsync: deleteQuestion } = remove;
-	const { data: questions, isFetching: refetchingQuestions } = list({ pageId: selectedPageInfo.pageId });
+	const { data: questions, isFetching: refetchingQuestions } = list({
+		pageId: selectedPageInfo.pageId,
+	});
 
 	const { data: attachedDocsResult } = useDocTrpc().listDocs(
 		{ filters: { question_id: selectedQuestionData.id } },
@@ -68,7 +77,8 @@ export default function FormQuestion() {
 	const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 	const [showUpdateMsg, setShowUpdateMsg] = useState(false);
 	const isPlaceholder = !selectedQuestionData.id;
-	const inTransition = isSubmitting || adding || copying || updating || deleting || refetchingQuestions;
+	const inTransition =
+		isSubmitting || adding || copying || updating || deleting || refetchingQuestions;
 
 	const onSubmit = handleSubmit(async (data) => {
 		try {
@@ -116,7 +126,10 @@ export default function FormQuestion() {
 
 	const onDelete = async () => {
 		try {
-			await deleteQuestion({ questionId: selectedQuestionData.id, pageId: selectedPageInfo.pageId });
+			await deleteQuestion({
+				questionId: selectedQuestionData.id,
+				pageId: selectedPageInfo.pageId,
+			});
 			updateSelectedQuestion(null);
 			showSuccess('delete', 'Question deleted');
 		} catch (e) {
@@ -206,7 +219,10 @@ export default function FormQuestion() {
 			>
 				{showUpdateMsg && (
 					<span style={{ marginRight: 'auto' }} className="flex-row-left">
-						<IconCircleCheck size={20} style={{ color: 'var(--status-success)', marginRight: '5px' }} />
+						<IconCircleCheck
+							size={20}
+							style={{ color: 'var(--status-success)', marginRight: '5px' }}
+						/>
 						<span style={{ color: 'var(--status-success)' }}>Saved!</span>
 					</span>
 				)}
@@ -286,15 +302,9 @@ export default function FormQuestion() {
 															onClick={() => onCopyText(field.name, field.value)}
 														>
 															{copiedField === field.name ? (
-																<IconCheck
-																	size={20}
-																	style={{ color: 'var(--status-success)' }}
-																/>
+																<IconCheck size={20} style={{ color: 'var(--status-success)' }} />
 															) : (
-																<IconCopy
-																	size={20}
-																	style={{ color: 'var(--text-muted)' }}
-																/>
+																<IconCopy size={20} style={{ color: 'var(--text-muted)' }} />
 															)}
 														</Button>
 														<Button
@@ -333,15 +343,9 @@ export default function FormQuestion() {
 															onClick={() => onCopyText(field.name, field.value ?? '')}
 														>
 															{copiedField === field.name ? (
-																<IconCheck
-																	size={20}
-																	style={{ color: 'var(--status-success)' }}
-																/>
+																<IconCheck size={20} style={{ color: 'var(--status-success)' }} />
 															) : (
-																<IconCopy
-																	size={20}
-																	style={{ color: 'var(--text-muted)' }}
-																/>
+																<IconCopy size={20} style={{ color: 'var(--text-muted)' }} />
 															)}
 														</Button>
 														<Button

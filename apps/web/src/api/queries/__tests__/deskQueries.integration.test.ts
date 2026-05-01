@@ -66,8 +66,14 @@ describe('deskQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const ts = Date.now();
 
-			const type1 = await createTestDeskLocationType(db, { client_id: client.id, name: `UniqueListTest A ${ts}` });
-			const type2 = await createTestDeskLocationType(db, { client_id: client.id, name: `UniqueListTest B ${ts}` });
+			const type1 = await createTestDeskLocationType(db, {
+				client_id: client.id,
+				name: `UniqueListTest A ${ts}`,
+			});
+			const type2 = await createTestDeskLocationType(db, {
+				client_id: client.id,
+				name: `UniqueListTest B ${ts}`,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -81,10 +87,21 @@ describe('deskQueries integration', () => {
 		it('should include location_count for each type', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const deskType = await createTestDeskLocationType(db, { client_id: client.id, name: `Type ${Date.now()}` });
+			const deskType = await createTestDeskLocationType(db, {
+				client_id: client.id,
+				name: `Type ${Date.now()}`,
+			});
 
-			await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: 'Loc 1' });
-			await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: 'Loc 2' });
+			await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: 'Loc 1',
+			});
+			await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: 'Loc 2',
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -98,13 +115,28 @@ describe('deskQueries integration', () => {
 		it('should exclude soft-deleted locations from location_count', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const deskType = await createTestDeskLocationType(db, { client_id: client.id, name: `Type ${Date.now()}` });
+			const deskType = await createTestDeskLocationType(db, {
+				client_id: client.id,
+				name: `Type ${Date.now()}`,
+			});
 
-			await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: 'Active' });
-			const deletedLoc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: 'Deleted' });
+			await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: 'Active',
+			});
+			const deletedLoc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: 'Deleted',
+			});
 
 			// Soft delete one location
-			await db.updateTable('desk_location').set({ deleted_at: new Date() }).where('id', '=', deletedLoc.id).execute();
+			await db
+				.updateTable('desk_location')
+				.set({ deleted_at: new Date() })
+				.where('id', '=', deletedLoc.id)
+				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -118,10 +150,20 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 
-			const activeType = await createTestDeskLocationType(db, { client_id: client.id, name: `Active ${Date.now()}` });
-			const deletedType = await createTestDeskLocationType(db, { client_id: client.id, name: `Deleted ${Date.now()}` });
+			const activeType = await createTestDeskLocationType(db, {
+				client_id: client.id,
+				name: `Active ${Date.now()}`,
+			});
+			const deletedType = await createTestDeskLocationType(db, {
+				client_id: client.id,
+				name: `Deleted ${Date.now()}`,
+			});
 
-			await db.updateTable('desk_location_type').set({ deleted_at: new Date() }).where('id', '=', deletedType.id).execute();
+			await db
+				.updateTable('desk_location_type')
+				.set({ deleted_at: new Date() })
+				.where('id', '=', deletedType.id)
+				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -135,10 +177,20 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 
-			const activeType = await createTestDeskLocationType(db, { client_id: client.id, name: `Active ${Date.now()}` });
-			const deletedType = await createTestDeskLocationType(db, { client_id: client.id, name: `Deleted ${Date.now()}` });
+			const activeType = await createTestDeskLocationType(db, {
+				client_id: client.id,
+				name: `Active ${Date.now()}`,
+			});
+			const deletedType = await createTestDeskLocationType(db, {
+				client_id: client.id,
+				name: `Deleted ${Date.now()}`,
+			});
 
-			await db.updateTable('desk_location_type').set({ deleted_at: new Date() }).where('id', '=', deletedType.id).execute();
+			await db
+				.updateTable('desk_location_type')
+				.set({ deleted_at: new Date() })
+				.where('id', '=', deletedType.id)
+				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -172,7 +224,10 @@ describe('deskQueries integration', () => {
 
 			const createdTypes = [];
 			for (let i = 0; i < 5; i++) {
-				const type = await createTestDeskLocationType(db, { client_id: client.id, name: `${uniqueSearch}Type${i}` });
+				const type = await createTestDeskLocationType(db, {
+					client_id: client.id,
+					name: `${uniqueSearch}Type${i}`,
+				});
 				createdTypes.push(type);
 			}
 
@@ -192,7 +247,10 @@ describe('deskQueries integration', () => {
 			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 
-			const type1 = await createTestDeskLocationType(db, { client_id: client1.id, name: `Client1 Type ${Date.now()}` });
+			const type1 = await createTestDeskLocationType(db, {
+				client_id: client1.id,
+				name: `Client1 Type ${Date.now()}`,
+			});
 
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
@@ -206,7 +264,10 @@ describe('deskQueries integration', () => {
 		it('should return a single desk location type by ID', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const deskType = await createTestDeskLocationType(db, { client_id: client.id, name: 'Test Type' });
+			const deskType = await createTestDeskLocationType(db, {
+				client_id: client.id,
+				name: 'Test Type',
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -231,9 +292,16 @@ describe('deskQueries integration', () => {
 		it('should return even soft-deleted types (no deleted_at filter)', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const deskType = await createTestDeskLocationType(db, { client_id: client.id, name: 'Deleted Type' });
+			const deskType = await createTestDeskLocationType(db, {
+				client_id: client.id,
+				name: 'Deleted Type',
+			});
 
-			await db.updateTable('desk_location_type').set({ deleted_at: new Date() }).where('id', '=', deskType.id).execute();
+			await db
+				.updateTable('desk_location_type')
+				.set({ deleted_at: new Date() })
+				.where('id', '=', deskType.id)
+				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -247,7 +315,10 @@ describe('deskQueries integration', () => {
 			const client1 = await createTestClient(db);
 			const client2 = await createTestClient(db);
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
-			const deskType = await createTestDeskLocationType(db, { client_id: client1.id, name: 'Client1 Type' });
+			const deskType = await createTestDeskLocationType(db, {
+				client_id: client1.id,
+				name: 'Client1 Type',
+			});
 
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
@@ -320,7 +391,10 @@ describe('deskQueries integration', () => {
 		it('should update desk location type name', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const deskType = await createTestDeskLocationType(db, { client_id: client.id, name: 'Original Name' });
+			const deskType = await createTestDeskLocationType(db, {
+				client_id: client.id,
+				name: 'Original Name',
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -337,14 +411,19 @@ describe('deskQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(updateDeskLocationType(ctx, '00000000-0000-0000-0000-000000000000', { name: 'Test' })).rejects.toThrow();
+			await expect(
+				updateDeskLocationType(ctx, '00000000-0000-0000-0000-000000000000', { name: 'Test' })
+			).rejects.toThrow();
 		});
 
 		it('should enforce tenant isolation', async () => {
 			const client1 = await createTestClient(db);
 			const client2 = await createTestClient(db);
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
-			const deskType = await createTestDeskLocationType(db, { client_id: client1.id, name: 'Client1 Type' });
+			const deskType = await createTestDeskLocationType(db, {
+				client_id: client1.id,
+				name: 'Client1 Type',
+			});
 
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
@@ -358,8 +437,16 @@ describe('deskQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
 
-			await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: 'Loc 1' });
-			await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: 'Loc 2' });
+			await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: 'Loc 1',
+			});
+			await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: 'Loc 2',
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -373,10 +460,22 @@ describe('deskQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
 
-			await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: 'Active' });
-			const deleted = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: 'Deleted' });
+			await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: 'Active',
+			});
+			const deleted = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: 'Deleted',
+			});
 
-			await db.updateTable('desk_location').set({ deleted_at: new Date() }).where('id', '=', deleted.id).execute();
+			await db
+				.updateTable('desk_location')
+				.set({ deleted_at: new Date() })
+				.where('id', '=', deleted.id)
+				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -395,7 +494,11 @@ describe('deskQueries integration', () => {
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client1.id });
 
-			await createTestDeskLocation(db, { client_id: client1.id, desk_location_type_id: deskType.id, name: 'Loc 1' });
+			await createTestDeskLocation(db, {
+				client_id: client1.id,
+				desk_location_type_id: deskType.id,
+				name: 'Loc 1',
+			});
 
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
@@ -427,7 +530,9 @@ describe('deskQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(archiveDeskLocationType(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow('Desk location type not found');
+			await expect(
+				archiveDeskLocationType(ctx, '00000000-0000-0000-0000-000000000000')
+			).rejects.toThrow('Desk location type not found');
 		});
 
 		it('should throw if type has active locations', async () => {
@@ -435,11 +540,16 @@ describe('deskQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
 
-			await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(archiveDeskLocationType(ctx, deskType.id)).rejects.toThrow(/Cannot archive desk location type/);
+			await expect(archiveDeskLocationType(ctx, deskType.id)).rejects.toThrow(
+				/Cannot archive desk location type/
+			);
 		});
 
 		it('should allow archiving type if all locations are archived', async () => {
@@ -447,8 +557,15 @@ describe('deskQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
 
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
-			await db.updateTable('desk_location').set({ deleted_at: new Date() }).where('id', '=', loc.id).execute();
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
+			await db
+				.updateTable('desk_location')
+				.set({ deleted_at: new Date() })
+				.where('id', '=', loc.id)
+				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -465,7 +582,9 @@ describe('deskQueries integration', () => {
 
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
-			await expect(archiveDeskLocationType(ctx2, deskType.id)).rejects.toThrow('Desk location type not found');
+			await expect(archiveDeskLocationType(ctx2, deskType.id)).rejects.toThrow(
+				'Desk location type not found'
+			);
 		});
 	});
 
@@ -475,7 +594,11 @@ describe('deskQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
 
-			await db.updateTable('desk_location_type').set({ deleted_at: new Date() }).where('id', '=', deskType.id).execute();
+			await db
+				.updateTable('desk_location_type')
+				.set({ deleted_at: new Date() })
+				.where('id', '=', deskType.id)
+				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -491,7 +614,9 @@ describe('deskQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(restoreDeskLocationType(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow();
+			await expect(
+				restoreDeskLocationType(ctx, '00000000-0000-0000-0000-000000000000')
+			).rejects.toThrow();
 		});
 
 		it('should enforce tenant isolation', async () => {
@@ -500,7 +625,11 @@ describe('deskQueries integration', () => {
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client1.id });
 
-			await db.updateTable('desk_location_type').set({ deleted_at: new Date() }).where('id', '=', deskType.id).execute();
+			await db
+				.updateTable('desk_location_type')
+				.set({ deleted_at: new Date() })
+				.where('id', '=', deskType.id)
+				.execute();
 
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
@@ -518,8 +647,16 @@ describe('deskQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
 
-			await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: 'Loc A' });
-			await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: 'Loc B' });
+			await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: 'Loc A',
+			});
+			await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: 'Loc B',
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -532,8 +669,14 @@ describe('deskQueries integration', () => {
 		it('should include desk_location_type_name', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const deskType = await createTestDeskLocationType(db, { client_id: client.id, name: 'My Type' });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const deskType = await createTestDeskLocationType(db, {
+				client_id: client.id,
+				name: 'My Type',
+			});
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -548,14 +691,33 @@ describe('deskQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client.id, role: 'User' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
-			await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc.id, priority: 1 });
-			await createTestUserDeskLocation(db, { user_id: user2.id, desk_location_id: loc.id, priority: 1 });
+			await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc.id,
+				priority: 1,
+			});
+			await createTestUserDeskLocation(db, {
+				user_id: user2.id,
+				desk_location_id: loc.id,
+				priority: 1,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			const result = await getDeskLocations(ctx, undefined, undefined, undefined, undefined, undefined, true);
+			const result = await getDeskLocations(
+				ctx,
+				undefined,
+				undefined,
+				undefined,
+				undefined,
+				undefined,
+				true
+			);
 
 			const found = result.rows.find((r) => r.id === loc.id);
 			expect(Number(found?.user_count)).toBe(2);
@@ -565,14 +727,34 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
-			await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc.id, priority: 1 });
-			await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc.id, priority: 2, removed_at: new Date() });
+			await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc.id,
+				priority: 1,
+			});
+			await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc.id,
+				priority: 2,
+				removed_at: new Date(),
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			const result = await getDeskLocations(ctx, undefined, undefined, undefined, undefined, undefined, true);
+			const result = await getDeskLocations(
+				ctx,
+				undefined,
+				undefined,
+				undefined,
+				undefined,
+				undefined,
+				true
+			);
 
 			const found = result.rows.find((r) => r.id === loc.id);
 			expect(Number(found?.user_count)).toBe(1);
@@ -582,15 +764,37 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const ts = Date.now();
-			const type1 = await createTestDeskLocationType(db, { client_id: client.id, name: `Type1 ${ts}` });
-			const type2 = await createTestDeskLocationType(db, { client_id: client.id, name: `Type2 ${ts}` });
+			const type1 = await createTestDeskLocationType(db, {
+				client_id: client.id,
+				name: `Type1 ${ts}`,
+			});
+			const type2 = await createTestDeskLocationType(db, {
+				client_id: client.id,
+				name: `Type2 ${ts}`,
+			});
 
-			const loc1 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: type1.id, name: `Loc1 ${ts}` });
-			await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: type2.id, name: `Loc2 ${ts}` });
+			const loc1 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: type1.id,
+				name: `Loc1 ${ts}`,
+			});
+			await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: type2.id,
+				name: `Loc2 ${ts}`,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			const result = await getDeskLocations(ctx, type1.id, undefined, undefined, undefined, undefined, true);
+			const result = await getDeskLocations(
+				ctx,
+				type1.id,
+				undefined,
+				undefined,
+				undefined,
+				undefined,
+				true
+			);
 
 			expect(result.rows.every((r) => r.desk_location_type_id === type1.id)).toBe(true);
 			expect(result.rows.some((r) => r.id === loc1.id)).toBe(true);
@@ -601,10 +805,22 @@ describe('deskQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
 
-			const active = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: 'Active' });
-			const deleted = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: 'Deleted' });
+			const active = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: 'Active',
+			});
+			const deleted = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: 'Deleted',
+			});
 
-			await db.updateTable('desk_location').set({ deleted_at: new Date() }).where('id', '=', deleted.id).execute();
+			await db
+				.updateTable('desk_location')
+				.set({ deleted_at: new Date() })
+				.where('id', '=', deleted.id)
+				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -620,10 +836,22 @@ describe('deskQueries integration', () => {
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
 			const ts = Date.now();
 
-			const active = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Active ${ts}` });
-			const deleted = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Deleted ${ts}` });
+			const active = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Active ${ts}`,
+			});
+			const deleted = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Deleted ${ts}`,
+			});
 
-			await db.updateTable('desk_location').set({ deleted_at: new Date() }).where('id', '=', deleted.id).execute();
+			await db
+				.updateTable('desk_location')
+				.set({ deleted_at: new Date() })
+				.where('id', '=', deleted.id)
+				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -639,8 +867,18 @@ describe('deskQueries integration', () => {
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
 			const ts = Date.now();
 
-			const active = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Active ${ts}`, is_active: true });
-			const inactive = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Inactive ${ts}`, is_active: false });
+			const active = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Active ${ts}`,
+				is_active: true,
+			});
+			const inactive = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Inactive ${ts}`,
+				is_active: false,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -656,12 +894,30 @@ describe('deskQueries integration', () => {
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
 			const ts = Date.now();
 
-			const active = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Active ${ts}`, is_active: true });
-			const inactive = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Inactive ${ts}`, is_active: false });
+			const active = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Active ${ts}`,
+				is_active: true,
+			});
+			const inactive = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Inactive ${ts}`,
+				is_active: false,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			const result = await getDeskLocations(ctx, undefined, undefined, undefined, undefined, false, true);
+			const result = await getDeskLocations(
+				ctx,
+				undefined,
+				undefined,
+				undefined,
+				undefined,
+				false,
+				true
+			);
 
 			expect(result.rows.some((r) => r.id === active.id)).toBe(true);
 			expect(result.rows.some((r) => r.id === inactive.id)).toBe(true);
@@ -673,8 +929,16 @@ describe('deskQueries integration', () => {
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
 			const uniqueName = `UniqueLocSearch${Date.now()}`;
 
-			await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: uniqueName });
-			await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: 'Other Loc' });
+			await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: uniqueName,
+			});
+			await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: 'Other Loc',
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -689,7 +953,10 @@ describe('deskQueries integration', () => {
 			const client2 = await createTestClient(db);
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client1.id });
-			const loc = await createTestDeskLocation(db, { client_id: client1.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client1.id,
+				desk_location_type_id: deskType.id,
+			});
 
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
@@ -703,8 +970,15 @@ describe('deskQueries integration', () => {
 		it('should return a single desk location by ID', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const deskType = await createTestDeskLocationType(db, { client_id: client.id, name: 'My Type' });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: 'My Loc' });
+			const deskType = await createTestDeskLocationType(db, {
+				client_id: client.id,
+				name: 'My Type',
+			});
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: 'My Loc',
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -731,9 +1005,16 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
-			await db.updateTable('desk_location').set({ deleted_at: new Date() }).where('id', '=', loc.id).execute();
+			await db
+				.updateTable('desk_location')
+				.set({ deleted_at: new Date() })
+				.where('id', '=', loc.id)
+				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -748,7 +1029,10 @@ describe('deskQueries integration', () => {
 			const client2 = await createTestClient(db);
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client1.id });
-			const loc = await createTestDeskLocation(db, { client_id: client1.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client1.id,
+				desk_location_type_id: deskType.id,
+			});
 
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
@@ -802,7 +1086,11 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: 'Original' });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: 'Original',
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -820,9 +1108,18 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const ts = Date.now();
-			const deskType1 = await createTestDeskLocationType(db, { client_id: client.id, name: `Type1 ${ts}` });
-			const deskType2 = await createTestDeskLocationType(db, { client_id: client.id, name: `Type2 ${ts}` });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType1.id });
+			const deskType1 = await createTestDeskLocationType(db, {
+				client_id: client.id,
+				name: `Type1 ${ts}`,
+			});
+			const deskType2 = await createTestDeskLocationType(db, {
+				client_id: client.id,
+				name: `Type2 ${ts}`,
+			});
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType1.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -839,7 +1136,9 @@ describe('deskQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(updateDeskLocation(ctx, '00000000-0000-0000-0000-000000000000', { name: 'Test' })).rejects.toThrow();
+			await expect(
+				updateDeskLocation(ctx, '00000000-0000-0000-0000-000000000000', { name: 'Test' })
+			).rejects.toThrow();
 		});
 
 		it('should enforce tenant isolation', async () => {
@@ -847,7 +1146,10 @@ describe('deskQueries integration', () => {
 			const client2 = await createTestClient(db);
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client1.id });
-			const loc = await createTestDeskLocation(db, { client_id: client1.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client1.id,
+				desk_location_type_id: deskType.id,
+			});
 
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
@@ -860,7 +1162,10 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
 			// Create claim with desk_location_id
 			await db
@@ -883,7 +1188,10 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -897,7 +1205,10 @@ describe('deskQueries integration', () => {
 			const client2 = await createTestClient(db);
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client1.id });
-			const loc = await createTestDeskLocation(db, { client_id: client1.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client1.id,
+				desk_location_type_id: deskType.id,
+			});
 
 			await db
 				.insertInto('claim')
@@ -921,7 +1232,10 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -934,9 +1248,16 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
-			const assignment = await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc.id, priority: 1 });
+			const assignment = await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc.id,
+				priority: 1,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -958,14 +1279,19 @@ describe('deskQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(archiveDeskLocation(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow('Desk location not found');
+			await expect(
+				archiveDeskLocation(ctx, '00000000-0000-0000-0000-000000000000')
+			).rejects.toThrow('Desk location not found');
 		});
 
 		it('should throw if location has assigned claims', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
 			await db
 				.insertInto('claim')
@@ -978,7 +1304,9 @@ describe('deskQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(archiveDeskLocation(ctx, loc.id)).rejects.toThrow(/Cannot archive desk location/);
+			await expect(archiveDeskLocation(ctx, loc.id)).rejects.toThrow(
+				/Cannot archive desk location/
+			);
 		});
 
 		it('should enforce tenant isolation', async () => {
@@ -986,7 +1314,10 @@ describe('deskQueries integration', () => {
 			const client2 = await createTestClient(db);
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client1.id });
-			const loc = await createTestDeskLocation(db, { client_id: client1.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client1.id,
+				desk_location_type_id: deskType.id,
+			});
 
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
@@ -999,9 +1330,16 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
-			await db.updateTable('desk_location').set({ deleted_at: new Date() }).where('id', '=', loc.id).execute();
+			await db
+				.updateTable('desk_location')
+				.set({ deleted_at: new Date() })
+				.where('id', '=', loc.id)
+				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1017,7 +1355,9 @@ describe('deskQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(restoreDeskLocation(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow();
+			await expect(
+				restoreDeskLocation(ctx, '00000000-0000-0000-0000-000000000000')
+			).rejects.toThrow();
 		});
 
 		it('should enforce tenant isolation', async () => {
@@ -1025,9 +1365,16 @@ describe('deskQueries integration', () => {
 			const client2 = await createTestClient(db);
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client1.id });
-			const loc = await createTestDeskLocation(db, { client_id: client1.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client1.id,
+				desk_location_type_id: deskType.id,
+			});
 
-			await db.updateTable('desk_location').set({ deleted_at: new Date() }).where('id', '=', loc.id).execute();
+			await db
+				.updateTable('desk_location')
+				.set({ deleted_at: new Date() })
+				.where('id', '=', loc.id)
+				.execute();
 
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
@@ -1043,12 +1390,31 @@ describe('deskQueries integration', () => {
 		it('should return all desk location assignments for a user', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const deskType = await createTestDeskLocationType(db, { client_id: client.id, name: 'My Type' });
-			const loc1 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: 'Loc 1' });
-			const loc2 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: 'Loc 2' });
+			const deskType = await createTestDeskLocationType(db, {
+				client_id: client.id,
+				name: 'My Type',
+			});
+			const loc1 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: 'Loc 1',
+			});
+			const loc2 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: 'Loc 2',
+			});
 
-			await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc1.id, priority: 1 });
-			await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc2.id, priority: 2 });
+			await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc1.id,
+				priority: 1,
+			});
+			await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc2.id,
+				priority: 2,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1065,10 +1431,22 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
-			await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc.id, priority: 1 });
-			await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc.id, priority: 2, removed_at: new Date() });
+			await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc.id,
+				priority: 1,
+			});
+			await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc.id,
+				priority: 2,
+				removed_at: new Date(),
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1083,13 +1461,33 @@ describe('deskQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
 			const ts = Date.now();
-			const activeLoc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Active ${ts}` });
-			const deletedLoc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Deleted ${ts}` });
+			const activeLoc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Active ${ts}`,
+			});
+			const deletedLoc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Deleted ${ts}`,
+			});
 
-			await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: activeLoc.id, priority: 1 });
-			await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: deletedLoc.id, priority: 2 });
+			await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: activeLoc.id,
+				priority: 1,
+			});
+			await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: deletedLoc.id,
+				priority: 2,
+			});
 
-			await db.updateTable('desk_location').set({ deleted_at: new Date() }).where('id', '=', deletedLoc.id).execute();
+			await db
+				.updateTable('desk_location')
+				.set({ deleted_at: new Date() })
+				.where('id', '=', deletedLoc.id)
+				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1103,15 +1501,39 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const ts = Date.now();
-			const activeType = await createTestDeskLocationType(db, { client_id: client.id, name: `Active Type ${ts}` });
-			const deletedType = await createTestDeskLocationType(db, { client_id: client.id, name: `Deleted Type ${ts}` });
-			const activeLoc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: activeType.id });
-			const locWithDeletedType = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deletedType.id });
+			const activeType = await createTestDeskLocationType(db, {
+				client_id: client.id,
+				name: `Active Type ${ts}`,
+			});
+			const deletedType = await createTestDeskLocationType(db, {
+				client_id: client.id,
+				name: `Deleted Type ${ts}`,
+			});
+			const activeLoc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: activeType.id,
+			});
+			const locWithDeletedType = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deletedType.id,
+			});
 
-			await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: activeLoc.id, priority: 1 });
-			await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: locWithDeletedType.id, priority: 2 });
+			await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: activeLoc.id,
+				priority: 1,
+			});
+			await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: locWithDeletedType.id,
+				priority: 2,
+			});
 
-			await db.updateTable('desk_location_type').set({ deleted_at: new Date() }).where('id', '=', deletedType.id).execute();
+			await db
+				.updateTable('desk_location_type')
+				.set({ deleted_at: new Date() })
+				.where('id', '=', deletedType.id)
+				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1127,9 +1549,16 @@ describe('deskQueries integration', () => {
 			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client1.id });
-			const loc = await createTestDeskLocation(db, { client_id: client1.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client1.id,
+				desk_location_type_id: deskType.id,
+			});
 
-			await createTestUserDeskLocation(db, { user_id: user1.id, desk_location_id: loc.id, priority: 1 });
+			await createTestUserDeskLocation(db, {
+				user_id: user1.id,
+				desk_location_id: loc.id,
+				priority: 1,
+			});
 
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
@@ -1146,12 +1575,32 @@ describe('deskQueries integration', () => {
 			const user2 = await createTestUser(db, { client_id: client.id, role: 'User' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
 			const ts = Date.now();
-			const loc1 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Loc1 ${ts}` });
-			const loc2 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Loc2 ${ts}` });
+			const loc1 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Loc1 ${ts}`,
+			});
+			const loc2 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Loc2 ${ts}`,
+			});
 
-			await createTestUserDeskLocation(db, { user_id: user1.id, desk_location_id: loc1.id, priority: 1 });
-			await createTestUserDeskLocation(db, { user_id: user1.id, desk_location_id: loc2.id, priority: 2 });
-			await createTestUserDeskLocation(db, { user_id: user2.id, desk_location_id: loc1.id, priority: 1 });
+			await createTestUserDeskLocation(db, {
+				user_id: user1.id,
+				desk_location_id: loc1.id,
+				priority: 1,
+			});
+			await createTestUserDeskLocation(db, {
+				user_id: user1.id,
+				desk_location_id: loc2.id,
+				priority: 2,
+			});
+			await createTestUserDeskLocation(db, {
+				user_id: user2.id,
+				desk_location_id: loc1.id,
+				priority: 1,
+			});
 
 			const ctx = createTestContext(db, { id: user1.id, client_id: client.id, role: 'Admin' });
 
@@ -1165,10 +1614,22 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
-			await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc.id, priority: 1 });
-			await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc.id, priority: 2, removed_at: new Date() });
+			await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc.id,
+				priority: 1,
+			});
+			await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc.id,
+				priority: 2,
+				removed_at: new Date(),
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1182,13 +1643,33 @@ describe('deskQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
 			const ts = Date.now();
-			const activeLoc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Active ${ts}` });
-			const deletedLoc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Deleted ${ts}` });
+			const activeLoc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Active ${ts}`,
+			});
+			const deletedLoc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Deleted ${ts}`,
+			});
 
-			await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: activeLoc.id, priority: 1 });
-			await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: deletedLoc.id, priority: 2 });
+			await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: activeLoc.id,
+				priority: 1,
+			});
+			await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: deletedLoc.id,
+				priority: 2,
+			});
 
-			await db.updateTable('desk_location').set({ deleted_at: new Date() }).where('id', '=', deletedLoc.id).execute();
+			await db
+				.updateTable('desk_location')
+				.set({ deleted_at: new Date() })
+				.where('id', '=', deletedLoc.id)
+				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1203,9 +1684,16 @@ describe('deskQueries integration', () => {
 			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client1.id });
-			const loc = await createTestDeskLocation(db, { client_id: client1.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client1.id,
+				desk_location_type_id: deskType.id,
+			});
 
-			await createTestUserDeskLocation(db, { user_id: user1.id, desk_location_id: loc.id, priority: 1 });
+			await createTestUserDeskLocation(db, {
+				user_id: user1.id,
+				desk_location_id: loc.id,
+				priority: 1,
+			});
 
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
@@ -1218,13 +1706,34 @@ describe('deskQueries integration', () => {
 	describe('getDeskLocationUsers', () => {
 		it('should return all users assigned to a desk location', async () => {
 			const client = await createTestClient(db);
-			const user1 = await createTestUser(db, { client_id: client.id, role: 'Admin', first: 'John', last: 'Doe' });
-			const user2 = await createTestUser(db, { client_id: client.id, role: 'User', first: 'Jane', last: 'Smith' });
+			const user1 = await createTestUser(db, {
+				client_id: client.id,
+				role: 'Admin',
+				first: 'John',
+				last: 'Doe',
+			});
+			const user2 = await createTestUser(db, {
+				client_id: client.id,
+				role: 'User',
+				first: 'Jane',
+				last: 'Smith',
+			});
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
-			await createTestUserDeskLocation(db, { user_id: user1.id, desk_location_id: loc.id, priority: 1 });
-			await createTestUserDeskLocation(db, { user_id: user2.id, desk_location_id: loc.id, priority: 2 });
+			await createTestUserDeskLocation(db, {
+				user_id: user1.id,
+				desk_location_id: loc.id,
+				priority: 1,
+			});
+			await createTestUserDeskLocation(db, {
+				user_id: user2.id,
+				desk_location_id: loc.id,
+				priority: 2,
+			});
 
 			const ctx = createTestContext(db, { id: user1.id, client_id: client.id, role: 'Admin' });
 
@@ -1239,10 +1748,22 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
-			await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc.id, priority: 1 });
-			await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc.id, priority: 2, removed_at: new Date() });
+			await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc.id,
+				priority: 1,
+			});
+			await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc.id,
+				priority: 2,
+				removed_at: new Date(),
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1256,10 +1777,21 @@ describe('deskQueries integration', () => {
 			const user1 = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client.id, role: 'User' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
-			await createTestUserDeskLocation(db, { user_id: user1.id, desk_location_id: loc.id, priority: 2 });
-			await createTestUserDeskLocation(db, { user_id: user2.id, desk_location_id: loc.id, priority: 1 });
+			await createTestUserDeskLocation(db, {
+				user_id: user1.id,
+				desk_location_id: loc.id,
+				priority: 2,
+			});
+			await createTestUserDeskLocation(db, {
+				user_id: user2.id,
+				desk_location_id: loc.id,
+				priority: 1,
+			});
 
 			const ctx = createTestContext(db, { id: user1.id, client_id: client.id, role: 'Admin' });
 
@@ -1275,7 +1807,10 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1311,16 +1846,32 @@ describe('deskQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
 			const ts = Date.now();
-			const loc1 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Loc1 ${ts}` });
-			const loc2 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Loc2 ${ts}` });
+			const loc1 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Loc1 ${ts}`,
+			});
+			const loc2 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Loc2 ${ts}`,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Assign loc1 at priority 1
-			await assignUserToDeskLocation(ctx, { userId: user.id, deskLocationId: loc1.id, priority: 1 });
+			await assignUserToDeskLocation(ctx, {
+				userId: user.id,
+				deskLocationId: loc1.id,
+				priority: 1,
+			});
 
 			// Assign loc2 at priority 1 (should replace loc1)
-			await assignUserToDeskLocation(ctx, { userId: user.id, deskLocationId: loc2.id, priority: 1 });
+			await assignUserToDeskLocation(ctx, {
+				userId: user.id,
+				deskLocationId: loc2.id,
+				priority: 1,
+			});
 
 			const assignments = await getUserDeskLocations(ctx, user.id);
 
@@ -1332,7 +1883,10 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1353,7 +1907,10 @@ describe('deskQueries integration', () => {
 			const client2 = await createTestClient(db);
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client1.id });
-			const loc = await createTestDeskLocation(db, { client_id: client1.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client1.id,
+				desk_location_type_id: deskType.id,
+			});
 
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
@@ -1373,7 +1930,10 @@ describe('deskQueries integration', () => {
 			const user1 = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client.id, role: 'User' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
 			const ctx = createTestContext(db, { id: user1.id, client_id: client.id, role: 'Admin' });
 
@@ -1409,12 +1969,28 @@ describe('deskQueries integration', () => {
 			const user2 = await createTestUser(db, { client_id: client.id, role: 'User' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
 			const ts = Date.now();
-			const loc1 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Loc1 ${ts}` });
-			const loc2 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Loc2 ${ts}` });
+			const loc1 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Loc1 ${ts}`,
+			});
+			const loc2 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Loc2 ${ts}`,
+			});
 
 			// Create initial assignments at priority 1
-			await createTestUserDeskLocation(db, { user_id: user1.id, desk_location_id: loc1.id, priority: 1 });
-			await createTestUserDeskLocation(db, { user_id: user2.id, desk_location_id: loc1.id, priority: 1 });
+			await createTestUserDeskLocation(db, {
+				user_id: user1.id,
+				desk_location_id: loc1.id,
+				priority: 1,
+			});
+			await createTestUserDeskLocation(db, {
+				user_id: user2.id,
+				desk_location_id: loc1.id,
+				priority: 1,
+			});
 
 			const ctx = createTestContext(db, { id: user1.id, client_id: client.id, role: 'Admin' });
 
@@ -1440,9 +2016,16 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
-			const assignment = await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc.id, priority: 1 });
+			const assignment = await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc.id,
+				priority: 1,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1457,16 +2040,25 @@ describe('deskQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(updateUserDeskLocationPriority(ctx, '00000000-0000-0000-0000-000000000000', 2)).rejects.toThrow('Assignment not found');
+			await expect(
+				updateUserDeskLocationPriority(ctx, '00000000-0000-0000-0000-000000000000', 2)
+			).rejects.toThrow('Assignment not found');
 		});
 
 		it('should handle updating to same priority (no-op)', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
-			const assignment = await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc.id, priority: 1 });
+			const assignment = await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc.id,
+				priority: 1,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1482,13 +2074,37 @@ describe('deskQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
 			const ts = Date.now();
-			const loc1 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Loc1 ${ts}` });
-			const loc2 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Loc2 ${ts}` });
-			const loc3 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Loc3 ${ts}` });
+			const loc1 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Loc1 ${ts}`,
+			});
+			const loc2 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Loc2 ${ts}`,
+			});
+			const loc3 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Loc3 ${ts}`,
+			});
 
-			const assignment1 = await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc1.id, priority: 1 });
-			await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc2.id, priority: 2 });
-			const assignment3 = await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc3.id, priority: 3 });
+			const assignment1 = await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc1.id,
+				priority: 1,
+			});
+			await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc2.id,
+				priority: 2,
+			});
+			const assignment3 = await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc3.id,
+				priority: 3,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1519,9 +2135,16 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
-			const assignment = await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc.id, priority: 1 });
+			const assignment = await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc.id,
+				priority: 1,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1546,14 +2169,19 @@ describe('deskQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(removeUserFromDeskLocation(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow();
+			await expect(
+				removeUserFromDeskLocation(ctx, '00000000-0000-0000-0000-000000000000')
+			).rejects.toThrow();
 		});
 
 		it('should throw if assignment already removed', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
 			const assignment = await createTestUserDeskLocation(db, {
 				user_id: user.id,
@@ -1574,11 +2202,27 @@ describe('deskQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
 			const ts = Date.now();
-			const loc1 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Loc1 ${ts}` });
-			const loc2 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Loc2 ${ts}` });
+			const loc1 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Loc1 ${ts}`,
+			});
+			const loc2 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Loc2 ${ts}`,
+			});
 
-			const a1 = await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc1.id, priority: 1 });
-			const a2 = await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc2.id, priority: 2 });
+			const a1 = await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc1.id,
+				priority: 1,
+			});
+			const a2 = await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc2.id,
+				priority: 2,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1609,13 +2253,37 @@ describe('deskQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
 			const ts = Date.now();
-			const loc1 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Loc1 ${ts}` });
-			const loc2 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Loc2 ${ts}` });
-			const loc3 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Loc3 ${ts}` });
+			const loc1 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Loc1 ${ts}`,
+			});
+			const loc2 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Loc2 ${ts}`,
+			});
+			const loc3 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Loc3 ${ts}`,
+			});
 
-			const a1 = await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc1.id, priority: 1 });
-			const a2 = await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc2.id, priority: 2 });
-			const a3 = await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc3.id, priority: 3 });
+			const a1 = await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc1.id,
+				priority: 1,
+			});
+			const a2 = await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc2.id,
+				priority: 2,
+			});
+			const a3 = await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc3.id,
+				priority: 3,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1641,12 +2309,28 @@ describe('deskQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
 			const ts = Date.now();
-			const loc1 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Loc1 ${ts}` });
-			const loc2 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Loc2 ${ts}` });
-			const loc3 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `Loc3 ${ts}` });
+			const loc1 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Loc1 ${ts}`,
+			});
+			const loc2 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Loc2 ${ts}`,
+			});
+			const loc3 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `Loc3 ${ts}`,
+			});
 
 			// Create initial assignment
-			await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc1.id, priority: 1 });
+			await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc1.id,
+				priority: 1,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1676,7 +2360,10 @@ describe('deskQueries integration', () => {
 			const user1 = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client.id, role: 'User' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
 			const ctx = createTestContext(db, { id: user1.id, client_id: client.id, role: 'Admin' });
 
@@ -1698,9 +2385,16 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
-			await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc.id, priority: 1 });
+			await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc.id,
+				priority: 1,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1722,7 +2416,10 @@ describe('deskQueries integration', () => {
 			const user2 = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
 			const admin = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
 			const ctx = createTestContext(db, { id: admin.id, client_id: client.id, role: 'Admin' });
 
@@ -1747,11 +2444,23 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc1 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: 'Loc A' });
-			const loc2 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: 'Loc B' });
+			const loc1 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: 'Loc A',
+			});
+			const loc2 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: 'Loc B',
+			});
 
 			// Assign user to loc1 at priority 1
-			await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc1.id, priority: 1 });
+			await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc1.id,
+				priority: 1,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1779,7 +2488,10 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const admin = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
 			const ctx = createTestContext(db, { id: admin.id, client_id: client.id, role: 'Admin' });
 
@@ -1798,7 +2510,10 @@ describe('deskQueries integration', () => {
 			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client1.id });
-			const loc = await createTestDeskLocation(db, { client_id: client1.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client1.id,
+				desk_location_type_id: deskType.id,
+			});
 
 			// User from client2 tries to assign to client1's desk location
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
@@ -1822,7 +2537,10 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1842,12 +2560,23 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
 			// Assign two users to the location
 			const user2 = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
-			const assignment1 = await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc.id, priority: 1 });
-			const assignment2 = await createTestUserDeskLocation(db, { user_id: user2.id, desk_location_id: loc.id, priority: 1 });
+			const assignment1 = await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc.id,
+				priority: 1,
+			});
+			const assignment2 = await createTestUserDeskLocation(db, {
+				user_id: user2.id,
+				desk_location_id: loc.id,
+				priority: 1,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1855,8 +2584,16 @@ describe('deskQueries integration', () => {
 
 			// Both assignments should have removed_at set
 			const [a1, a2] = await Promise.all([
-				db.selectFrom('user_desk_location').select(['id', 'removed_at']).where('id', '=', assignment1.id).executeTakeFirstOrThrow(),
-				db.selectFrom('user_desk_location').select(['id', 'removed_at']).where('id', '=', assignment2.id).executeTakeFirstOrThrow(),
+				db
+					.selectFrom('user_desk_location')
+					.select(['id', 'removed_at'])
+					.where('id', '=', assignment1.id)
+					.executeTakeFirstOrThrow(),
+				db
+					.selectFrom('user_desk_location')
+					.select(['id', 'removed_at'])
+					.where('id', '=', assignment2.id)
+					.executeTakeFirstOrThrow(),
 			]);
 			expect(a1.removed_at).not.toBeNull();
 			expect(a2.removed_at).not.toBeNull();
@@ -1873,7 +2610,10 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+			});
 
 			// Create a claim assigned to this desk location
 			await createTestClaim(db, { client_id: client.id, desk_location_id: loc.id });
@@ -1889,7 +2629,10 @@ describe('deskQueries integration', () => {
 			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client1.id });
-			const loc = await createTestDeskLocation(db, { client_id: client1.id, desk_location_type_id: deskType.id });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client1.id,
+				desk_location_type_id: deskType.id,
+			});
 
 			// User from client2 should not be able to archive client1's location
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
@@ -1907,16 +2650,43 @@ describe('deskQueries integration', () => {
 			const client = await createTestClient(db);
 			const user1 = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
-			const deskType = await createTestDeskLocationType(db, { client_id: client.id, name: `DLTest ${Date.now()}` });
-			const locWithUsers = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `WithUsers ${Date.now()}` });
-			const locNoUsers = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `NoUsers ${Date.now()}` });
+			const deskType = await createTestDeskLocationType(db, {
+				client_id: client.id,
+				name: `DLTest ${Date.now()}`,
+			});
+			const locWithUsers = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `WithUsers ${Date.now()}`,
+			});
+			const locNoUsers = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `NoUsers ${Date.now()}`,
+			});
 
-			await createTestUserDeskLocation(db, { user_id: user1.id, desk_location_id: locWithUsers.id, priority: 1 });
-			await createTestUserDeskLocation(db, { user_id: user2.id, desk_location_id: locWithUsers.id, priority: 1 });
+			await createTestUserDeskLocation(db, {
+				user_id: user1.id,
+				desk_location_id: locWithUsers.id,
+				priority: 1,
+			});
+			await createTestUserDeskLocation(db, {
+				user_id: user2.id,
+				desk_location_id: locWithUsers.id,
+				priority: 1,
+			});
 
 			const ctx = createTestContext(db, { id: user1.id, client_id: client.id, role: 'Admin' });
 
-			const result = await getDeskLocations(ctx, deskType.id, undefined, undefined, undefined, undefined, true);
+			const result = await getDeskLocations(
+				ctx,
+				deskType.id,
+				undefined,
+				undefined,
+				undefined,
+				undefined,
+				true
+			);
 
 			const withUsers = result.rows.find((r) => r.id === locWithUsers.id);
 			const noUsers = result.rows.find((r) => r.id === locNoUsers.id);
@@ -1932,16 +2702,37 @@ describe('deskQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const removedUser = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
-			const loc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `CountTest ${Date.now()}` });
+			const loc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `CountTest ${Date.now()}`,
+			});
 
 			// Active assignment
-			await createTestUserDeskLocation(db, { user_id: user.id, desk_location_id: loc.id, priority: 1 });
+			await createTestUserDeskLocation(db, {
+				user_id: user.id,
+				desk_location_id: loc.id,
+				priority: 1,
+			});
 			// Removed assignment
-			await createTestUserDeskLocation(db, { user_id: removedUser.id, desk_location_id: loc.id, priority: 1, removed_at: new Date() });
+			await createTestUserDeskLocation(db, {
+				user_id: removedUser.id,
+				desk_location_id: loc.id,
+				priority: 1,
+				removed_at: new Date(),
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			const result = await getDeskLocations(ctx, deskType.id, undefined, undefined, undefined, undefined, true);
+			const result = await getDeskLocations(
+				ctx,
+				deskType.id,
+				undefined,
+				undefined,
+				undefined,
+				undefined,
+				true
+			);
 
 			const found = result.rows.find((r) => r.id === loc.id);
 			expect(found).toBeDefined();
@@ -1953,12 +2744,28 @@ describe('deskQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
 			const ts = Date.now();
-			const loc1 = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `SearchAlpha ${ts}` });
-			await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `SearchBeta ${ts}` });
+			const loc1 = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `SearchAlpha ${ts}`,
+			});
+			await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `SearchBeta ${ts}`,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			const result = await getDeskLocations(ctx, undefined, `SearchAlpha`, undefined, undefined, undefined, true);
+			const result = await getDeskLocations(
+				ctx,
+				undefined,
+				`SearchAlpha`,
+				undefined,
+				undefined,
+				undefined,
+				true
+			);
 
 			expect(result.rows.some((r) => r.id === loc1.id)).toBe(true);
 			expect(result.rows.every((r) => r.name!.startsWith('SearchAlpha'))).toBe(true);
@@ -1969,21 +2776,49 @@ describe('deskQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
 			const ts = Date.now();
-			const activeLoc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `DelTestActive ${ts}` });
-			const deletedLoc = await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `DelTestDeleted ${ts}` });
+			const activeLoc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `DelTestActive ${ts}`,
+			});
+			const deletedLoc = await createTestDeskLocation(db, {
+				client_id: client.id,
+				desk_location_type_id: deskType.id,
+				name: `DelTestDeleted ${ts}`,
+			});
 
 			// Soft delete one
-			await db.updateTable('desk_location').set({ deleted_at: new Date() }).where('id', '=', deletedLoc.id).execute();
+			await db
+				.updateTable('desk_location')
+				.set({ deleted_at: new Date() })
+				.where('id', '=', deletedLoc.id)
+				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Default: only active
-			const defaultResult = await getDeskLocations(ctx, deskType.id, undefined, undefined, undefined, undefined, true);
+			const defaultResult = await getDeskLocations(
+				ctx,
+				deskType.id,
+				undefined,
+				undefined,
+				undefined,
+				undefined,
+				true
+			);
 			expect(defaultResult.rows.some((r) => r.id === activeLoc.id)).toBe(true);
 			expect(defaultResult.rows.some((r) => r.id === deletedLoc.id)).toBe(false);
 
 			// showDeleted: only deleted
-			const deletedResult = await getDeskLocations(ctx, deskType.id, undefined, undefined, undefined, true, true);
+			const deletedResult = await getDeskLocations(
+				ctx,
+				deskType.id,
+				undefined,
+				undefined,
+				undefined,
+				true,
+				true
+			);
 			expect(deletedResult.rows.some((r) => r.id === activeLoc.id)).toBe(false);
 			expect(deletedResult.rows.some((r) => r.id === deletedLoc.id)).toBe(true);
 		});
@@ -1996,12 +2831,24 @@ describe('deskQueries integration', () => {
 
 			// Create 3 locations
 			for (let i = 0; i < 3; i++) {
-				await createTestDeskLocation(db, { client_id: client.id, desk_location_type_id: deskType.id, name: `PagTest${ts} ${i}` });
+				await createTestDeskLocation(db, {
+					client_id: client.id,
+					desk_location_type_id: deskType.id,
+					name: `PagTest${ts} ${i}`,
+				});
 			}
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			const result = await getDeskLocations(ctx, deskType.id, `PagTest${ts}`, 2, 0, undefined, true);
+			const result = await getDeskLocations(
+				ctx,
+				deskType.id,
+				`PagTest${ts}`,
+				2,
+				0,
+				undefined,
+				true
+			);
 
 			// Should return only 2 rows but count should reflect all 3
 			expect(result.rows).toHaveLength(2);

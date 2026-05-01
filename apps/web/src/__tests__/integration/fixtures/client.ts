@@ -19,11 +19,7 @@ export async function createTestClient(
 		clerk_org_id: overrides.clerk_org_id ?? null,
 	};
 
-	return db
-		.insertInto('client')
-		.values(data)
-		.returningAll()
-		.executeTakeFirstOrThrow();
+	return db.insertInto('client').values(data).returningAll().executeTakeFirstOrThrow();
 }
 
 /**
@@ -53,9 +49,5 @@ export async function createTestUser(
 		created_by: overrides.created_by ?? null,
 	};
 
-	return db
-		.insertInto('users')
-		.values(data)
-		.returningAll()
-		.executeTakeFirstOrThrow();
+	return db.insertInto('users').values(data).returningAll().executeTakeFirstOrThrow();
 }

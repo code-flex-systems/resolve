@@ -25,7 +25,10 @@ export async function getComments(
 	return result;
 }
 
-export async function getCommentCount(ctx: ProtectedContext, { filters }: { filters: CommentFilters }) {
+export async function getCommentCount(
+	ctx: ProtectedContext,
+	{ filters }: { filters: CommentFilters }
+) {
 	const result = await commentQueries.getCommentCount(ctx, filters);
 	return result;
 }

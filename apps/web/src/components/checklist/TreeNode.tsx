@@ -35,13 +35,18 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 	const selected = selectedPageInstance === instanceId;
 	const childIds = children.map((c) => c.instanceId);
 
-	const { isFetching, data: questions } = useQuestionTrpc().list({ pageId }, { enabled: selected && !!pageId });
+	const { isFetching, data: questions } = useQuestionTrpc().list(
+		{ pageId },
+		{ enabled: selected && !!pageId }
+	);
 	const { data: visibleInstanceIds = [] } = usePageTrpc().listVisibleInstances(
 		{ checklistId: checklistId!, claimId: claimId! },
 		{ enabled: !!checklistId && !!claimId }
 	);
 	const filteredChildren =
-		mode === ChecklistMode.VIEW ? children.filter((c) => visibleInstanceIds.includes(c.instanceId)) : children;
+		mode === ChecklistMode.VIEW
+			? children.filter((c) => visibleInstanceIds.includes(c.instanceId))
+			: children;
 
 	useEffect(() => {
 		for (const id of childIds) {
@@ -69,7 +74,11 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 			case PageInstanceStatus.UNSTARTED:
 				return (
 					<Tooltip content="Unstarted">
-						<IconCircle size={16} style={{ color: iconColor, ...styles.icon }} className={iconClassname} />
+						<IconCircle
+							size={16}
+							style={{ color: iconColor, ...styles.icon }}
+							className={iconClassname}
+						/>
 					</Tooltip>
 				);
 			case PageInstanceStatus.IN_PROGRESS:

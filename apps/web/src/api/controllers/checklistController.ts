@@ -19,15 +19,22 @@ export async function createChecklist(
 ) {
 	// Create checklist and log admin action within transaction
 	const results = await ctx.db.transaction().execute(async (trx) => {
-		const created = await checklistQueries.createChecklist({ ...ctx, db: trx }, name, existingChecklistId);
+		const created = await checklistQueries.createChecklist(
+			{ ...ctx, db: trx },
+			name,
+			existingChecklistId
+		);
 
 		// Log checklist creation
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: created.id,
-			entityName: EntityName.CHECKLIST,
-			action: AdminAction.CREATE,
-			value: { name: created.name, sourceChecklistId: existingChecklistId },
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: created.id,
+				entityName: EntityName.CHECKLIST,
+				action: AdminAction.CREATE,
+				value: { name: created.name, sourceChecklistId: existingChecklistId },
+			}
+		);
 
 		return created;
 	});
@@ -64,12 +71,15 @@ export async function deleteChecklist(ctx: ProtectedContext, { id }: { id: strin
 
 		// Log admin action for checklist deletion
 		if (checklist) {
-			await logAdminAction({ ...ctx, db: trx }, {
-				entityId: id,
-				entityName: EntityName.CHECKLIST,
-				action: AdminAction.DELETE,
-				value: { name: checklist.name, published: checklist.published },
-			});
+			await logAdminAction(
+				{ ...ctx, db: trx },
+				{
+					entityId: id,
+					entityName: EntityName.CHECKLIST,
+					action: AdminAction.DELETE,
+					value: { name: checklist.name, published: checklist.published },
+				}
+			);
 		}
 	});
 }
@@ -91,7 +101,10 @@ export async function getChecklist(ctx: ProtectedContext, { id }: { id: string }
  * @param ctx - request context
  * @param input - optional search term
  */
-export async function getChecklists(ctx: ProtectedContext, { searchTerm }: { searchTerm?: string }) {
+export async function getChecklists(
+	ctx: ProtectedContext,
+	{ searchTerm }: { searchTerm?: string }
+) {
 	const results = await checklistQueries.getChecklists(ctx, { searchTerm });
 	return results;
 }
@@ -189,7 +202,12 @@ export async function getChecklistClaims(
 		limit,
 		offset,
 	}: {
-		filters: { range: DateRangeStrict; checklistId?: string; users?: string[]; claimStatus?: ClaimStatus };
+		filters: {
+			range: DateRangeStrict;
+			checklistId?: string;
+			users?: string[];
+			claimStatus?: ClaimStatus;
+		};
 		limit: number;
 		offset: number;
 	}
@@ -207,7 +225,16 @@ export async function getChecklistClaims(
  */
 export async function exportChecklistClaims(
 	ctx: ProtectedContext,
-	{ filters }: { filters: { range: DateRangeStrict; checklistId?: string; users?: string[]; claimStatus?: ClaimStatus } }
+	{
+		filters,
+	}: {
+		filters: {
+			range: DateRangeStrict;
+			checklistId?: string;
+			users?: string[];
+			claimStatus?: ClaimStatus;
+		};
+	}
 ) {
 	return await checklistQueries.exportChecklistClaims(ctx, filters);
 }
@@ -242,12 +269,15 @@ export async function modifyChecklist(
 		const updated = await checklistQueries.modifyChecklist({ ...ctx, db: trx }, id, params);
 
 		// Log admin action for checklist update
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: id,
-			entityName: EntityName.CHECKLIST,
-			action: AdminAction.UPDATE,
-			value: params,
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: id,
+				entityName: EntityName.CHECKLIST,
+				action: AdminAction.UPDATE,
+				value: params,
+			}
+		);
 
 		return updated;
 	});

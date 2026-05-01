@@ -43,12 +43,19 @@ export async function up(db: Kysely<any>): Promise<void> {
 
 	await db.schema
 		.alterTable('claim_desk_location_transition')
-		.addForeignKeyConstraint('cdlt_desk_location_id_fkey', ['desk_location_id'], 'desk_location', ['id'])
+		.addForeignKeyConstraint('cdlt_desk_location_id_fkey', ['desk_location_id'], 'desk_location', [
+			'id',
+		])
 		.execute();
 
 	await db.schema
 		.alterTable('claim_desk_location_transition')
-		.addForeignKeyConstraint('cdlt_previous_desk_location_id_fkey', ['previous_desk_location_id'], 'desk_location', ['id'])
+		.addForeignKeyConstraint(
+			'cdlt_previous_desk_location_id_fkey',
+			['previous_desk_location_id'],
+			'desk_location',
+			['id']
+		)
 		.execute();
 
 	// Indexes
@@ -97,7 +104,9 @@ export async function up(db: Kysely<any>): Promise<void> {
 
 	await db.schema
 		.alterTable('workflow_definition')
-		.addForeignKeyConstraint('wd_desk_location_id_fkey', ['desk_location_id'], 'desk_location', ['id'])
+		.addForeignKeyConstraint('wd_desk_location_id_fkey', ['desk_location_id'], 'desk_location', [
+			'id',
+		])
 		.execute();
 
 	// Unique: one active workflow per desk location
@@ -148,7 +157,12 @@ export async function up(db: Kysely<any>): Promise<void> {
 
 	await db.schema
 		.alterTable('workflow_threshold')
-		.addForeignKeyConstraint('wt_workflow_definition_id_fkey', ['workflow_definition_id'], 'workflow_definition', ['id'])
+		.addForeignKeyConstraint(
+			'wt_workflow_definition_id_fkey',
+			['workflow_definition_id'],
+			'workflow_definition',
+			['id']
+		)
 		.execute();
 
 	// One active threshold per type per workflow
@@ -198,7 +212,12 @@ export async function up(db: Kysely<any>): Promise<void> {
 
 	await db.schema
 		.alterTable('workflow_rule')
-		.addForeignKeyConstraint('wr_workflow_definition_id_fkey', ['workflow_definition_id'], 'workflow_definition', ['id'])
+		.addForeignKeyConstraint(
+			'wr_workflow_definition_id_fkey',
+			['workflow_definition_id'],
+			'workflow_definition',
+			['id']
+		)
 		.execute();
 
 	// Rules for a specific workflow

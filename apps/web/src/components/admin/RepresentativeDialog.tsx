@@ -55,7 +55,9 @@ export default function RepresentativeDialog({
 	lockParty,
 	onClose,
 }: RepresentativeDialogProps) {
-	const toggleNewRepresentativeDialog = useAdminStore((state) => state.toggleNewRepresentativeDialog);
+	const toggleNewRepresentativeDialog = useAdminStore(
+		(state) => state.toggleNewRepresentativeDialog
+	);
 	const showAlert = useAlertStore((state) => state.showAlert);
 	const partyTrpc = usePartyTrpc();
 	const { mutateAsync: createRepresentative, isPending: creating } = partyTrpc.createRepresentative;
@@ -84,7 +86,8 @@ export default function RepresentativeDialog({
 	);
 
 	// Get addresses for the selected party (no search, just list all addresses for this party)
-	const effectivePartyId = String(selectedParty?.id ?? '') || representative?.party_id || partyId || '';
+	const effectivePartyId =
+		String(selectedParty?.id ?? '') || representative?.party_id || partyId || '';
 	const { data: partyAddresses = [] } = partyTrpc.listAddresses(
 		{
 			partyId: effectivePartyId,
@@ -214,7 +217,11 @@ export default function RepresentativeDialog({
 	}));
 
 	const selectedPartyOption: ComboboxOption | null = selectedParty
-		? { value: String(selectedParty.id), label: (selectedParty as any).name, description: (selectedParty as any).organization ?? undefined }
+		? {
+				value: String(selectedParty.id),
+				label: (selectedParty as any).name,
+				description: (selectedParty as any).organization ?? undefined,
+			}
 		: null;
 
 	// Map addresses to ComboboxOption
@@ -248,7 +255,9 @@ export default function RepresentativeDialog({
 							options={partyOptions}
 							value={selectedPartyOption}
 							onChange={(opt) => {
-								const party = opt ? (partyMatches as any[]).find((p: any) => p.id === opt.value) ?? null : null;
+								const party = opt
+									? ((partyMatches as any[]).find((p: any) => p.id === opt.value) ?? null)
+									: null;
 								setSelectedParty(party);
 								field.onChange(party?.id || null);
 							}}
@@ -290,7 +299,9 @@ export default function RepresentativeDialog({
 							options={addressOptions}
 							value={selectedAddressOption}
 							onChange={(opt) => {
-								const addr = opt ? (partyAddresses as any[]).find((a: any) => a.id === opt.value) ?? null : null;
+								const addr = opt
+									? ((partyAddresses as any[]).find((a: any) => a.id === opt.value) ?? null)
+									: null;
 								setSelectedAddress(addr);
 								field.onChange(addr?.id || null);
 							}}
@@ -300,22 +311,20 @@ export default function RepresentativeDialog({
 							placeholder={hasParty ? 'Select an address...' : 'Select a party first'}
 							renderOption={(option) => {
 								const addr = (partyAddresses as any[]).find((a: any) => a.id === option.value);
-								const addressLine = addr ? formatAddressInline({
-									street_address: addr.street_address ?? undefined,
-									city: addr.city ?? undefined,
-									state: addr.state ?? undefined,
-									postal_code: addr.postal_code ?? undefined,
-									country: addr.country ?? undefined,
-								}) : '';
+								const addressLine = addr
+									? formatAddressInline({
+											street_address: addr.street_address ?? undefined,
+											city: addr.city ?? undefined,
+											state: addr.state ?? undefined,
+											postal_code: addr.postal_code ?? undefined,
+											country: addr.country ?? undefined,
+										})
+									: '';
 								return (
 									<div>
-										<span style={{ fontWeight: 'bold' }}>
-											{addr?.name || 'Unnamed address'}
-										</span>
+										<span style={{ fontWeight: 'bold' }}>{addr?.name || 'Unnamed address'}</span>
 										{addressLine && (
-											<span style={{ color: 'var(--text-secondary)' }}>
-												{addressLine}
-											</span>
+											<span style={{ color: 'var(--text-secondary)' }}>{addressLine}</span>
 										)}
 									</div>
 								);
@@ -367,12 +376,7 @@ export default function RepresentativeDialog({
 				name="title"
 				control={control}
 				render={({ field }) => (
-					<Input
-						{...field}
-						label="Title"
-						fullWidth
-						placeholder="e.g., Claims Adjuster, Attorney"
-					/>
+					<Input {...field} label="Title" fullWidth placeholder="e.g., Claims Adjuster, Attorney" />
 				)}
 			/>
 		</div>
@@ -410,7 +414,9 @@ export default function RepresentativeDialog({
 			<Controller
 				name="phone"
 				control={control}
-				render={({ field }) => <Input {...field} label="Phone" fullWidth placeholder="(555) 123-4567" />}
+				render={({ field }) => (
+					<Input {...field} label="Phone" fullWidth placeholder="(555) 123-4567" />
+				)}
 			/>
 
 			{/* Mobile Phone */}
@@ -426,7 +432,9 @@ export default function RepresentativeDialog({
 			<Controller
 				name="fax"
 				control={control}
-				render={({ field }) => <Input {...field} label="Fax" fullWidth placeholder="(555) 123-4567" />}
+				render={({ field }) => (
+					<Input {...field} label="Fax" fullWidth placeholder="(555) 123-4567" />
+				)}
 			/>
 
 			{/* Primary Representative */}
@@ -435,7 +443,9 @@ export default function RepresentativeDialog({
 				<Controller
 					name="is_primary"
 					control={control}
-					render={({ field }) => <Switch checked={field.value} onChange={(checked) => field.onChange(checked)} />}
+					render={({ field }) => (
+						<Switch checked={field.value} onChange={(checked) => field.onChange(checked)} />
+					)}
 				/>
 			</div>
 		</div>
@@ -453,7 +463,9 @@ export default function RepresentativeDialog({
 				<div style={reviewStyles.grid}>
 					<div style={reviewStyles.field}>
 						<span style={reviewStyles.label}>Name</span>
-						<span style={reviewStyles.value}>{[firstName, lastName].filter(Boolean).join(' ') || '--'}</span>
+						<span style={reviewStyles.value}>
+							{[firstName, lastName].filter(Boolean).join(' ') || '--'}
+						</span>
 					</div>
 					{titleVal && (
 						<div style={reviewStyles.field}>

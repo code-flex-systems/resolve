@@ -178,9 +178,36 @@ describe('claimController integration tests', () => {
 
 				const created = await claimController.createClaims(ctx, {
 					claims: [
-						{ claim_number: 'CLM-001', insured: 'Insured 1', client: null, client_adjuster: null, date_of_loss: null, line_of_business: null, last_update: null, last_updated_by: null },
-						{ claim_number: 'CLM-002', insured: 'Insured 2', client: null, client_adjuster: null, date_of_loss: null, line_of_business: null, last_update: null, last_updated_by: null },
-						{ claim_number: 'CLM-003', insured: 'Insured 3', client: null, client_adjuster: null, date_of_loss: null, line_of_business: null, last_update: null, last_updated_by: null },
+						{
+							claim_number: 'CLM-001',
+							insured: 'Insured 1',
+							client: null,
+							client_adjuster: null,
+							date_of_loss: null,
+							line_of_business: null,
+							last_update: null,
+							last_updated_by: null,
+						},
+						{
+							claim_number: 'CLM-002',
+							insured: 'Insured 2',
+							client: null,
+							client_adjuster: null,
+							date_of_loss: null,
+							line_of_business: null,
+							last_update: null,
+							last_updated_by: null,
+						},
+						{
+							claim_number: 'CLM-003',
+							insured: 'Insured 3',
+							client: null,
+							client_adjuster: null,
+							date_of_loss: null,
+							line_of_business: null,
+							last_update: null,
+							last_updated_by: null,
+						},
 					],
 				});
 
@@ -234,7 +261,18 @@ describe('claimController integration tests', () => {
 				const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id });
 
 				const created = await claimController.createClaims(ctxA, {
-					claims: [{ claim_number: 'CLM-A', insured: 'Client A Insured', client: null, client_adjuster: null, date_of_loss: null, line_of_business: null, last_update: null, last_updated_by: null }],
+					claims: [
+						{
+							claim_number: 'CLM-A',
+							insured: 'Client A Insured',
+							client: null,
+							client_adjuster: null,
+							date_of_loss: null,
+							line_of_business: null,
+							last_update: null,
+							last_updated_by: null,
+						},
+					],
 				});
 
 				expect(created).toHaveLength(1);
@@ -258,9 +296,36 @@ describe('claimController integration tests', () => {
 
 				const created = await claimController.createClaims(ctx, {
 					claims: [
-						{ claim_number: 'CLM-001', insured: 'Insured 1', client: null, client_adjuster: null, date_of_loss: null, line_of_business: null, last_update: null, last_updated_by: null },
-						{ claim_number: 'CLM-002', insured: 'Insured 2', client: null, client_adjuster: null, date_of_loss: null, line_of_business: null, last_update: null, last_updated_by: null },
-						{ claim_number: 'CLM-003', insured: 'Insured 3', client: null, client_adjuster: null, date_of_loss: null, line_of_business: null, last_update: null, last_updated_by: null },
+						{
+							claim_number: 'CLM-001',
+							insured: 'Insured 1',
+							client: null,
+							client_adjuster: null,
+							date_of_loss: null,
+							line_of_business: null,
+							last_update: null,
+							last_updated_by: null,
+						},
+						{
+							claim_number: 'CLM-002',
+							insured: 'Insured 2',
+							client: null,
+							client_adjuster: null,
+							date_of_loss: null,
+							line_of_business: null,
+							last_update: null,
+							last_updated_by: null,
+						},
+						{
+							claim_number: 'CLM-003',
+							insured: 'Insured 3',
+							client: null,
+							client_adjuster: null,
+							date_of_loss: null,
+							line_of_business: null,
+							last_update: null,
+							last_updated_by: null,
+						},
 					],
 				});
 

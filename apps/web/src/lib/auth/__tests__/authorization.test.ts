@@ -90,7 +90,9 @@ describe('Authorization Functions', () => {
 			};
 
 			expect(() => requireRole(ctx, ['Admin', 'Super Admin'])).toThrow(TRPCError);
-			expect(() => requireRole(ctx, ['Admin', 'Super Admin'])).toThrow('User must have one of: Admin, Super Admin');
+			expect(() => requireRole(ctx, ['Admin', 'Super Admin'])).toThrow(
+				'User must have one of: Admin, Super Admin'
+			);
 		});
 
 		it('should handle Super Admin role correctly', () => {
@@ -260,7 +262,7 @@ describe('Authorization Functions', () => {
 				select: mockSelect,
 			} as any);
 
-			await expect(requireOwnership(ctx, 1, 100)).resolves.toBeUndefined();
+			await expect(requireOwnership(ctx, 'checklist-1', 'claim-100')).resolves.toBeUndefined();
 		});
 
 		it('should succeed when user is the assignee', async () => {
@@ -281,7 +283,7 @@ describe('Authorization Functions', () => {
 				select: mockSelect,
 			} as any);
 
-			await expect(requireOwnership(ctx, 1, 100)).resolves.toBeUndefined();
+			await expect(requireOwnership(ctx, 'checklist-1', 'claim-100')).resolves.toBeUndefined();
 		});
 
 		it('should succeed when user is both creator and assignee', async () => {
@@ -302,7 +304,7 @@ describe('Authorization Functions', () => {
 				select: mockSelect,
 			} as any);
 
-			await expect(requireOwnership(ctx, 1, 100)).resolves.toBeUndefined();
+			await expect(requireOwnership(ctx, 'checklist-1', 'claim-100')).resolves.toBeUndefined();
 		});
 
 		it('should throw FORBIDDEN when user is neither creator nor assignee', async () => {
@@ -323,8 +325,8 @@ describe('Authorization Functions', () => {
 				select: mockSelect,
 			} as any);
 
-			await expect(requireOwnership(ctx, 1, 100)).rejects.toThrow(TRPCError);
-			await expect(requireOwnership(ctx, 1, 100)).rejects.toThrow(
+			await expect(requireOwnership(ctx, 'checklist-1', 'claim-100')).rejects.toThrow(TRPCError);
+			await expect(requireOwnership(ctx, 'checklist-1', 'claim-100')).rejects.toThrow(
 				'User is neither the creator nor the current assignee on this checklist + claim'
 			);
 		});
@@ -347,8 +349,8 @@ describe('Authorization Functions', () => {
 				select: mockSelect,
 			} as any);
 
-			await expect(requireOwnership(ctx, 1, 100)).rejects.toThrow(TRPCError);
-			await expect(requireOwnership(ctx, 1, 100)).rejects.toThrow(
+			await expect(requireOwnership(ctx, 'checklist-1', 'claim-100')).rejects.toThrow(TRPCError);
+			await expect(requireOwnership(ctx, 'checklist-1', 'claim-100')).rejects.toThrow(
 				'User is neither the creator nor the current assignee on this checklist + claim'
 			);
 		});
@@ -361,17 +363,21 @@ describe('Authorization Functions', () => {
 
 			const mockSelect = vi.fn().mockReturnValue({
 				where: vi.fn().mockReturnThis(),
-				executeTakeFirstOrThrow: vi.fn().mockRejectedValue(
-					new TRPCError({ code: 'BAD_REQUEST', message: 'Checklist + claim does not exist' })
-				),
+				executeTakeFirstOrThrow: vi
+					.fn()
+					.mockRejectedValue(
+						new TRPCError({ code: 'BAD_REQUEST', message: 'Checklist + claim does not exist' })
+					),
 			});
 
 			vi.spyOn(db, 'selectFrom').mockReturnValue({
 				select: mockSelect,
 			} as any);
 
-			await expect(requireOwnership(ctx, 999, 999)).rejects.toThrow(TRPCError);
-			await expect(requireOwnership(ctx, 999, 999)).rejects.toThrow('Checklist + claim does not exist');
+			await expect(requireOwnership(ctx, 'checklist-999', 'claim-999')).rejects.toThrow(TRPCError);
+			await expect(requireOwnership(ctx, 'checklist-999', 'claim-999')).rejects.toThrow(
+				'Checklist + claim does not exist'
+			);
 		});
 
 		it('should query the correct table and fields', async () => {
@@ -395,12 +401,12 @@ describe('Authorization Functions', () => {
 				select: mockSelect,
 			} as any);
 
-			await requireOwnership(ctx, 5, 200);
+			await requireOwnership(ctx, 'checklist-5', 'claim-200');
 
 			expect(mockSelectFrom).toHaveBeenCalledWith('checklist_claim');
 			expect(mockSelect).toHaveBeenCalledWith(['created_by', 'assignee']);
-			expect(mockWhere).toHaveBeenCalledWith('checklist_id', '=', 5);
-			expect(mockWhere).toHaveBeenCalledWith('claim_id', '=', 200);
+			expect(mockWhere).toHaveBeenCalledWith('checklist_id', '=', 'checklist-5');
+			expect(mockWhere).toHaveBeenCalledWith('claim_id', '=', 'claim-200');
 		});
 
 		it('should succeed when assignee is null but user is creator', async () => {
@@ -421,7 +427,7 @@ describe('Authorization Functions', () => {
 				select: mockSelect,
 			} as any);
 
-			await expect(requireOwnership(ctx, 1, 100)).resolves.toBeUndefined();
+			await expect(requireOwnership(ctx, 'checklist-1', 'claim-100')).resolves.toBeUndefined();
 		});
 
 		it('should throw FORBIDDEN when assignee is null and user is not creator', async () => {
@@ -442,8 +448,8 @@ describe('Authorization Functions', () => {
 				select: mockSelect,
 			} as any);
 
-			await expect(requireOwnership(ctx, 1, 100)).rejects.toThrow(TRPCError);
-			await expect(requireOwnership(ctx, 1, 100)).rejects.toThrow(
+			await expect(requireOwnership(ctx, 'checklist-1', 'claim-100')).rejects.toThrow(TRPCError);
+			await expect(requireOwnership(ctx, 'checklist-1', 'claim-100')).rejects.toThrow(
 				'User is neither the creator nor the current assignee on this checklist + claim'
 			);
 		});
@@ -464,7 +470,7 @@ describe('Authorization Functions', () => {
 			vi.spyOn(db, 'selectFrom').mockReturnValue({ select: mockSelectUnauth } as any);
 
 			try {
-				await requireOwnership(unauthCtx, 1, 100);
+				await requireOwnership(unauthCtx, 'checklist-1', 'claim-100');
 			} catch (error) {
 				expect((error as TRPCError).code).toBe('FORBIDDEN');
 			}
@@ -480,7 +486,7 @@ describe('Authorization Functions', () => {
 			vi.spyOn(db, 'selectFrom').mockReturnValue({ select: mockSelectForbidden } as any);
 
 			try {
-				await requireOwnership(wrongUserCtx, 1, 100);
+				await requireOwnership(wrongUserCtx, 'checklist-1', 'claim-100');
 			} catch (error) {
 				expect((error as TRPCError).code).toBe('FORBIDDEN');
 			}
@@ -490,12 +496,14 @@ describe('Authorization Functions', () => {
 				where: vi.fn().mockReturnThis(),
 				executeTakeFirstOrThrow: vi
 					.fn()
-					.mockRejectedValue(new TRPCError({ code: 'BAD_REQUEST', message: 'Checklist + claim does not exist' })),
+					.mockRejectedValue(
+						new TRPCError({ code: 'BAD_REQUEST', message: 'Checklist + claim does not exist' })
+					),
 			});
 			vi.spyOn(db, 'selectFrom').mockReturnValue({ select: mockSelectBadRequest } as any);
 
 			try {
-				await requireOwnership(validCtx, 999, 999);
+				await requireOwnership(validCtx, 'checklist-999', 'claim-999');
 			} catch (error) {
 				expect((error as TRPCError).code).toBe('BAD_REQUEST');
 			}
@@ -524,7 +532,7 @@ describe('Authorization Functions', () => {
 				select: mockSelect,
 			} as any);
 
-			await expect(requireAssigned(ctx, 1, 100)).resolves.toBeUndefined();
+			await expect(requireAssigned(ctx, 'checklist-1', 'claim-100')).resolves.toBeUndefined();
 		});
 
 		it('should throw FORBIDDEN when user is not the assignee', async () => {
@@ -544,8 +552,8 @@ describe('Authorization Functions', () => {
 				select: mockSelect,
 			} as any);
 
-			await expect(requireAssigned(ctx, 1, 100)).rejects.toThrow(TRPCError);
-			await expect(requireAssigned(ctx, 1, 100)).rejects.toThrow(
+			await expect(requireAssigned(ctx, 'checklist-1', 'claim-100')).rejects.toThrow(TRPCError);
+			await expect(requireAssigned(ctx, 'checklist-1', 'claim-100')).rejects.toThrow(
 				'User is not currently assigned to this checklist + claim'
 			);
 		});
@@ -567,8 +575,8 @@ describe('Authorization Functions', () => {
 				select: mockSelect,
 			} as any);
 
-			await expect(requireAssigned(ctx, 1, 100)).rejects.toThrow(TRPCError);
-			await expect(requireAssigned(ctx, 1, 100)).rejects.toThrow(
+			await expect(requireAssigned(ctx, 'checklist-1', 'claim-100')).rejects.toThrow(TRPCError);
+			await expect(requireAssigned(ctx, 'checklist-1', 'claim-100')).rejects.toThrow(
 				'User is not currently assigned to this checklist + claim'
 			);
 		});
@@ -590,8 +598,8 @@ describe('Authorization Functions', () => {
 				select: mockSelect,
 			} as any);
 
-			await expect(requireAssigned(ctx, 1, 100)).rejects.toThrow(TRPCError);
-			await expect(requireAssigned(ctx, 1, 100)).rejects.toThrow(
+			await expect(requireAssigned(ctx, 'checklist-1', 'claim-100')).rejects.toThrow(TRPCError);
+			await expect(requireAssigned(ctx, 'checklist-1', 'claim-100')).rejects.toThrow(
 				'User is not currently assigned to this checklist + claim'
 			);
 		});
@@ -604,17 +612,21 @@ describe('Authorization Functions', () => {
 
 			const mockSelect = vi.fn().mockReturnValue({
 				where: vi.fn().mockReturnThis(),
-				executeTakeFirstOrThrow: vi.fn().mockRejectedValue(
-					new TRPCError({ code: 'BAD_REQUEST', message: 'Checklist + claim does not exist' })
-				),
+				executeTakeFirstOrThrow: vi
+					.fn()
+					.mockRejectedValue(
+						new TRPCError({ code: 'BAD_REQUEST', message: 'Checklist + claim does not exist' })
+					),
 			});
 
 			vi.spyOn(db, 'selectFrom').mockReturnValue({
 				select: mockSelect,
 			} as any);
 
-			await expect(requireAssigned(ctx, 999, 999)).rejects.toThrow(TRPCError);
-			await expect(requireAssigned(ctx, 999, 999)).rejects.toThrow('Checklist + claim does not exist');
+			await expect(requireAssigned(ctx, 'checklist-999', 'claim-999')).rejects.toThrow(TRPCError);
+			await expect(requireAssigned(ctx, 'checklist-999', 'claim-999')).rejects.toThrow(
+				'Checklist + claim does not exist'
+			);
 		});
 
 		it('should query the correct table and fields', async () => {
@@ -637,12 +649,12 @@ describe('Authorization Functions', () => {
 				select: mockSelect,
 			} as any);
 
-			await requireAssigned(ctx, 5, 200);
+			await requireAssigned(ctx, 'checklist-5', 'claim-200');
 
 			expect(mockSelectFrom).toHaveBeenCalledWith('checklist_claim');
 			expect(mockSelect).toHaveBeenCalledWith('assignee');
-			expect(mockWhere).toHaveBeenCalledWith('checklist_id', '=', 5);
-			expect(mockWhere).toHaveBeenCalledWith('claim_id', '=', 200);
+			expect(mockWhere).toHaveBeenCalledWith('checklist_id', '=', 'checklist-5');
+			expect(mockWhere).toHaveBeenCalledWith('claim_id', '=', 'claim-200');
 		});
 
 		it('should handle null assignee', async () => {
@@ -662,8 +674,8 @@ describe('Authorization Functions', () => {
 				select: mockSelect,
 			} as any);
 
-			await expect(requireAssigned(ctx, 1, 100)).rejects.toThrow(TRPCError);
-			await expect(requireAssigned(ctx, 1, 100)).rejects.toThrow(
+			await expect(requireAssigned(ctx, 'checklist-1', 'claim-100')).rejects.toThrow(TRPCError);
+			await expect(requireAssigned(ctx, 'checklist-1', 'claim-100')).rejects.toThrow(
 				'User is not currently assigned to this checklist + claim'
 			);
 		});
@@ -682,7 +694,7 @@ describe('Authorization Functions', () => {
 			vi.spyOn(db, 'selectFrom').mockReturnValue({ select: mockSelectForbidden } as any);
 
 			try {
-				await requireAssigned(wrongUserCtx, 1, 100);
+				await requireAssigned(wrongUserCtx, 'checklist-1', 'claim-100');
 			} catch (error) {
 				expect((error as TRPCError).code).toBe('FORBIDDEN');
 			}
@@ -692,12 +704,14 @@ describe('Authorization Functions', () => {
 				where: vi.fn().mockReturnThis(),
 				executeTakeFirstOrThrow: vi
 					.fn()
-					.mockRejectedValue(new TRPCError({ code: 'BAD_REQUEST', message: 'Checklist + claim does not exist' })),
+					.mockRejectedValue(
+						new TRPCError({ code: 'BAD_REQUEST', message: 'Checklist + claim does not exist' })
+					),
 			});
 			vi.spyOn(db, 'selectFrom').mockReturnValue({ select: mockSelectBadRequest } as any);
 
 			try {
-				await requireAssigned(validCtx, 999, 999);
+				await requireAssigned(validCtx, 'checklist-999', 'claim-999');
 			} catch (error) {
 				expect((error as TRPCError).code).toBe('BAD_REQUEST');
 			}
@@ -730,8 +744,8 @@ describe('Authorization Functions', () => {
 				select: mockSelect,
 			} as any);
 
-			await expect(requireAssigned(ctx, 1, 100)).rejects.toThrow(TRPCError);
-			await expect(requireAssigned(ctx, 1, 100)).rejects.toThrow(
+			await expect(requireAssigned(ctx, 'checklist-1', 'claim-100')).rejects.toThrow(TRPCError);
+			await expect(requireAssigned(ctx, 'checklist-1', 'claim-100')).rejects.toThrow(
 				'User is not currently assigned to this checklist + claim'
 			);
 		});

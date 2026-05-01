@@ -5,8 +5,14 @@ import Chip from '@/components/ui/Chip';
 import { Spinner } from '@/components/ui/Progress';
 import Divider from '@/components/ui/Divider';
 import {
-	IconCircleCheck, IconX, IconPlayerPlay, IconPlayerStop,
-	IconUserPlus, IconCalendar, IconUser, IconClipboard,
+	IconCircleCheck,
+	IconX,
+	IconPlayerPlay,
+	IconPlayerStop,
+	IconUserPlus,
+	IconCalendar,
+	IconUser,
+	IconClipboard,
 } from '@tabler/icons-react';
 import dayjs from 'dayjs';
 import { useRouter } from 'next/navigation';
@@ -29,12 +35,13 @@ interface DeadlineDetailDialogProps {
 	onClose: () => void;
 }
 
-const STATUS_COLORS: Record<DeadlineStatus, 'neutral' | 'info' | 'success' | 'error' | 'warning'> = {
-	[DeadlineStatus.PENDING]: 'neutral',
-	[DeadlineStatus.MET]: 'success',
-	[DeadlineStatus.MISSED]: 'error',
-	[DeadlineStatus.CANCELLED]: 'warning',
-};
+const STATUS_COLORS: Record<DeadlineStatus, 'neutral' | 'info' | 'success' | 'error' | 'warning'> =
+	{
+		[DeadlineStatus.PENDING]: 'neutral',
+		[DeadlineStatus.MET]: 'success',
+		[DeadlineStatus.MISSED]: 'error',
+		[DeadlineStatus.CANCELLED]: 'warning',
+	};
 
 const STATUS_LABELS: Record<DeadlineStatus, string> = {
 	[DeadlineStatus.PENDING]: 'Pending',
@@ -59,10 +66,15 @@ const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
 	return (
-		<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '6px 0' }}>
-			<span style={{ fontSize: 13, color: 'var(--text-secondary)', minWidth: 120 }}>
-				{label}
-			</span>
+		<div
+			style={{
+				display: 'flex',
+				justifyContent: 'space-between',
+				alignItems: 'flex-start',
+				padding: '6px 0',
+			}}
+		>
+			<span style={{ fontSize: 13, color: 'var(--text-secondary)', minWidth: 120 }}>{label}</span>
 			<div style={{ textAlign: 'right', flex: 1 }}>
 				{typeof value === 'string' ? <span style={{ fontSize: 13 }}>{value}</span> : value}
 			</div>
@@ -100,7 +112,10 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 	const taskId = isTaskDeadline ? deadline.entity_id : null;
 
 	// Fetch task details if this deadline is linked to a task
-	const { data: task, isLoading: taskLoading } = useTaskTrpc().get({ id: String(taskId!) }, { enabled: !!taskId });
+	const { data: task, isLoading: taskLoading } = useTaskTrpc().get(
+		{ id: String(taskId!) },
+		{ enabled: !!taskId }
+	);
 
 	const { mutateAsync: startTask, isPending: isStarting } = useTaskTrpc().start;
 	const { mutateAsync: unassignTask, isPending: isUnassigning } = useTaskTrpc().unassign;
@@ -189,7 +204,18 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 					width={480}
 				>
 					<Card variant="beveled" padding="none" style={{ overflow: 'hidden' }}>
-						<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
+						<div
+							style={{
+								display: 'flex',
+								alignItems: 'center',
+								padding: '12px 16px',
+								fontSize: 13,
+								fontWeight: 600,
+								color: 'var(--text-primary)',
+								backgroundColor: 'var(--bg-secondary)',
+								borderBottom: '1px solid var(--border)',
+							}}
+						>
 							<IconClipboard size={16} style={{ marginRight: 8, verticalAlign: 'text-bottom' }} />
 							{task.title}
 						</div>
@@ -197,7 +223,14 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 							<DetailRow
 								label="Type"
 								value={
-									<div style={{ display: 'flex', gap: 4, alignItems: 'center', justifyContent: 'flex-end' }}>
+									<div
+										style={{
+											display: 'flex',
+											gap: 4,
+											alignItems: 'center',
+											justifyContent: 'flex-end',
+										}}
+									>
 										{TASK_TYPE_CONFIG[task.task_type as TaskType]?.icon}
 										<span style={{ fontSize: 13 }}>
 											{TASK_TYPE_CONFIG[task.task_type as TaskType]?.label || task.task_type}
@@ -208,10 +241,9 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 							<DetailRow
 								label="Status"
 								value={
-									<Chip
-										color={TASK_STATUS_COLORS[task.status as TaskStatus]}
-										size="sm"
-										>{TASK_STATUS_LABELS[task.status as TaskStatus]}</Chip>
+									<Chip color={TASK_STATUS_COLORS[task.status as TaskStatus]} size="sm">
+										{TASK_STATUS_LABELS[task.status as TaskStatus]}
+									</Chip>
 								}
 							/>
 							<DetailRow
@@ -234,7 +266,14 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 								<DetailRow
 									label="Assigned To"
 									value={
-										<div style={{ display: 'flex', gap: 4, alignItems: 'center', justifyContent: 'flex-end' }}>
+										<div
+											style={{
+												display: 'flex',
+												gap: 4,
+												alignItems: 'center',
+												justifyContent: 'flex-end',
+											}}
+										>
 											<IconUser size={14} style={{ color: 'var(--text-muted)' }} />
 											<span style={{ fontSize: 13 }}>
 												{task.assigned_to_first} {task.assigned_to_last}
@@ -245,17 +284,30 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 							)}
 							<DetailRow
 								label="Claim"
-								value={<ClaimLink claimId={deadline.claim_id} claimNumber={deadline.claim_number} />}
+								value={
+									<ClaimLink claimId={deadline.claim_id} claimNumber={deadline.claim_number} />
+								}
 							/>
 							{task.completion_notes && (
 								<DetailRow label="Completion Notes" value={task.completion_notes} />
 							)}
 
 							{/* Task Actions */}
-							{(canAssignToMe || canStartTask || canReleaseTask || canCompleteTask || canCancelTask) && (
+							{(canAssignToMe ||
+								canStartTask ||
+								canReleaseTask ||
+								canCompleteTask ||
+								canCancelTask) && (
 								<>
 									<Divider spacing="md" />
-									<div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+									<div
+										style={{
+											display: 'flex',
+											gap: 8,
+											justifyContent: 'flex-end',
+											flexWrap: 'wrap',
+										}}
+									>
 										{canAssignToMe && (
 											<Button
 												size="sm"
@@ -351,7 +403,18 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 			width={480}
 		>
 			<Card variant="beveled" padding="none" style={{ overflow: 'hidden' }}>
-				<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
+				<div
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						padding: '12px 16px',
+						fontSize: 13,
+						fontWeight: 600,
+						color: 'var(--text-primary)',
+						backgroundColor: 'var(--bg-secondary)',
+						borderBottom: '1px solid var(--border)',
+					}}
+				>
 					<IconCalendar size={16} style={{ marginRight: 8, verticalAlign: 'text-bottom' }} />
 					{formatDeadlineType(deadline.deadline_type)}
 				</div>
@@ -359,16 +422,17 @@ export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDeta
 					<DetailRow
 						label="Due Date"
 						value={
-							<span style={{ fontSize: 13 }}>{dayjs(deadline.deadline_date).format('MMM D, YYYY')}</span>
+							<span style={{ fontSize: 13 }}>
+								{dayjs(deadline.deadline_date).format('MMM D, YYYY')}
+							</span>
 						}
 					/>
 					<DetailRow
 						label="Status"
 						value={
-							<Chip
-								color={STATUS_COLORS[deadline.status as DeadlineStatus]}
-								size="sm"
-								>{STATUS_LABELS[deadline.status as DeadlineStatus]}</Chip>
+							<Chip color={STATUS_COLORS[deadline.status as DeadlineStatus]} size="sm">
+								{STATUS_LABELS[deadline.status as DeadlineStatus]}
+							</Chip>
 						}
 					/>
 					{deadline.description && <DetailRow label="Description" value={deadline.description} />}

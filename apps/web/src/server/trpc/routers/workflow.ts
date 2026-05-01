@@ -144,12 +144,10 @@ export const workflowRouter = router({
 	// RULE EXECUTION ENDPOINTS
 	// ========================================================================
 
-	executeRule: protectedProcedure
-		.input(executeRuleInput)
-		.mutation(async ({ input, ctx }) => {
-			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-			return workflowController.executeRule(ctx, input);
-		}),
+	executeRule: protectedProcedure.input(executeRuleInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return workflowController.executeRule(ctx, input);
+	}),
 
 	evaluateRulesByTrigger: protectedProcedure
 		.input(evaluateRulesByTriggerInput)

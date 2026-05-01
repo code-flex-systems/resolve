@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-DB_URL="${1:-postgres://postgres:password@localhost/manifest}"
+DB_URL="${1:-postgres://postgres:password@localhost/resolve}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 echo "Seeding database..."

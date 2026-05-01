@@ -152,7 +152,11 @@ async function createTaskWithUnits(
 		completed_at: params.completed_at ?? null,
 	};
 	if (params.created_at !== undefined) values.created_at = params.created_at;
-	return db.insertInto('task').values(values as never).returningAll().executeTakeFirstOrThrow();
+	return db
+		.insertInto('task')
+		.values(values as never)
+		.returningAll()
+		.executeTakeFirstOrThrow();
 }
 
 async function insertWorkflowStageSnapshot(
@@ -570,7 +574,11 @@ describe('workflowAnalyticsQueries integration tests', () => {
 	describe('getUserWorkloadAndCapacity', () => {
 		it('returns in-progress work units and pending tasks visible to the user', async () => {
 			const client = await createTestClient(db);
-			const user = await createTestUser(db, { client_id: client.id, first: 'Alice', last: 'Smith' });
+			const user = await createTestUser(db, {
+				client_id: client.id,
+				first: 'Alice',
+				last: 'Smith',
+			});
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
 			const desk = await createTestDeskLocation(db, {
 				client_id: client.id,

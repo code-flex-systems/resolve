@@ -222,7 +222,7 @@ describe('paymentQueries integration', () => {
 				client_id: client.id,
 				created_by: user.id,
 				party_type: 'entity',
-				});
+			});
 			const claimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
 				party_id: party.id,
@@ -376,7 +376,7 @@ describe('paymentQueries integration', () => {
 				client_id: client.id,
 				created_by: user.id,
 				party_type: 'entity',
-					name: 'John Doe',
+				name: 'John Doe',
 			});
 			const claimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
@@ -583,7 +583,11 @@ describe('paymentQueries integration', () => {
 			});
 
 			// Set a specific claim_amount to verify it doesn't change
-			await db.updateTable('claim').set({ claim_amount: '9999' }).where('id', '=', claim.id).execute();
+			await db
+				.updateTable('claim')
+				.set({ claim_amount: '9999' })
+				.where('id', '=', claim.id)
+				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -629,7 +633,11 @@ describe('paymentQueries integration', () => {
 			});
 
 			// Set initial claim_amount
-			await db.updateTable('claim').set({ claim_amount: '1000' }).where('id', '=', claim.id).execute();
+			await db
+				.updateTable('claim')
+				.set({ claim_amount: '1000' })
+				.where('id', '=', claim.id)
+				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -670,7 +678,11 @@ describe('paymentQueries integration', () => {
 			});
 
 			// Set initial claim_amount
-			await db.updateTable('claim').set({ claim_amount: '1000' }).where('id', '=', claim.id).execute();
+			await db
+				.updateTable('claim')
+				.set({ claim_amount: '1000' })
+				.where('id', '=', claim.id)
+				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -689,7 +701,7 @@ describe('paymentQueries integration', () => {
 				.executeTakeFirst();
 
 			// PostgreSQL NUMERIC returns '0.00' to preserve scale
-		expect(updatedClaim?.claim_amount).toBe('0.00');
+			expect(updatedClaim?.claim_amount).toBe('0.00');
 		});
 
 		it('should throw error for non-existent payment', async () => {
@@ -702,7 +714,9 @@ describe('paymentQueries integration', () => {
 			// Act & Assert
 			await expect(
 				db.transaction().execute(async (trx) => {
-					return updatePayment({ ...ctx, db: trx }, '00000000-0000-0000-0000-000000000000', { payment_amount: 1000 });
+					return updatePayment({ ...ctx, db: trx }, '00000000-0000-0000-0000-000000000000', {
+						payment_amount: 1000,
+					});
 				})
 			).rejects.toThrow('Payment not found');
 		});
@@ -906,7 +920,11 @@ describe('paymentQueries integration', () => {
 			});
 
 			// Set claim_amount to reflect the subrogable payment only
-			await db.updateTable('claim').set({ claim_amount: '5000' }).where('id', '=', claim.id).execute();
+			await db
+				.updateTable('claim')
+				.set({ claim_amount: '5000' })
+				.where('id', '=', claim.id)
+				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1033,7 +1051,11 @@ describe('paymentQueries integration', () => {
 			});
 
 			// Set initial claim_amount
-			await db.updateTable('claim').set({ claim_amount: '5000' }).where('id', '=', claim.id).execute();
+			await db
+				.updateTable('claim')
+				.set({ claim_amount: '5000' })
+				.where('id', '=', claim.id)
+				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1063,7 +1085,11 @@ describe('paymentQueries integration', () => {
 			// Act & Assert
 			await expect(
 				db.transaction().execute(async (trx) => {
-					return archivePayment({ ...ctx, db: trx }, '00000000-0000-0000-0000-000000000000', claim.id);
+					return archivePayment(
+						{ ...ctx, db: trx },
+						'00000000-0000-0000-0000-000000000000',
+						claim.id
+					);
 				})
 			).rejects.toThrow();
 		});
@@ -1142,7 +1168,11 @@ describe('paymentQueries integration', () => {
 			const claim = await createTestClaim(db, { client_id: client.id });
 
 			// Set a non-null claim_amount to verify it gets cleared
-			await db.updateTable('claim').set({ claim_amount: '9999' }).where('id', '=', claim.id).execute();
+			await db
+				.updateTable('claim')
+				.set({ claim_amount: '9999' })
+				.where('id', '=', claim.id)
+				.execute();
 
 			// Act - no payments exist for this claim
 			await recalculateClaimAmount(db, claim.id, client.id);
@@ -1177,7 +1207,11 @@ describe('paymentQueries integration', () => {
 				is_subrogable: false,
 			});
 
-			await db.updateTable('claim').set({ claim_amount: '9999' }).where('id', '=', claim.id).execute();
+			await db
+				.updateTable('claim')
+				.set({ claim_amount: '9999' })
+				.where('id', '=', claim.id)
+				.execute();
 
 			// Act
 			await recalculateClaimAmount(db, claim.id, client.id);
@@ -1323,7 +1357,11 @@ describe('paymentQueries integration', () => {
 				is_subrogable: false,
 			});
 
-			await db.updateTable('claim').set({ claim_amount: '9999' }).where('id', '=', claim.id).execute();
+			await db
+				.updateTable('claim')
+				.set({ claim_amount: '9999' })
+				.where('id', '=', claim.id)
+				.execute();
 
 			// Act
 			await recalculateClaimAmount(db, claim.id, client.id);

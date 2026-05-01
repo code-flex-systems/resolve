@@ -81,20 +81,14 @@ export const createReferenceOptionInput = z.object({
 		.string()
 		.min(1)
 		.max(100)
-		.regex(
-			/^[a-z0-9_]+$/,
-			'Value must be lowercase letters, numbers, and underscores only'
-		),
+		.regex(/^[a-z0-9_]+$/, 'Value must be lowercase letters, numbers, and underscores only'),
 	display_label: z.string().min(1).max(255),
 	description: z.string().max(500).optional(),
 	icon_emoji: z
 		.string()
 		.max(10)
 		.optional()
-		.refine(
-			(val) => !val || /\p{Extended_Pictographic}/u.test(val),
-			'Must be a valid emoji'
-		),
+		.refine((val) => !val || /\p{Extended_Pictographic}/u.test(val), 'Must be a valid emoji'),
 	color_hex: z
 		.string()
 		.regex(/^#[0-9A-Fa-f]{6}$/, 'Must be a valid hex color (e.g., #FF5733)')
@@ -115,10 +109,7 @@ export const updateReferenceOptionInput = z.object({
 			.string()
 			.max(10)
 			.optional()
-			.refine(
-				(val) => !val || /\p{Extended_Pictographic}/u.test(val),
-				'Must be a valid emoji'
-			),
+			.refine((val) => !val || /\p{Extended_Pictographic}/u.test(val), 'Must be a valid emoji'),
 		color_hex: z
 			.string()
 			.regex(/^#[0-9A-Fa-f]{6}$/, 'Must be a valid hex color')

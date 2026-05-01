@@ -1,6 +1,11 @@
 'use client';
 
-import { IconAlertTriangle, IconCurrencyDollar, IconGavel, IconSettings } from '@tabler/icons-react';
+import {
+	IconAlertTriangle,
+	IconCurrencyDollar,
+	IconGavel,
+	IconSettings,
+} from '@tabler/icons-react';
 import Tooltip from '@/components/ui/Tooltip';
 import Card from '@/components/ui/Card';
 import Collapse from '@/components/ui/Collapse';
@@ -76,34 +81,34 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 
 	// Data queries
 	const { data: claimDetail } = trpc.claim.getClaimDetail.useQuery({ claimId });
-	const { data: recoveryEvents = [], isLoading: isLoadingRecovery } = useRecoveryTrpc().listRecoveryEvents(
-		{ claimId },
-		{ enabled: !!claimId }
-	);
-	const { data: settlements = [], isLoading: isLoadingSettlements } = trpc.settlement.listSettlements.useQuery(
-		{ claimId },
-		{ enabled: !!claimId }
-	);
+	const { data: recoveryEvents = [], isLoading: isLoadingRecovery } =
+		useRecoveryTrpc().listRecoveryEvents({ claimId }, { enabled: !!claimId });
+	const { data: settlements = [], isLoading: isLoadingSettlements } =
+		trpc.settlement.listSettlements.useQuery({ claimId }, { enabled: !!claimId });
 	const { data: settlementsForDropdown = [] } = trpc.settlement.getSettlementsForDropdown.useQuery(
 		{ claimId },
 		{ enabled: !!claimId }
 	);
-	const { data: claimParties = [] } = trpc.party.getClaimParties.useQuery({ claimId }, { enabled: !!claimId });
+	const { data: claimParties = [] } = trpc.party.getClaimParties.useQuery(
+		{ claimId },
+		{ enabled: !!claimId }
+	);
 	// Get only adverse parties (with roles from adverse_party_role reference list) for settlement creation
 	const { data: adverseParties = [] } = trpc.party.getClaimParties.useQuery(
 		{ claimId, roleListEntity: 'adverse_party_role' },
 		{ enabled: !!claimId }
 	);
-	const { data: coverages = [] } = trpc.coverage.getCoverages.useQuery({ claimId }, { enabled: !!claimId });
+	const { data: coverages = [] } = trpc.coverage.getCoverages.useQuery(
+		{ claimId },
+		{ enabled: !!claimId }
+	);
 	// Fetch admin users for settled_by dropdown (filtered to Admin role for now)
 	const { data: adminUsers = [] } = trpc.user.getUsers.useQuery(
 		{ role: config.ROLES.ADMIN },
 		{ enabled: !!claimId }
 	);
-	const { data: recoverySummary = [], isLoading: isLoadingSummary } = useRecoveryTrpc().getRecoverySummaryByCoverage(
-		{ claimId },
-		{ enabled: !!claimId }
-	);
+	const { data: recoverySummary = [], isLoading: isLoadingSummary } =
+		useRecoveryTrpc().getRecoverySummaryByCoverage({ claimId }, { enabled: !!claimId });
 
 	// Mutations
 	const createRecoveryEvent = useRecoveryTrpc().createRecoveryEvent;
@@ -269,10 +274,12 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 
 		// Determine payment fields - send null if not a payment plan or if fields are empty
 		const isPaymentPlan = settlementForm.settlement_structure === SettlementStructure.PAYMENT_PLAN;
-		const paymentAmount = isPaymentPlan && settlementForm.payment_amount ? settlementForm.payment_amount : null;
-		const paymentFrequency = isPaymentPlan && settlementForm.payment_frequency
-			? (settlementForm.payment_frequency as PaymentFrequency)
-			: null;
+		const paymentAmount =
+			isPaymentPlan && settlementForm.payment_amount ? settlementForm.payment_amount : null;
+		const paymentFrequency =
+			isPaymentPlan && settlementForm.payment_frequency
+				? (settlementForm.payment_frequency as PaymentFrequency)
+				: null;
 
 		try {
 			if (editingSettlement) {
@@ -290,7 +297,9 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 						notes: settlementForm.notes || null,
 						// New fields
 						adverse_party_reference: settlementForm.adverse_party_reference || null,
-						settlement_structure: (settlementForm.settlement_structure as SettlementStructure) || SettlementStructure.LUMP_SUM,
+						settlement_structure:
+							(settlementForm.settlement_structure as SettlementStructure) ||
+							SettlementStructure.LUMP_SUM,
 						payment_amount: paymentAmount,
 						payment_frequency: paymentFrequency,
 						settled_by: settledByUserId,
@@ -309,7 +318,8 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 						notes: settlementForm.notes || undefined,
 						// New fields
 						adverse_party_reference: settlementForm.adverse_party_reference || undefined,
-						settlement_structure: (settlementForm.settlement_structure as SettlementStructure) || undefined,
+						settlement_structure:
+							(settlementForm.settlement_structure as SettlementStructure) || undefined,
 						payment_amount: paymentAmount || undefined,
 						payment_frequency: paymentFrequency || undefined,
 						settled_by: settledByUserId || undefined,
@@ -351,7 +361,15 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 
 	return (
 		<div style={{ padding: 24 }}>
-			<div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 1000, margin: '0 auto' }}>
+			<div
+				style={{
+					display: 'flex',
+					flexDirection: 'column',
+					gap: 24,
+					maxWidth: 1000,
+					margin: '0 auto',
+				}}
+			>
 				{/* Summary */}
 				<Card variant="float" padding="lg">
 					<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
@@ -367,16 +385,32 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 				{/* Settlements & Recoveries */}
 				<Card variant="beveled" padding="lg">
 					{/* Header */}
-					<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+					<div
+						style={{
+							display: 'flex',
+							justifyContent: 'space-between',
+							alignItems: 'center',
+							marginBottom: 16,
+						}}
+					>
 						<div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
 							<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
 								Settlements ({settlements.length})
 							</span>
 							<button
-								
 								onClick={() => setViewMode(viewMode === 'table' ? 'timeline' : 'table')}
-								
-								style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 14, background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--text-accent)', cursor: 'pointer' }}
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									gap: 4,
+									fontSize: 14,
+									background: 'none',
+									border: 'none',
+									padding: 0,
+									font: 'inherit',
+									color: 'var(--text-accent)',
+									cursor: 'pointer',
+								}}
 							>
 								{viewMode === 'table' ? 'See in timeline...' : 'See in table...'}
 							</button>
@@ -409,11 +443,16 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 								Add Settlement
 							</Button>
 							<Tooltip content="Manage">
-								<Button variant="icon" size="sm"
+								<Button
+									variant="icon"
+									size="sm"
 									onClick={() => setIsManageMode(!isManageMode)}
 									style={{ backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined }}
 								>
-									<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+									<IconSettings
+										size={20}
+										style={{ color: isManageMode ? 'primary.main' : undefined }}
+									/>
 								</Button>
 							</Tooltip>
 						</div>
@@ -427,7 +466,15 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 					)}
 
 					{!isLoading && settlements.length === 0 && (
-						<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+						<div
+							style={{
+								display: 'flex',
+								flexDirection: 'column',
+								alignItems: 'center',
+								justifyContent: 'center',
+								padding: 32,
+							}}
+						>
 							<IconGavel size={48} style={{ color: 'var(--text-muted)', marginBottom: 1 }} />
 							<span style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>
 								No settlements or recoveries recorded yet
@@ -506,32 +553,51 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 						<span style={{ fontSize: 14, marginBottom: 16 }}>
 							Are you sure you want to archive this settlement?
 						</span>
-						<div style={{ display: 'flex', flexDirection: 'column' as const, backgroundColor: '#fff8e1', padding: 16, borderRadius: 4, marginBottom: 16 }}>
+						<div
+							style={{
+								display: 'flex',
+								flexDirection: 'column' as const,
+								backgroundColor: '#fff8e1',
+								padding: 16,
+								borderRadius: 4,
+								marginBottom: 16,
+							}}
+						>
 							<span style={{ fontSize: 13, fontWeight: 600 }}>
 								{archivingSettlement.party_name}
 							</span>
-							<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
+							<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
 								{formatCoverageType(archivingSettlement.loss_type)} ·{' '}
 								{formatCurrencyExact(parseFloat(archivingSettlement.demand_amount.toString()))}
 							</span>
 						</div>
 						{(recoveryCounts.get(archivingSettlement.id) ?? 0) > 0 && (
-							<div style={{ backgroundColor: '#fff3e0', padding: 16, borderRadius: 4, marginBottom: 16, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+							<div
+								style={{
+									backgroundColor: '#fff3e0',
+									padding: 16,
+									borderRadius: 4,
+									marginBottom: 16,
+									display: 'flex',
+									gap: 8,
+									alignItems: 'flex-start',
+								}}
+							>
 								<IconAlertTriangle color="warning" style={{ fontSize: 20, marginTop: 2 }} />
 								<div style={{ display: 'flex', flexDirection: 'column' as const }}>
-									<span style={{  fontSize: 13, fontWeight: 600 ,  color: 'var(--status-warning)'  }}>
+									<span style={{ fontSize: 13, fontWeight: 600, color: 'var(--status-warning)' }}>
 										This will also archive:
 									</span>
-									<span style={{ fontSize: 13,  color: 'var(--status-warning)'  }}>
+									<span style={{ fontSize: 13, color: 'var(--status-warning)' }}>
 										• {recoveryCounts.get(archivingSettlement.id) ?? 0} recovery event
 										{(recoveryCounts.get(archivingSettlement.id) ?? 0) > 1 ? 's' : ''}
 									</span>
 								</div>
 							</div>
 						)}
-						<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
-							The settlement will be archived and hidden from view, but the record will be preserved for
-							historical purposes.
+						<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+							The settlement will be archived and hidden from view, but the record will be preserved
+							for historical purposes.
 						</span>
 					</div>
 				</BasicDialog>
@@ -554,18 +620,27 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 						<span style={{ fontSize: 14, marginBottom: 16 }}>
 							Are you sure you want to archive this recovery event?
 						</span>
-						<div style={{ display: 'flex', flexDirection: 'column' as const, backgroundColor: '#e8f5e9', padding: 16, borderRadius: 4, marginBottom: 16 }}>
-							<span style={{  fontSize: 13, fontWeight: 600 ,  color: 'var(--status-success)'  }}>
+						<div
+							style={{
+								display: 'flex',
+								flexDirection: 'column' as const,
+								backgroundColor: '#e8f5e9',
+								padding: 16,
+								borderRadius: 4,
+								marginBottom: 16,
+							}}
+						>
+							<span style={{ fontSize: 13, fontWeight: 600, color: 'var(--status-success)' }}>
 								{formatCurrencyExact(parseFloat(archivingRecovery.recovery_amount.toString()))}
 							</span>
-							<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
+							<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
 								{dayjs(archivingRecovery.recovery_date).format('MMM D, YYYY')}
 								{archivingRecovery.recovery_source && ` · ${archivingRecovery.recovery_source}`}
 							</span>
 						</div>
-						<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
-							The recovery event will be archived and hidden from view, but the record will be preserved
-							for historical purposes.
+						<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+							The recovery event will be archived and hidden from view, but the record will be
+							preserved for historical purposes.
 						</span>
 					</div>
 				</BasicDialog>

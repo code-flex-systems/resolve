@@ -31,10 +31,7 @@ export async function getWorkflowDefinitions(
 	return await workflowQueries.getWorkflowDefinitions(ctx, isActive);
 }
 
-export async function getWorkflowDefinition(
-	ctx: ProtectedContext,
-	{ id }: { id: string }
-) {
+export async function getWorkflowDefinition(ctx: ProtectedContext, { id }: { id: string }) {
 	return await workflowQueries.getWorkflowDefinition(ctx, id);
 }
 
@@ -47,10 +44,7 @@ export async function createWorkflowDefinition(
 	}
 ) {
 	return await ctx.db.transaction().execute(async (trx) => {
-		const definition = await workflowQueries.createWorkflowDefinition(
-			{ ...ctx, db: trx },
-			input
-		);
+		const definition = await workflowQueries.createWorkflowDefinition({ ...ctx, db: trx }, input);
 
 		await logAdminAction(
 			{ ...ctx, db: trx },
@@ -112,10 +106,7 @@ export async function updateWorkflowDefinition(
 	});
 }
 
-export async function archiveWorkflowDefinition(
-	ctx: ProtectedContext,
-	{ id }: { id: string }
-) {
+export async function archiveWorkflowDefinition(ctx: ProtectedContext, { id }: { id: string }) {
 	return await ctx.db.transaction().execute(async (trx) => {
 		const trxCtx = { ...ctx, db: trx };
 
@@ -175,10 +166,7 @@ export async function createWorkflowThreshold(
 	}
 ) {
 	return await ctx.db.transaction().execute(async (trx) => {
-		const threshold = await workflowQueries.createWorkflowThreshold(
-			{ ...ctx, db: trx },
-			input
-		);
+		const threshold = await workflowQueries.createWorkflowThreshold({ ...ctx, db: trx }, input);
 
 		await logAdminAction(
 			{ ...ctx, db: trx },
@@ -239,15 +227,9 @@ export async function updateWorkflowThreshold(
 	});
 }
 
-export async function archiveWorkflowThreshold(
-	ctx: ProtectedContext,
-	{ id }: { id: string }
-) {
+export async function archiveWorkflowThreshold(ctx: ProtectedContext, { id }: { id: string }) {
 	return await ctx.db.transaction().execute(async (trx) => {
-		const result = await workflowQueries.archiveWorkflowThreshold(
-			{ ...ctx, db: trx },
-			id
-		);
+		const result = await workflowQueries.archiveWorkflowThreshold({ ...ctx, db: trx }, id);
 
 		await logAdminAction(
 			{ ...ctx, db: trx },
@@ -301,10 +283,7 @@ export async function createWorkflowRule(
 	}
 
 	return await ctx.db.transaction().execute(async (trx) => {
-		const rule = await workflowQueries.createWorkflowRule(
-			{ ...ctx, db: trx },
-			input
-		);
+		const rule = await workflowQueries.createWorkflowRule({ ...ctx, db: trx }, input);
 
 		await logAdminAction(
 			{ ...ctx, db: trx },
@@ -365,11 +344,7 @@ export async function updateWorkflowRule(
 	}
 
 	return await ctx.db.transaction().execute(async (trx) => {
-		const rule = await workflowQueries.updateWorkflowRule(
-			{ ...ctx, db: trx },
-			id,
-			params
-		);
+		const rule = await workflowQueries.updateWorkflowRule({ ...ctx, db: trx }, id, params);
 
 		await logAdminAction(
 			{ ...ctx, db: trx },
@@ -385,15 +360,9 @@ export async function updateWorkflowRule(
 	});
 }
 
-export async function archiveWorkflowRule(
-	ctx: ProtectedContext,
-	{ id }: { id: string }
-) {
+export async function archiveWorkflowRule(ctx: ProtectedContext, { id }: { id: string }) {
 	return await ctx.db.transaction().execute(async (trx) => {
-		const result = await workflowQueries.archiveWorkflowRule(
-			{ ...ctx, db: trx },
-			id
-		);
+		const result = await workflowQueries.archiveWorkflowRule({ ...ctx, db: trx }, id);
 
 		await logAdminAction(
 			{ ...ctx, db: trx },
@@ -518,7 +487,15 @@ export async function approvePendingExecution(
 		// Fetch the rule to get current conditions for re-validation
 		const rule = await trx
 			.selectFrom('workflow_rule')
-			.select(['id', 'name', 'conditions', 'action_type', 'action_config', 'is_active', 'deleted_at'])
+			.select([
+				'id',
+				'name',
+				'conditions',
+				'action_type',
+				'action_config',
+				'is_active',
+				'deleted_at',
+			])
 			.where('id', '=', execution.workflow_rule_id)
 			.where('client_id', '=', ctx.session.user.client_id)
 			.executeTakeFirst();

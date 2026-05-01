@@ -11,13 +11,19 @@ import { Kysely, sql } from 'kysely';
  */
 
 export async function up(db: Kysely<any>): Promise<void> {
-	await sql`ALTER TABLE question_response ALTER COLUMN response_doc_id TYPE uuid USING NULL`.execute(db);
+	await sql`ALTER TABLE question_response ALTER COLUMN response_doc_id TYPE uuid USING NULL`.execute(
+		db
+	);
 	await sql`ALTER TABLE question_response
 		ADD CONSTRAINT question_response_response_doc_id_fkey
 		FOREIGN KEY (response_doc_id) REFERENCES doc(id) ON DELETE SET NULL`.execute(db);
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
-	await sql`ALTER TABLE question_response DROP CONSTRAINT IF EXISTS question_response_response_doc_id_fkey`.execute(db);
-	await sql`ALTER TABLE question_response ALTER COLUMN response_doc_id TYPE integer USING NULL`.execute(db);
+	await sql`ALTER TABLE question_response DROP CONSTRAINT IF EXISTS question_response_response_doc_id_fkey`.execute(
+		db
+	);
+	await sql`ALTER TABLE question_response ALTER COLUMN response_doc_id TYPE integer USING NULL`.execute(
+		db
+	);
 }

@@ -40,7 +40,9 @@ export default function DeskLocationSelect({
 
 	// Filter out excluded locations (but keep the currently selected one)
 	if (excludedLocationIds.length > 0) {
-		filteredLocations = filteredLocations.filter((loc) => loc.id === value || !excludedLocationIds.includes(loc.id));
+		filteredLocations = filteredLocations.filter(
+			(loc) => loc.id === value || !excludedLocationIds.includes(loc.id)
+		);
 	}
 
 	return (
@@ -58,7 +60,11 @@ export default function DeskLocationSelect({
 			fullWidth={fullWidth}
 			renderValue={(val) => {
 				const option = filteredLocations.find((l) => l.id === val);
-				return <span>{option ? `${option.name}${!option.is_active ? ' (Inactive)' : ''}` : String(val)}</span>;
+				return (
+					<span>
+						{option ? `${option.name}${!option.is_active ? ' (Inactive)' : ''}` : String(val)}
+					</span>
+				);
 			}}
 		/>
 	);

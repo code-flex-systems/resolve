@@ -20,11 +20,13 @@ export const TRIGGER_CONFIG: Record<WorkflowTriggerType, WorkflowOption> = {
 	},
 	[WorkflowTriggerType.LOCATION_AGE]: {
 		label: 'Location Age',
-		description: 'Automatically fires when a claim has been at its current desk location for a specified number of hours',
+		description:
+			'Automatically fires when a claim has been at its current desk location for a specified number of hours',
 	},
 	[WorkflowTriggerType.FIELD_CHANGE]: {
 		label: 'Field Change',
-		description: 'Fires when specific claim fields are updated (e.g., status change, amount update)',
+		description:
+			'Fires when specific claim fields are updated (e.g., status change, amount update)',
 	},
 	[WorkflowTriggerType.TASK_COMPLETED]: {
 		label: 'Task Completed',

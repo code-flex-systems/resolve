@@ -28,11 +28,15 @@ export async function up(db: Kysely<any>): Promise<void> {
 	await db.schema.alterTable('party_address').addColumn('address_status', 'text').execute();
 
 	// Set defaults for existing rows
-	await sql`UPDATE party_address SET address_type = 'business' WHERE address_type IS NULL`.execute(db);
+	await sql`UPDATE party_address SET address_type = 'business' WHERE address_type IS NULL`.execute(
+		db
+	);
 
 	// Set address_status - only one address per party can be 'valid'
 	// First, set all to 'unknown'
-	await sql`UPDATE party_address SET address_status = 'unknown' WHERE address_status IS NULL`.execute(db);
+	await sql`UPDATE party_address SET address_status = 'unknown' WHERE address_status IS NULL`.execute(
+		db
+	);
 
 	// Then, set only ONE address per party to 'valid' (the first one that was primary, or the first created)
 	await sql`
@@ -54,7 +58,9 @@ export async function up(db: Kysely<any>): Promise<void> {
 	);
 
 	await sql`ALTER TABLE party_address ALTER COLUMN address_status SET NOT NULL`.execute(db);
-	await sql`ALTER TABLE party_address ALTER COLUMN address_status SET DEFAULT 'unknown'`.execute(db);
+	await sql`ALTER TABLE party_address ALTER COLUMN address_status SET DEFAULT 'unknown'`.execute(
+		db
+	);
 	await sql`ALTER TABLE party_address ADD CONSTRAINT chk_party_address_status CHECK (address_status IN ('valid', 'mailing', 'undeliverable', 'unknown'))`.execute(
 		db
 	);
@@ -112,8 +118,12 @@ export async function up(db: Kysely<any>): Promise<void> {
 	await db.schema
 		.createTable('party_phone')
 		.addColumn('id', 'serial', (col) => col.primaryKey())
-		.addColumn('party_id', 'integer', (col) => col.notNull().references('party.id').onDelete('cascade'))
-		.addColumn('client_id', 'uuid', (col) => col.notNull().references('client.id').onDelete('cascade'))
+		.addColumn('party_id', 'integer', (col) =>
+			col.notNull().references('party.id').onDelete('cascade')
+		)
+		.addColumn('client_id', 'uuid', (col) =>
+			col.notNull().references('client.id').onDelete('cascade')
+		)
 		.addColumn('country_code', 'text')
 		.addColumn('area_code', 'text')
 		.addColumn('phone_number', 'text', (col) => col.notNull())
@@ -139,8 +149,12 @@ export async function up(db: Kysely<any>): Promise<void> {
 	);
 
 	// Add indexes
-	await sql`CREATE INDEX idx_party_phone_party_id ON party_phone(party_id) WHERE deleted_at IS NULL`.execute(db);
-	await sql`CREATE INDEX idx_party_phone_client_id ON party_phone(client_id) WHERE deleted_at IS NULL`.execute(db);
+	await sql`CREATE INDEX idx_party_phone_party_id ON party_phone(party_id) WHERE deleted_at IS NULL`.execute(
+		db
+	);
+	await sql`CREATE INDEX idx_party_phone_client_id ON party_phone(client_id) WHERE deleted_at IS NULL`.execute(
+		db
+	);
 
 	// ============================================================================
 	// 4. CREATE party_email TABLE
@@ -149,8 +163,12 @@ export async function up(db: Kysely<any>): Promise<void> {
 	await db.schema
 		.createTable('party_email')
 		.addColumn('id', 'serial', (col) => col.primaryKey())
-		.addColumn('party_id', 'integer', (col) => col.notNull().references('party.id').onDelete('cascade'))
-		.addColumn('client_id', 'uuid', (col) => col.notNull().references('client.id').onDelete('cascade'))
+		.addColumn('party_id', 'integer', (col) =>
+			col.notNull().references('party.id').onDelete('cascade')
+		)
+		.addColumn('client_id', 'uuid', (col) =>
+			col.notNull().references('client.id').onDelete('cascade')
+		)
 		.addColumn('email_address', 'text', (col) => col.notNull())
 		.addColumn('email_type', 'text', (col) => col.notNull().defaultTo('business'))
 		.addColumn('external_reference', 'text')
@@ -169,15 +187,21 @@ export async function up(db: Kysely<any>): Promise<void> {
 	);
 
 	// Add indexes
-	await sql`CREATE INDEX idx_party_email_party_id ON party_email(party_id) WHERE deleted_at IS NULL`.execute(db);
-	await sql`CREATE INDEX idx_party_email_client_id ON party_email(client_id) WHERE deleted_at IS NULL`.execute(db);
+	await sql`CREATE INDEX idx_party_email_party_id ON party_email(party_id) WHERE deleted_at IS NULL`.execute(
+		db
+	);
+	await sql`CREATE INDEX idx_party_email_client_id ON party_email(client_id) WHERE deleted_at IS NULL`.execute(
+		db
+	);
 
 	// ============================================================================
 	// 5. UPDATE party_representative - RENAME office_id TO address_id
 	// ============================================================================
 
 	// Drop old FK constraint
-	await sql`ALTER TABLE party_representative DROP CONSTRAINT IF EXISTS party_representative_office_id_fkey`.execute(db);
+	await sql`ALTER TABLE party_representative DROP CONSTRAINT IF EXISTS party_representative_office_id_fkey`.execute(
+		db
+	);
 
 	// Rename the column
 	await sql`ALTER TABLE party_representative RENAME COLUMN office_id TO address_id`.execute(db);
@@ -273,7 +297,9 @@ export async function down(db: Kysely<any>): Promise<void> {
 	// 2. REVERT party_representative - RENAME address_id BACK TO office_id
 	// ============================================================================
 
-	await sql`ALTER TABLE party_representative DROP CONSTRAINT IF EXISTS party_representative_address_id_fkey`.execute(db);
+	await sql`ALTER TABLE party_representative DROP CONSTRAINT IF EXISTS party_representative_address_id_fkey`.execute(
+		db
+	);
 	await sql`ALTER TABLE party_representative RENAME COLUMN address_id TO office_id`.execute(db);
 
 	// ============================================================================
@@ -306,7 +332,9 @@ export async function down(db: Kysely<any>): Promise<void> {
 	await db.schema.alterTable('party').addColumn('phone', 'text').execute();
 
 	// Recreate index
-	await sql`CREATE INDEX idx_party_state ON party(state) WHERE state IS NOT NULL AND deleted_at IS NULL`.execute(db);
+	await sql`CREATE INDEX idx_party_state ON party(state) WHERE state IS NOT NULL AND deleted_at IS NULL`.execute(
+		db
+	);
 
 	// Remove name structure columns
 	await db.schema.alterTable('party').dropColumn('suffix').execute();
@@ -334,7 +362,9 @@ export async function down(db: Kysely<any>): Promise<void> {
 	await sql`ALTER TABLE party_address ALTER COLUMN is_primary SET DEFAULT false`.execute(db);
 
 	// Drop constraints and new columns
-	await sql`ALTER TABLE party_address DROP CONSTRAINT IF EXISTS chk_party_address_status`.execute(db);
+	await sql`ALTER TABLE party_address DROP CONSTRAINT IF EXISTS chk_party_address_status`.execute(
+		db
+	);
 	await sql`ALTER TABLE party_address DROP CONSTRAINT IF EXISTS chk_party_address_type`.execute(db);
 	await db.schema.alterTable('party_address').dropColumn('address_status').execute();
 	await db.schema.alterTable('party_address').dropColumn('address_type').execute();

@@ -54,10 +54,13 @@ export default function FinancialOverview() {
 		...REPORTING_CACHE.SHORT,
 		enabled: !!rangeISO,
 	});
-	const { data: varianceData, isLoading: loadingVariance } = api.getVarianceDecomposition(rangeISO!, {
-		...REPORTING_CACHE.LONG,
-		enabled: !!rangeISO,
-	});
+	const { data: varianceData, isLoading: loadingVariance } = api.getVarianceDecomposition(
+		rangeISO!,
+		{
+			...REPORTING_CACHE.LONG,
+			enabled: !!rangeISO,
+		}
+	);
 
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -70,7 +73,11 @@ export default function FinancialOverview() {
 						Recovery metrics, trends, and financial performance overview.
 					</span>
 				</div>
-				<BasicMonthRangePicker defaultLabel="This Quarter" defaultValue={range} onConfirm={setRange} />
+				<BasicMonthRangePicker
+					defaultLabel="This Quarter"
+					defaultValue={range}
+					onConfirm={setRange}
+				/>
 			</div>
 
 			{quarterData && (
@@ -78,8 +85,11 @@ export default function FinancialOverview() {
 					{(['q1', 'q2', 'q3', 'q4'] as const).map((q, i) => {
 						const val = parseFloat(quarterData[q] || '0');
 						const prevVal =
-							i > 0 ? parseFloat(quarterData[(['q1', 'q2', 'q3', 'q4'] as const)[i - 1]] || '0') : null;
-						const pctChange = prevVal && prevVal > 0 ? Math.round(((val - prevVal) / prevVal) * 100) : null;
+							i > 0
+								? parseFloat(quarterData[(['q1', 'q2', 'q3', 'q4'] as const)[i - 1]] || '0')
+								: null;
+						const pctChange =
+							prevVal && prevVal > 0 ? Math.round(((val - prevVal) / prevVal) * 100) : null;
 						return (
 							<KpiCard
 								key={q}

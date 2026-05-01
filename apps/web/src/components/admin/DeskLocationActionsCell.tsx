@@ -37,7 +37,8 @@ export default function DeskLocationActionsCell({ row }: DeskLocationActionsCell
 			}
 			setShowActionConfirm(false);
 		} catch (error: any) {
-			const message = error?.message || `Failed to ${isArchived ? 'restore' : 'archive'} desk location`;
+			const message =
+				error?.message || `Failed to ${isArchived ? 'restore' : 'archive'} desk location`;
 			showAlert(message, 'error');
 			setShowActionConfirm(false);
 		}

@@ -74,7 +74,18 @@ describe('isEqual', () => {
 
 		it('should return true for nested arrays with same structure', () => {
 			expect(isEqual([1, [2, 3], 4], [1, [2, 3], 4])).toBe(true);
-			expect(isEqual([[1, 2], [3, 4]], [[1, 2], [3, 4]])).toBe(true);
+			expect(
+				isEqual(
+					[
+						[1, 2],
+						[3, 4],
+					],
+					[
+						[1, 2],
+						[3, 4],
+					]
+				)
+			).toBe(true);
 		});
 
 		it('should return false for arrays with different lengths', () => {
@@ -125,7 +136,12 @@ describe('isEqual', () => {
 
 		it('should return true for nested objects', () => {
 			expect(isEqual({ a: { b: { c: 1 } } }, { a: { b: { c: 1 } } })).toBe(true);
-			expect(isEqual({ user: { name: 'John', address: { city: 'NYC' } } }, { user: { name: 'John', address: { city: 'NYC' } } })).toBe(true);
+			expect(
+				isEqual(
+					{ user: { name: 'John', address: { city: 'NYC' } } },
+					{ user: { name: 'John', address: { city: 'NYC' } } }
+				)
+			).toBe(true);
 		});
 
 		it('should return false for objects with different values', () => {

@@ -35,7 +35,9 @@ export default function SummaryDetails() {
 	const { checklistId, claimId } = useChecklistParams();
 	const selectedSummarySegment = useChecklistStore((state) => state.selectedSummarySegment);
 	const checklistSummaryContraints = useChecklistStore((state) => state.checklistSummaryContraints);
-	const updateChecklistSummaryConstraints = useChecklistStore((state) => state.updateChecklistSummaryConstraints);
+	const updateChecklistSummaryConstraints = useChecklistStore(
+		(state) => state.updateChecklistSummaryConstraints
+	);
 	const { data: summaryDetails = { rows: [], count: undefined }, isFetching: isLoadingDetails } =
 		useChecklistTrpc().getSummaryDetail(
 			{
@@ -55,7 +57,11 @@ export default function SummaryDetails() {
 	}, [selectedSummarySegment]);
 
 	return (
-		<Card variant="beveled" padding="md" style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
+		<Card
+			variant="beveled"
+			padding="md"
+			style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}
+		>
 			<DataTable
 				columns={columns}
 				headerHeight={45}

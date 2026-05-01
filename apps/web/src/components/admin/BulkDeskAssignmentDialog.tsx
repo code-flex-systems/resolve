@@ -14,7 +14,10 @@ interface BulkDeskAssignmentDialogProps {
 	onClose: () => void;
 }
 
-export default function BulkDeskAssignmentDialog({ selectedUserIds, onClose }: BulkDeskAssignmentDialogProps) {
+export default function BulkDeskAssignmentDialog({
+	selectedUserIds,
+	onClose,
+}: BulkDeskAssignmentDialogProps) {
 	const [deskLocationTypeId, setDeskLocationTypeId] = useState<string | null>(null);
 	const [deskLocationId, setDeskLocationId] = useState<string | null>(null);
 	const [priority, setPriority] = useState<number>(1);
@@ -65,8 +68,16 @@ export default function BulkDeskAssignmentDialog({ selectedUserIds, onClose }: B
 			onClose={onClose}
 			width={500}
 		>
-			<div style={{ width: '100%', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 16 }}>
-				<span style={{  color: 'var(--text-secondary)' ,  width: 400, marginBottom: 1  }}>
+			<div
+				style={{
+					width: '100%',
+					display: 'flex',
+					alignItems: 'center',
+					flexDirection: 'column',
+					gap: 16,
+				}}
+			>
+				<span style={{ color: 'var(--text-secondary)', width: 400, marginBottom: 1 }}>
 					Assigning {selectedUserIds.length} user(s) to a desk location
 				</span>
 

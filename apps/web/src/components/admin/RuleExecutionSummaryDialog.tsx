@@ -2,7 +2,6 @@
 import Button from '@/components/ui/Button';
 import Dialog from '@/components/ui/Dialog';
 
-
 interface RuleExecutionSummaryDialogProps {
 	open: boolean;
 	onClose: () => void;
@@ -64,9 +63,7 @@ export default function RuleExecutionSummaryDialog({
 							textAlign: 'center',
 						}}
 					>
-						<span style={{ fontSize: 24, fontWeight: 700, color: stat.color }}>
-							{stat.value}
-						</span>
+						<span style={{ fontSize: 24, fontWeight: 700, color: stat.color }}>{stat.value}</span>
 						<span style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
 							{stat.label}
 						</span>
@@ -77,7 +74,14 @@ export default function RuleExecutionSummaryDialog({
 			{/* Errors Section */}
 			{summary.errors.length > 0 && (
 				<div style={{ marginBottom: 24 }}>
-					<span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 12 }}>
+					<span
+						style={{
+							fontSize: 15,
+							fontWeight: 600,
+							color: 'var(--text-primary)',
+							marginBottom: 12,
+						}}
+					>
 						Errors ({summary.errors.length})
 					</span>
 					{summary.errors.map((err, index) => (
@@ -95,16 +99,12 @@ export default function RuleExecutionSummaryDialog({
 							<span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>
 								{err.ruleName}
 								{err.claimId != null && (
-									<span
-										style={{ fontSize: 13, color: 'var(--text-secondary)', marginLeft: 8 }}
-									>
+									<span style={{ fontSize: 13, color: 'var(--text-secondary)', marginLeft: 8 }}>
 										(Claim #{err.claimId})
 									</span>
 								)}
 							</span>
-							<span style={{ fontSize: 12, color: '#991b1b', marginTop: 4 }}>
-								{err.error}
-							</span>
+							<span style={{ fontSize: 12, color: '#991b1b', marginTop: 4 }}>{err.error}</span>
 						</div>
 					))}
 				</div>

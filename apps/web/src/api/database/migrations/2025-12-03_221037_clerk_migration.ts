@@ -12,25 +12,13 @@ import { Kysely, sql } from 'kysely';
 
 export async function up(db: Kysely<any>): Promise<void> {
 	// Remove password-related columns from users table
-	await db.schema
-		.alterTable('users')
-		.dropColumn('password_hash')
-		.execute();
+	await db.schema.alterTable('users').dropColumn('password_hash').execute();
 
-	await db.schema
-		.alterTable('users')
-		.dropColumn('must_change_password')
-		.execute();
+	await db.schema.alterTable('users').dropColumn('must_change_password').execute();
 
-	await db.schema
-		.alterTable('users')
-		.dropColumn('mfa_enabled')
-		.execute();
+	await db.schema.alterTable('users').dropColumn('mfa_enabled').execute();
 
-	await db.schema
-		.alterTable('users')
-		.dropColumn('mfa_secret')
-		.execute();
+	await db.schema.alterTable('users').dropColumn('mfa_secret').execute();
 
 	// Drop NextAuth adapter tables
 	await sql`DROP TABLE IF EXISTS accounts CASCADE`.execute(db);
@@ -58,10 +46,7 @@ export async function down(db: Kysely<any>): Promise<void> {
 		.addColumn('mfa_enabled', 'boolean', (col) => col.notNull().defaultTo(false))
 		.execute();
 
-	await db.schema
-		.alterTable('users')
-		.addColumn('mfa_secret', 'text')
-		.execute();
+	await db.schema.alterTable('users').addColumn('mfa_secret', 'text').execute();
 
 	// Note: NextAuth adapter tables would need to be recreated manually
 	// This is intentionally left incomplete as Clerk is the new auth provider

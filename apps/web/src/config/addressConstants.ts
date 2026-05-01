@@ -89,7 +89,9 @@ export type CountryCode = (typeof COUNTRIES)[number]['code'];
 /**
  * Get states/provinces for a given country code.
  */
-export function getStatesForCountry(countryCode: CountryCode | string | null | undefined): StateProvince[] {
+export function getStatesForCountry(
+	countryCode: CountryCode | string | null | undefined
+): StateProvince[] {
 	if (countryCode === 'US') return US_STATES;
 	if (countryCode === 'CA') return CA_PROVINCES;
 	return [...US_STATES, ...CA_PROVINCES]; // Return all if no country specified

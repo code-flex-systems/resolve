@@ -106,7 +106,15 @@ export default function TaskCreationDialog({
 			onClose={onClose}
 			width={500}
 		>
-			<div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+			<div
+				style={{
+					width: '100%',
+					display: 'flex',
+					flexDirection: 'column',
+					alignItems: 'center',
+					gap: 16,
+				}}
+			>
 				{claimNumber && (
 					<p style={{ fontSize: 14, color: 'var(--text-secondary)', width: 400, marginBottom: 8 }}>
 						Creating task for claim: {claimNumber}

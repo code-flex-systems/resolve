@@ -1,7 +1,13 @@
 import Button from '@/components/ui/Button';
 import BasicPopper from '../common/BasicPopper';
 import { useState } from 'react';
-import { IconAdjustments, IconAlertCircle, IconCircle, IconCircleCheck, IconInfoCircle } from '@tabler/icons-react';
+import {
+	IconAdjustments,
+	IconAlertCircle,
+	IconCircle,
+	IconCircleCheck,
+	IconInfoCircle,
+} from '@tabler/icons-react';
 import Divider from '@/components/ui/Divider';
 
 export default function Legend() {
@@ -17,7 +23,12 @@ export default function Legend() {
 			>
 				<IconInfoCircle size={16} />
 			</Button>
-			<BasicPopper anchorEl={anchorEl} setAnchorEl={setAnchorEl} placement="bottom-start" zIndex={1300}>
+			<BasicPopper
+				anchorEl={anchorEl}
+				setAnchorEl={setAnchorEl}
+				placement="bottom-start"
+				zIndex={1300}
+			>
 				<div
 					style={{
 						width: 'fit-content',
@@ -43,7 +54,9 @@ export default function Legend() {
 					>
 						<span style={{ marginBottom: '5px' }}>Legend</span>
 						<Divider />
-						<div style={{ display: 'flex', alignItems: 'center', padding: '2px', marginTop: '10px' }}>
+						<div
+							style={{ display: 'flex', alignItems: 'center', padding: '2px', marginTop: '10px' }}
+						>
 							<IconCircle style={{ color: 'var(--text-accent)', marginRight: 10 }} />
 							<span style={{ fontSize: 14 }}>The page hasn&apos;t been started yet</span>
 						</div>

@@ -15,7 +15,10 @@ import Tooltip from '@/components/ui/Tooltip';
 export default function Summary() {
 	const router = useRouter();
 	const { checklistId, claimId } = useChecklistParams();
-	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: !!checklistId });
+	const { data: checklist } = useChecklistTrpc().get(
+		{ id: checklistId! },
+		{ enabled: !!checklistId }
+	);
 	const { setSegments } = useBreadcrumbs();
 
 	// Breadcrumbs: Checklist > [name] (clickable) > Summary
@@ -33,7 +36,15 @@ export default function Summary() {
 
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%' }}>
-			<div style={{ display: 'flex', alignItems: 'center', padding: '10px 20px', gap: 8, flexShrink: 0 }}>
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					padding: '10px 20px',
+					gap: 8,
+					flexShrink: 0,
+				}}
+			>
 				<Tooltip content="Back to checklist">
 					<Button variant="icon" size="sm" color="neutral" onClick={() => router.back()}>
 						<IconArrowLeft size={16} />

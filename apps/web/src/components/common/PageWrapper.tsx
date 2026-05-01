@@ -17,7 +17,10 @@ import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import AppHeader from './AppHeader';
 import css from './PageWrapper.module.css';
 
-export default function PageWrapper({ bgcolor, children }: { bgcolor?: string } & PropsWithChildren) {
+export default function PageWrapper({
+	bgcolor,
+	children,
+}: { bgcolor?: string } & PropsWithChildren) {
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
 	const { checklistId, claimId } = useChecklistParams();
@@ -47,16 +50,11 @@ export default function PageWrapper({ bgcolor, children }: { bgcolor?: string } 
 	}, [isAdmin, isSuperAdmin, claim]);
 
 	return (
-		<div
-			className={css.wrapper}
-			style={bgcolor ? { backgroundColor: bgcolor } : undefined}
-		>
+		<div className={css.wrapper} style={bgcolor ? { backgroundColor: bgcolor } : undefined}>
 			<Sidebar items={navItems} />
 			<div className={css.main}>
 				<AppHeader />
-				<div className={css.content}>
-					{children}
-				</div>
+				<div className={css.content}>{children}</div>
 			</div>
 		</div>
 	);

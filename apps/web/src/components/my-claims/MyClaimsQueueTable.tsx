@@ -107,8 +107,23 @@ export default function MyClaimsQueueTable({
 		if (!rows || rows.length === 0) return;
 
 		const headers = showDeskColumn
-			? ['Claim Number', 'Desk', 'Insured', 'Expected Recovery', 'Actual Recovery', 'Status', 'Last Update']
-			: ['Claim Number', 'Insured', 'Expected Recovery', 'Actual Recovery', 'Status', 'Last Update'];
+			? [
+					'Claim Number',
+					'Desk',
+					'Insured',
+					'Expected Recovery',
+					'Actual Recovery',
+					'Status',
+					'Last Update',
+				]
+			: [
+					'Claim Number',
+					'Insured',
+					'Expected Recovery',
+					'Actual Recovery',
+					'Status',
+					'Last Update',
+				];
 
 		const csvRows = rows.map((row: MyClaimListItem) => {
 			const baseRow = [row.claim_number || ''];
@@ -161,7 +176,10 @@ export default function MyClaimsQueueTable({
 				cell: (info: any) => {
 					const params = { row: info.row.original, value: info.getValue() };
 					return (
-						<ClaimStatusChip recoveryStatus={params.row.recovery_status} substatus={params.row.substatus} />
+						<ClaimStatusChip
+							recoveryStatus={params.row.recovery_status}
+							substatus={params.row.substatus}
+						/>
 					);
 				},
 				size: 200,
@@ -237,7 +255,11 @@ export default function MyClaimsQueueTable({
 							placeholder="Search by claim number, insured, or client..."
 							width={350}
 						/>
-						<CustomButton variant="outlined" onClick={handleOpenFilters} endIcon={<IconFilter size={16} />}>
+						<CustomButton
+							variant="outlined"
+							onClick={handleOpenFilters}
+							endIcon={<IconFilter size={16} />}
+						>
 							Filters...
 							{hasActiveFilters && (
 								<div

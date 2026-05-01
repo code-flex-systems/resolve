@@ -1,5 +1,13 @@
 'use client';
-import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import {
+	LineChart,
+	Line,
+	XAxis,
+	YAxis,
+	Tooltip as RechartsTooltip,
+	Legend,
+	ResponsiveContainer,
+} from 'recharts';
 import Card from '@/components/ui/Card';
 import KpiCard from '@/components/ui/KpiCard';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
@@ -11,6 +19,7 @@ import type { DateRange } from '@/types/dateTypes';
 import Skeleton from '@/components/ui/Skeleton';
 import { IconBug } from '@tabler/icons-react';
 import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
 
 export default function RecoveryMetricsChart({
 	range,
@@ -53,21 +62,20 @@ export default function RecoveryMetricsChart({
 		useRecoveryTrpc().getRecoveryMetricsTimeSeries(filterParams, { enabled: true });
 
 	// Fetch summary data for current range
-	const { data: currentSummary, isFetching: isFetchingCurrentSummary } = useRecoveryTrpc().getRecoveryMetricsSummary(
-		filterParams,
-		{ enabled: true }
-	);
+	const { data: currentSummary, isFetching: isFetchingCurrentSummary } =
+		useRecoveryTrpc().getRecoveryMetricsSummary(filterParams, { enabled: true });
 
 	// Fetch summary data for last quarter (for comparison)
-	const { data: lastQuarterSummary, isFetching: isFetchingLastSummary } = useRecoveryTrpc().getRecoveryMetricsSummary(
-		{
-			range: quarters.last,
-			...(recoverySource && { recoverySource }),
-			...(recoveryStatus && { recoveryStatus: recoveryStatus as any }),
-			...(checklistId && { checklistId }),
-		},
-		{ enabled: true }
-	);
+	const { data: lastQuarterSummary, isFetching: isFetchingLastSummary } =
+		useRecoveryTrpc().getRecoveryMetricsSummary(
+			{
+				range: quarters.last,
+				...(recoverySource && { recoverySource }),
+				...(recoveryStatus && { recoveryStatus: recoveryStatus as any }),
+				...(checklistId && { checklistId }),
+			},
+			{ enabled: true }
+		);
 
 	const isLoading = isFetchingTimeSeries || isFetchingCurrentSummary || isFetchingLastSummary;
 
@@ -87,7 +95,8 @@ export default function RecoveryMetricsChart({
 	const lastExpected = lastQuarterSummary?.total_expected ?? 0;
 	const lastActual = lastQuarterSummary?.total_actual ?? 0;
 
-	const expectedChange = lastExpected > 0 ? ((currentExpected - lastExpected) / lastExpected) * 100 : 0;
+	const expectedChange =
+		lastExpected > 0 ? ((currentExpected - lastExpected) / lastExpected) * 100 : 0;
 	const actualChange = lastActual > 0 ? ((currentActual - lastActual) / lastActual) * 100 : 0;
 
 	const containerWidth = isBreakdown ? '100%' : 600;
@@ -101,7 +110,8 @@ export default function RecoveryMetricsChart({
 	const spacing = isBreakdown ? 16 : 8;
 	const marginBottom = isBreakdown ? 24 : 12;
 
-	const formatTooltipValue = (value: number) => `$${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+	const formatTooltipValue = (value: number) =>
+		`$${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 
 	return (
 		<div style={{ width: containerWidth }}>
@@ -144,7 +154,9 @@ export default function RecoveryMetricsChart({
 				</div>
 
 				{isLoading && (
-					<div style={{ display: 'flex', flexDirection: 'column' as const, width: '100%', gap: 16 }}>
+					<div
+						style={{ display: 'flex', flexDirection: 'column' as const, width: '100%', gap: 16 }}
+					>
 						<div style={{ display: 'flex', flexDirection: 'row', gap: spacing }}>
 							<Skeleton variant="rect" width="33%" height={80} />
 							<Skeleton variant="rect" width="33%" height={80} />
@@ -202,7 +214,7 @@ export default function RecoveryMetricsChart({
 										tick={{ fontSize: isBreakdown ? 11 : 10, fill: 'var(--text-muted)' }}
 										stroke="var(--border)"
 									/>
-									<Tooltip
+									<RechartsTooltip
 										formatter={(value: any, name: any) => [
 											formatTooltipValue(value as number),
 											name,

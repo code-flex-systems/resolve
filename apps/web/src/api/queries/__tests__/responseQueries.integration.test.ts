@@ -32,6 +32,9 @@ import {
 	createTestChecklist,
 	createTestPage,
 	createTestPageInstance,
+	createTestQuestion as createTestQuestionFixture,
+	createTestAnswer as createTestAnswerFixture,
+	createTestQuestionResponse as createTestQuestionResponseFixture,
 } from '@/__tests__/integration/fixtures';
 
 describe('responseQueries integration tests', () => {
@@ -42,63 +45,59 @@ describe('responseQueries integration tests', () => {
 	});
 
 	// Helper to create question
-	async function createTestQuestion(clientId: string, pageId: number, userId: string, text?: string) {
-		return await db
-			.insertInto('question')
-			.values({
-				client_id: clientId,
-				page_id: pageId,
-				text: text || `Test Question ${Date.now()}`,
-				type: 'freeform',
-				position: 0,
-				created_by: userId,
-			})
-			.returningAll()
-			.executeTakeFirstOrThrow();
+	async function createTestQuestion(
+		clientId: string,
+		pageId: string,
+		userId: string,
+		text?: string
+	) {
+		return await createTestQuestionFixture(db, {
+			client_id: clientId,
+			page_id: pageId,
+			created_by: userId,
+			text: text || `Test Question ${Date.now()}`,
+			type: 'freeform',
+		});
 	}
 
 	// Helper to create answer
-	async function createTestAnswer(clientId: string, questionId: number, userId: string, text?: string) {
-		return await db
-			.insertInto('answer')
-			.values({
-				client_id: clientId,
-				question_id: questionId,
-				text: text || `Answer ${Date.now()}`,
-				position: 0,
-				created_by: userId,
-			})
-			.returningAll()
-			.executeTakeFirstOrThrow();
+	async function createTestAnswer(
+		clientId: string,
+		questionId: string,
+		userId: string,
+		text?: string
+	) {
+		return await createTestAnswerFixture(db, {
+			client_id: clientId,
+			question_id: questionId,
+			created_by: userId,
+			text: text || `Answer ${Date.now()}`,
+		});
 	}
 
 	// Helper to create question response
 	async function createTestQuestionResponse(
 		clientId: string,
 		params: {
-			checklist_id: number;
-			instance_id: number;
-			claim_id: number;
-			question_id: number;
+			checklist_id: string;
+			instance_id: string;
+			claim_id: string;
+			question_id: string;
 			response_text?: string;
-			response_doc_id?: number;
+			response_doc_id?: string;
 			created_by: string;
 		}
 	) {
-		return await db
-			.insertInto('question_response')
-			.values({
-				client_id: clientId,
-				checklist_id: params.checklist_id,
-				instance_id: params.instance_id,
-				claim_id: params.claim_id,
-				question_id: params.question_id,
-				response_text: params.response_text || null,
-				response_doc_id: params.response_doc_id || null,
-				created_by: params.created_by,
-			})
-			.returningAll()
-			.executeTakeFirstOrThrow();
+		return await createTestQuestionResponseFixture(db, {
+			client_id: clientId,
+			checklist_id: params.checklist_id,
+			instance_id: params.instance_id,
+			claim_id: params.claim_id,
+			question_id: params.question_id,
+			response_text: params.response_text ?? null,
+			response_doc_id: params.response_doc_id ?? null,
+			created_by: params.created_by,
+		});
 	}
 
 	// Helper to create response audit log
@@ -106,8 +105,8 @@ describe('responseQueries integration tests', () => {
 		clientId: string,
 		userId: string,
 		params: {
-			claim_id?: number;
-			checklist_id?: number;
+			claim_id?: string;
+			checklist_id?: string;
 			question_text?: string;
 		} = {}
 	) {
@@ -116,8 +115,8 @@ describe('responseQueries integration tests', () => {
 			.values({
 				client_id: clientId,
 				user_id: userId,
-				claim_id: params.claim_id || null,
-				checklist_id: params.checklist_id || null,
+				claim_id: params.claim_id ?? null,
+				checklist_id: params.checklist_id ?? null,
 				question_id: null,
 				question_text: params.question_text || 'Test Question',
 				page_label: 'Test Page',
@@ -132,7 +131,10 @@ describe('responseQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -141,7 +143,12 @@ describe('responseQueries integration tests', () => {
 				page_id: page.id,
 			});
 			const question = await createTestQuestion(client.id, page.id, user.id);
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await createTestQuestionResponse(client.id, {
 				checklist_id: checklist.id,
@@ -161,7 +168,10 @@ describe('responseQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -169,7 +179,12 @@ describe('responseQueries integration tests', () => {
 				checklist_id: checklist.id,
 				page_id: page.id,
 			});
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const count = await getResponseCount(ctx, checklist.id, claim.id, instance.id);
 
@@ -182,7 +197,10 @@ describe('responseQueries integration tests', () => {
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
 			const claimB = await createTestClaim(db, { client_id: clientB.id, created_by: userB.id });
-			const checklistB = await createTestChecklist(db, { client_id: clientB.id, created_by: userB.id });
+			const checklistB = await createTestChecklist(db, {
+				client_id: clientB.id,
+				created_by: userB.id,
+			});
 			const pageB = await createTestPage(db, { client_id: clientB.id, created_by: userB.id });
 			const instanceB = await createTestPageInstance(db, {
 				client_id: clientB.id,
@@ -191,7 +209,12 @@ describe('responseQueries integration tests', () => {
 				page_id: pageB.id,
 			});
 			const questionB = await createTestQuestion(clientB.id, pageB.id, userB.id);
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			await createTestQuestionResponse(clientB.id, {
 				checklist_id: checklistB.id,
@@ -214,7 +237,10 @@ describe('responseQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -224,7 +250,12 @@ describe('responseQueries integration tests', () => {
 			});
 			const question = await createTestQuestion(client.id, page.id, user.id);
 			const answer = await createTestAnswer(client.id, question.id, user.id);
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const response = await createTestQuestionResponse(client.id, {
 				checklist_id: checklist.id,
@@ -258,7 +289,10 @@ describe('responseQueries integration tests', () => {
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
 			const claimB = await createTestClaim(db, { client_id: clientB.id, created_by: userB.id });
-			const checklistB = await createTestChecklist(db, { client_id: clientB.id, created_by: userB.id });
+			const checklistB = await createTestChecklist(db, {
+				client_id: clientB.id,
+				created_by: userB.id,
+			});
 			const pageB = await createTestPage(db, { client_id: clientB.id, created_by: userB.id });
 			const instanceB = await createTestPageInstance(db, {
 				client_id: clientB.id,
@@ -268,7 +302,12 @@ describe('responseQueries integration tests', () => {
 			});
 			const questionB = await createTestQuestion(clientB.id, pageB.id, userB.id);
 			const answerB = await createTestAnswer(clientB.id, questionB.id, userB.id);
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			const responseB = await createTestQuestionResponse(clientB.id, {
 				checklist_id: checklistB.id,
@@ -288,7 +327,13 @@ describe('responseQueries integration tests', () => {
 
 			const now = new Date();
 			const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-			const results = await getResponsesForAnswer(ctxA, answerB.id, { range: [weekAgo, now] }, 10, 0);
+			const results = await getResponsesForAnswer(
+				ctxA,
+				answerB.id,
+				{ range: [weekAgo, now] },
+				10,
+				0
+			);
 
 			expect(results.length).toBe(0);
 		});
@@ -298,7 +343,10 @@ describe('responseQueries integration tests', () => {
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim1 = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			const claim2 = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance1 = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -314,7 +362,12 @@ describe('responseQueries integration tests', () => {
 			});
 			const question = await createTestQuestion(client.id, page.id, user.id);
 			const answer = await createTestAnswer(client.id, question.id, user.id);
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const response1 = await createTestQuestionResponse(client.id, {
 				checklist_id: checklist.id,
@@ -341,7 +394,13 @@ describe('responseQueries integration tests', () => {
 
 			const now = new Date();
 			const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-			const results = await getResponsesForAnswer(ctx, answer.id, { range: [weekAgo, now], claimId: claim1.id }, 10, 0);
+			const results = await getResponsesForAnswer(
+				ctx,
+				answer.id,
+				{ range: [weekAgo, now], claimId: claim1.id },
+				10,
+				0
+			);
 
 			expect(results.length).toBe(1);
 		});
@@ -351,7 +410,10 @@ describe('responseQueries integration tests', () => {
 			const user1 = await createTestUser(db, { client_id: client.id });
 			const user2 = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user1.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user1.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user1.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user1.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -362,7 +424,12 @@ describe('responseQueries integration tests', () => {
 			const question1 = await createTestQuestion(client.id, page.id, user1.id);
 			const question2 = await createTestQuestion(client.id, page.id, user1.id);
 			const answer = await createTestAnswer(client.id, question1.id, user1.id);
-			const ctx = createTestContext(db, { id: user1.id, client_id: client.id, email: user1.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user1.id,
+				client_id: client.id,
+				email: user1.email,
+				role: 'user',
+			});
 
 			const response1 = await createTestQuestionResponse(client.id, {
 				checklist_id: checklist.id,
@@ -389,7 +456,13 @@ describe('responseQueries integration tests', () => {
 
 			const now = new Date();
 			const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-			const results = await getResponsesForAnswer(ctx, answer.id, { range: [weekAgo, now], users: [user1.id] }, 10, 0);
+			const results = await getResponsesForAnswer(
+				ctx,
+				answer.id,
+				{ range: [weekAgo, now], users: [user1.id] },
+				10,
+				0
+			);
 
 			expect(results.length).toBe(1);
 		});
@@ -400,7 +473,10 @@ describe('responseQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -410,7 +486,12 @@ describe('responseQueries integration tests', () => {
 			});
 			const question1 = await createTestQuestion(client.id, page.id, user.id, 'Q1');
 			const question2 = await createTestQuestion(client.id, page.id, user.id, 'Q2');
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await createTestQuestionResponse(client.id, {
 				checklist_id: checklist.id,
@@ -429,7 +510,12 @@ describe('responseQueries integration tests', () => {
 				created_by: user.id,
 			});
 
-			const responseMap = await getResponsesForPageInstance(ctx, checklist.id, claim.id, instance.id);
+			const responseMap = await getResponsesForPageInstance(
+				ctx,
+				checklist.id,
+				claim.id,
+				instance.id
+			);
 
 			expect(responseMap[question1.id]).toBeDefined();
 			expect(responseMap[question1.id].response_text).toBe('Answer 1');
@@ -441,7 +527,10 @@ describe('responseQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance1 = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -456,7 +545,12 @@ describe('responseQueries integration tests', () => {
 				page_id: page.id,
 			});
 			const question = await createTestQuestion(client.id, page.id, user.id);
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await createTestQuestionResponse(client.id, {
 				checklist_id: checklist.id,
@@ -475,7 +569,12 @@ describe('responseQueries integration tests', () => {
 				created_by: user.id,
 			});
 
-			const responseMap = await getResponsesForPageInstance(ctx, checklist.id, claim.id, instance1.id);
+			const responseMap = await getResponsesForPageInstance(
+				ctx,
+				checklist.id,
+				claim.id,
+				instance1.id
+			);
 
 			expect(responseMap[question.id].response_text).toBe('Instance 1');
 		});
@@ -486,7 +585,10 @@ describe('responseQueries integration tests', () => {
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
 			const claimB = await createTestClaim(db, { client_id: clientB.id, created_by: userB.id });
-			const checklistB = await createTestChecklist(db, { client_id: clientB.id, created_by: userB.id });
+			const checklistB = await createTestChecklist(db, {
+				client_id: clientB.id,
+				created_by: userB.id,
+			});
 			const pageB = await createTestPage(db, { client_id: clientB.id, created_by: userB.id });
 			const instanceB = await createTestPageInstance(db, {
 				client_id: clientB.id,
@@ -495,7 +597,12 @@ describe('responseQueries integration tests', () => {
 				page_id: pageB.id,
 			});
 			const questionB = await createTestQuestion(clientB.id, pageB.id, userB.id);
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			await createTestQuestionResponse(clientB.id, {
 				checklist_id: checklistB.id,
@@ -506,7 +613,12 @@ describe('responseQueries integration tests', () => {
 				created_by: userB.id,
 			});
 
-			const responseMap = await getResponsesForPageInstance(ctxA, checklistB.id, claimB.id, instanceB.id);
+			const responseMap = await getResponsesForPageInstance(
+				ctxA,
+				checklistB.id,
+				claimB.id,
+				instanceB.id
+			);
 
 			expect(Object.keys(responseMap).length).toBe(0);
 		});
@@ -516,7 +628,12 @@ describe('responseQueries integration tests', () => {
 		it('should return audit logs with pagination', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await createTestResponseAuditLog(client.id, user.id);
 			await createTestResponseAuditLog(client.id, user.id);
@@ -534,8 +651,16 @@ describe('responseQueries integration tests', () => {
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
 			const claimA = await createTestClaim(db, { client_id: clientA.id, created_by: userA.id });
-			const checklistA = await createTestChecklist(db, { client_id: clientA.id, created_by: userA.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const checklistA = await createTestChecklist(db, {
+				client_id: clientA.id,
+				created_by: userA.id,
+			});
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 			const uniqueText = `ScopedAudit_${Date.now()}`;
 
 			const logA = await createTestResponseAuditLog(clientA.id, userA.id, {
@@ -567,7 +692,12 @@ describe('responseQueries integration tests', () => {
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim1 = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			const claim2 = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await createTestResponseAuditLog(client.id, user.id, { claim_id: claim1.id });
 			await createTestResponseAuditLog(client.id, user.id, { claim_id: claim2.id });
@@ -580,9 +710,20 @@ describe('responseQueries integration tests', () => {
 		it('should filter by checklistId', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const checklist1 = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
-			const checklist2 = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const checklist1 = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
+			const checklist2 = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await createTestResponseAuditLog(client.id, user.id, { checklist_id: checklist1.id });
 			await createTestResponseAuditLog(client.id, user.id, { checklist_id: checklist2.id });
@@ -595,9 +736,16 @@ describe('responseQueries integration tests', () => {
 		it('should filter by searchTerm in question_text', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
-			await createTestResponseAuditLog(client.id, user.id, { question_text: 'UniqueSearchTerm123' });
+			await createTestResponseAuditLog(client.id, user.id, {
+				question_text: 'UniqueSearchTerm123',
+			});
 			await createTestResponseAuditLog(client.id, user.id, { question_text: 'OtherQuestion' });
 
 			const result = await getResponseAuditLogs(ctx, { searchTerm: 'UniqueSearch' }, 10, 0);
@@ -610,7 +758,12 @@ describe('responseQueries integration tests', () => {
 			const clientB = await createTestClient(db);
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			await createTestResponseAuditLog(clientB.id, userB.id, { question_text: 'IsolatedQuestion' });
 
@@ -623,7 +776,12 @@ describe('responseQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user1 = await createTestUser(db, { client_id: client.id });
 			const user2 = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user1.id, client_id: client.id, email: user1.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user1.id,
+				client_id: client.id,
+				email: user1.email,
+				role: 'user',
+			});
 
 			await createTestResponseAuditLog(client.id, user1.id);
 			await createTestResponseAuditLog(client.id, user2.id);
@@ -636,7 +794,12 @@ describe('responseQueries integration tests', () => {
 		it('should filter by date range', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await createTestResponseAuditLog(client.id, user.id);
 
@@ -654,7 +817,12 @@ describe('responseQueries integration tests', () => {
 		it('should return stats for date range', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await createTestResponseAuditLog(client.id, user.id);
 
@@ -673,7 +841,12 @@ describe('responseQueries integration tests', () => {
 			const clientB = await createTestClient(db);
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			await createTestResponseAuditLog(clientB.id, userB.id);
 
@@ -693,14 +866,21 @@ describe('responseQueries integration tests', () => {
 		it('should return all matching logs without pagination', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 			const uniqueText = `Export_${Date.now()}`;
 
 			await createTestResponseAuditLog(client.id, user.id, { question_text: uniqueText });
 			await createTestResponseAuditLog(client.id, user.id, { question_text: uniqueText });
 			await createTestResponseAuditLog(client.id, user.id, { question_text: uniqueText });
 
-			const results = await exportResponseAuditLogs(ctx, { searchTerm: uniqueText.substring(0, 10) });
+			const results = await exportResponseAuditLogs(ctx, {
+				searchTerm: uniqueText.substring(0, 10),
+			});
 
 			expect(results.length).toBe(3);
 		});
@@ -708,12 +888,19 @@ describe('responseQueries integration tests', () => {
 		it('should include user info', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 			const uniqueText = `ExportUser_${Date.now()}`;
 
 			await createTestResponseAuditLog(client.id, user.id, { question_text: uniqueText });
 
-			const results = await exportResponseAuditLogs(ctx, { searchTerm: uniqueText.substring(0, 15) });
+			const results = await exportResponseAuditLogs(ctx, {
+				searchTerm: uniqueText.substring(0, 15),
+			});
 
 			expect(results[0].first).toBe(user.first);
 			expect(results[0].last).toBe(user.last);
@@ -724,12 +911,19 @@ describe('responseQueries integration tests', () => {
 			const clientB = await createTestClient(db);
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			const uniqueText = `ExportIso_${Date.now()}`;
 			await createTestResponseAuditLog(clientB.id, userB.id, { question_text: uniqueText });
 
-			const results = await exportResponseAuditLogs(ctxA, { searchTerm: uniqueText.substring(0, 15) });
+			const results = await exportResponseAuditLogs(ctxA, {
+				searchTerm: uniqueText.substring(0, 15),
+			});
 
 			expect(results.length).toBe(0);
 		});

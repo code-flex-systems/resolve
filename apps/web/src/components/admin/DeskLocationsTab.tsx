@@ -27,7 +27,9 @@ const TYPE_COLUMNS: ColumnDef<any, any>[] = [
 				secondary={`${row.location_count ?? 0} location${row.location_count === 1 ? '' : 's'}`}
 			/>
 		),
-		header: (params) => <IconHeaderCell {...params} icon={<IconDesk style={{ color: 'var(--text-muted)' }} />} />,
+		header: (params) => (
+			<IconHeaderCell {...params} icon={<IconDesk style={{ color: 'var(--text-muted)' }} />} />
+		),
 	},
 	{
 		header: 'Created',
@@ -53,7 +55,9 @@ const LOCATION_COLUMNS: ColumnDef<any, any>[] = [
 		cell: ({ row: { original: row } }) => (
 			<StackedHeaderCell primary={row.name} secondary={row.is_active ? 'Active' : 'Inactive'} />
 		),
-		header: (params) => <IconHeaderCell {...params} icon={<IconMapPin style={{ color: 'var(--text-muted)' }} />} />,
+		header: (params) => (
+			<IconHeaderCell {...params} icon={<IconMapPin style={{ color: 'var(--text-muted)' }} />} />
+		),
 	},
 	{
 		header: 'Users',
@@ -97,14 +101,19 @@ function LocationsOverlay({ selectedTypeId }: { selectedTypeId: string | null })
 }
 
 export default function DeskLocationsTab() {
-	const showNewDeskLocationTypeDialog = useAdminStore((state) => state.showNewDeskLocationTypeDialog);
+	const showNewDeskLocationTypeDialog = useAdminStore(
+		(state) => state.showNewDeskLocationTypeDialog
+	);
 	const showNewDeskLocationDialog = useAdminStore((state) => state.showNewDeskLocationDialog);
 	const selectedDeskLocationTypeId = useAdminStore((state) => state.selectedDeskLocationTypeId);
-	const toggleNewDeskLocationTypeDialog = useAdminStore((state) => state.toggleNewDeskLocationTypeDialog);
+	const toggleNewDeskLocationTypeDialog = useAdminStore(
+		(state) => state.toggleNewDeskLocationTypeDialog
+	);
 	const toggleNewDeskLocationDialog = useAdminStore((state) => state.toggleNewDeskLocationDialog);
 	const setDeskLocationTypeId = useAdminStore((state) => state.setDeskLocationTypeId);
 
-	const { data: typesData = { rows: [], count: undefined }, isFetching: typesFetching } = useDeskTrpc().listTypes({});
+	const { data: typesData = { rows: [], count: undefined }, isFetching: typesFetching } =
+		useDeskTrpc().listTypes({});
 
 	const { data: locationsData = { rows: [], count: undefined }, isFetching: locationsFetching } =
 		useDeskTrpc().listLocations(
@@ -118,7 +127,10 @@ export default function DeskLocationsTab() {
 		);
 
 	const selectedTypeName = useMemo(
-		() => typesData.rows.find((t: any) => t.id === selectedDeskLocationTypeId)?.name as string | undefined,
+		() =>
+			typesData.rows.find((t: any) => t.id === selectedDeskLocationTypeId)?.name as
+				| string
+				| undefined,
 		[typesData.rows, selectedDeskLocationTypeId]
 	);
 
@@ -160,8 +172,8 @@ export default function DeskLocationsTab() {
 								padding: '0 10px',
 							}}
 						>
-							Desk location types represent workflow phases (e.g., Evaluation, Review). They group related
-							desk locations.
+							Desk location types represent workflow phases (e.g., Evaluation, Review). They group
+							related desk locations.
 						</p>
 						<div style={styles.table}>
 							<DataTable
@@ -172,7 +184,9 @@ export default function DeskLocationsTab() {
 								rowHeight={60}
 								hideFooter
 								onRowClick={(row) => setDeskLocationTypeId(row.id)}
-								getRowClassName={(row) => (row.id === selectedDeskLocationTypeId ? 'selected-row' : '')}
+								getRowClassName={(row) =>
+									row.id === selectedDeskLocationTypeId ? 'selected-row' : ''
+								}
 							/>
 						</div>
 					</Card>
@@ -212,7 +226,8 @@ export default function DeskLocationsTab() {
 								padding: '0 10px',
 							}}
 						>
-							Desk locations are specific work queues within a phase where claims are assigned and worked.
+							Desk locations are specific work queues within a phase where claims are assigned and
+							worked.
 						</p>
 						<div style={styles.table}>
 							<DataTable

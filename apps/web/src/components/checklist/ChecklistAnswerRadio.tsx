@@ -22,7 +22,17 @@ function AnswerWithImage(props: {
 	watch: UseFormWatch<FieldValues>;
 	question: Question;
 }) {
-	const { answer: a, questionType, field, disabled, visibleInstanceIds, goToPage, tree, watch, question } = props;
+	const {
+		answer: a,
+		questionType,
+		field,
+		disabled,
+		visibleInstanceIds,
+		goToPage,
+		tree,
+		watch,
+		question,
+	} = props;
 	const mode = useChecklistStore((s) => s.mode);
 
 	// Fetch attached image for this answer
@@ -79,7 +89,14 @@ function AnswerWithImage(props: {
 					{a.text}
 				</button>
 			) : (
-				<span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 13 }}>
+				<span
+					style={{
+						whiteSpace: 'nowrap',
+						overflow: 'hidden',
+						textOverflow: 'ellipsis',
+						fontSize: 13,
+					}}
+				>
 					{a.text}
 				</span>
 			)}
@@ -108,7 +125,12 @@ function AnswerWithImage(props: {
 				/>
 			) : (
 				<label
-					style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: disabled ? 'default' : 'pointer' }}
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: 8,
+						cursor: disabled ? 'default' : 'pointer',
+					}}
 				>
 					<input
 						type="radio"
@@ -145,7 +167,15 @@ export default function ChecklistAnswerRadio(props: {
 		{ enabled: !!checklistId && !!claimId }
 	);
 	return (
-		<div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 15, padding: '0px 10px' }}>
+		<div
+			style={{
+				display: 'flex',
+				flexDirection: 'row',
+				flexWrap: 'wrap',
+				gap: 15,
+				padding: '0px 10px',
+			}}
+		>
 			{(question.answers ?? []).map((a) => (
 				<AnswerWithImage
 					key={a.id}

@@ -63,9 +63,18 @@ export default function DocumentSelectorDialog({
 				const params = {
 					...relationshipData,
 					// Clear conflicting relationships
-					...(relationshipData.question_id !== undefined && { answer_id: null, response_doc_id: null }),
-					...(relationshipData.answer_id !== undefined && { question_id: null, response_doc_id: null }),
-					...(relationshipData.response_doc_id !== undefined && { question_id: null, answer_id: null }),
+					...(relationshipData.question_id !== undefined && {
+						answer_id: null,
+						response_doc_id: null,
+					}),
+					...(relationshipData.answer_id !== undefined && {
+						question_id: null,
+						response_doc_id: null,
+					}),
+					...(relationshipData.response_doc_id !== undefined && {
+						question_id: null,
+						answer_id: null,
+					}),
 				};
 
 				const updatedDoc = await updateDoc({
@@ -186,7 +195,7 @@ export default function DocumentSelectorDialog({
 							onClick: handleUpload,
 							disabled: isBusy,
 							icon: <IconFileUpload size={20} />,
-					  }
+						}
 					: undefined
 			}
 			secondaryActions={
@@ -201,7 +210,7 @@ export default function DocumentSelectorDialog({
 								icon: <IconArrowLeft size={20} />,
 								disabled: isBusy,
 							},
-					  ]
+						]
 					: undefined
 			}
 		>
@@ -220,10 +229,8 @@ export default function DocumentSelectorDialog({
 							style={{ justifyContent: 'flex-start', padding: 16 }}
 						>
 							<div style={{ textAlign: 'left', marginLeft: 16 }}>
-								<span style={{ fontWeight: 600, fontSize: 14 }}>
-									Choose from library
-								</span>
-								<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
+								<span style={{ fontWeight: 600, fontSize: 14 }}>Choose from library</span>
+								<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
 									Select an existing {filterByType === 'image' ? 'image' : 'document'}
 								</span>
 							</div>
@@ -237,10 +244,8 @@ export default function DocumentSelectorDialog({
 							style={{ justifyContent: 'flex-start', padding: 16 }}
 						>
 							<div style={{ textAlign: 'left', marginLeft: 16 }}>
-								<span style={{ fontWeight: 600, fontSize: 14 }}>
-									Browse this device
-								</span>
-								<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
+								<span style={{ fontWeight: 600, fontSize: 14 }}>Browse this device</span>
+								<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
 									Upload a new {filterByType === 'image' ? 'image' : 'file'}
 								</span>
 							</div>
@@ -252,7 +257,9 @@ export default function DocumentSelectorDialog({
 			{mode === 'library' && (
 				<div>
 					<span style={{ fontSize: 13 }}>
-						{isLinking ? 'Linking document...' : 'Browse your document library and double-click to select:'}
+						{isLinking
+							? 'Linking document...'
+							: 'Browse your document library and double-click to select:'}
 					</span>
 					<CompactDocumentBrowser
 						onSelectDocument={handleLibrarySelect}
@@ -289,17 +296,17 @@ export default function DocumentSelectorDialog({
 
 					{selectedFile && (
 						<div style={{ backgroundColor: '#f5f5f5', padding: 16, borderRadius: 4 }}>
-							<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
+							<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
 								<strong>Size:</strong> {(selectedFile.size / 1024).toFixed(1)} KB
 							</span>
-							<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
+							<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
 								<strong>Type:</strong> {selectedFile.type}
 							</span>
 						</div>
 					)}
 
 					{!selectedFile && (
-						<span style={{ fontSize: 11,  color: 'var(--text-secondary)', marginTop: 8  }}>
+						<span style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 8 }}>
 							{filterByType === 'image'
 								? 'Accepted: JPG, PNG, GIF, WebP, BMP, SVG'
 								: 'Accepted: PDF, Word, Excel, PowerPoint, images, text files, and archives'}

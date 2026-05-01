@@ -84,8 +84,24 @@ export default function ClaimAssignmentDialog() {
 			onClose={() => toggleClaimAssignmentDialog()}
 			width={550}
 		>
-			<div style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-				<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', paddingBottom: 8 }}>
+			<div
+				style={{
+					width: '100%',
+					height: '100%',
+					display: 'flex',
+					justifyContent: 'center',
+					alignItems: 'center',
+				}}
+			>
+				<div
+					style={{
+						width: '100%',
+						display: 'flex',
+						justifyContent: 'flex-start',
+						alignItems: 'center',
+						paddingBottom: 8,
+					}}
+				>
 					<ChecklistSelect
 						checklist={checklist}
 						setChecklist={setChecklist}
@@ -104,11 +120,17 @@ export default function ClaimAssignmentDialog() {
 					}}
 				>
 					<div>
-						<div style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+						<div
+							style={{
+								width: '100%',
+								height: '100%',
+								display: 'flex',
+								justifyContent: 'center',
+								alignItems: 'center',
+							}}
+						>
 							{isFetchingNextClaim && (
-								<span style={{ fontStyle: 'italic' }}>
-									Loading next claim...
-								</span>
+								<span style={{ fontStyle: 'italic' }}>Loading next claim...</span>
 							)}
 							{!isFetchingNextClaim && !nextClaimData.claim && (
 								<span style={{ fontSize: 13 }}>You're all caught up!</span>
@@ -140,7 +162,14 @@ export default function ClaimAssignmentDialog() {
 											paddingInline: 16,
 										}}
 									>
-										<div style={{ width: '50%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+										<div
+											style={{
+												width: '50%',
+												display: 'flex',
+												justifyContent: 'flex-start',
+												alignItems: 'flex-start',
+											}}
+										>
 											<StackedRow primary="Client" secondary={nextClaimData.claim.client} />
 											<StackedRow
 												primary="Client Adjuster"
@@ -156,16 +185,26 @@ export default function ClaimAssignmentDialog() {
 												secondary={formatRecoveryStatus(nextClaimData.claim.recovery_status)}
 											/>
 										</div>
-										<div style={{ width: '50%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+										<div
+											style={{
+												width: '50%',
+												display: 'flex',
+												justifyContent: 'flex-start',
+												alignItems: 'flex-start',
+											}}
+										>
 											<StackedRow
 												primary="Date of Loss"
-												secondary={formatMDY(
-													nextClaimData.claim.date_of_loss?.toString() ?? ''
-												)}
+												secondary={formatMDY(nextClaimData.claim.date_of_loss?.toString() ?? '')}
 											/>
 											<StackedRow
 												primary="Loss Location"
-												secondary={formatCityState(nextClaimData.claim.loss_city, nextClaimData.claim.loss_state) || undefined}
+												secondary={
+													formatCityState(
+														nextClaimData.claim.loss_city,
+														nextClaimData.claim.loss_state
+													) || undefined
+												}
 											/>
 											<StackedRow
 												primary="Last Update By"
@@ -186,8 +225,23 @@ export default function ClaimAssignmentDialog() {
 						</div>
 					</div>
 				</div>
-				<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', paddingTop: 8 }}>
-					<div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+				<div
+					style={{
+						width: '100%',
+						display: 'flex',
+						justifyContent: 'flex-start',
+						alignItems: 'center',
+						paddingTop: 8,
+					}}
+				>
+					<div
+						style={{
+							width: '100%',
+							display: 'flex',
+							justifyContent: 'center',
+							alignItems: 'center',
+						}}
+					>
 						<div style={{ backgroundColor: 'white', margin: 8, borderRadius: 4 }}>
 							<UserSearch
 								selectedUser={user}
@@ -198,9 +252,7 @@ export default function ClaimAssignmentDialog() {
 						</div>
 
 						<Collapse open={!!user}>
-							<Chip
-								color="info"
-						>{`${formattedAssignee} <${user?.email}>`}</Chip>
+							<Chip color="info">{`${formattedAssignee} <${user?.email}>`}</Chip>
 						</Collapse>
 					</div>
 				</div>

@@ -51,7 +51,11 @@ export default function KpiCard({
 		.join(' ');
 
 	return (
-		<Card variant="beveled" padding={size === 'sm' ? 'sm' : 'lg'} className={`${styles.card} ${styles[size]} ${className ?? ''}`}>
+		<Card
+			variant="beveled"
+			padding={size === 'sm' ? 'sm' : 'lg'}
+			className={`${styles.card} ${styles[size]} ${className ?? ''}`}
+		>
 			{icon && (
 				<div
 					className={styles.iconCircle}

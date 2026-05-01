@@ -9,7 +9,12 @@ import { useForm, Controller } from 'react-hook-form';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
 import { DocType, DocStatus } from '@/config/enums';
 import { useState } from 'react';
-import { IMAGE_EXTENSIONS, IMAGE_MIME_TYPES, getAllowedExtensions, validateFileType } from '@/config/allowedFileTypes';
+import {
+	IMAGE_EXTENSIONS,
+	IMAGE_MIME_TYPES,
+	getAllowedExtensions,
+	validateFileType,
+} from '@/config/allowedFileTypes';
 
 type UploadDocumentFormInputs = {
 	alias: string;
@@ -24,7 +29,10 @@ interface UploadDocumentDialogProps {
 	currentFolderId?: string | null;
 }
 
-export default function UploadDocumentDialog({ onClose, currentFolderId = null }: UploadDocumentDialogProps) {
+export default function UploadDocumentDialog({
+	onClose,
+	currentFolderId = null,
+}: UploadDocumentDialogProps) {
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
 	const { mutateAsync: createDoc, isPending } = useDocTrpc().createDoc;
 	const {
@@ -143,12 +151,12 @@ export default function UploadDocumentDialog({ onClose, currentFolderId = null }
 						/>
 					</label>
 					{selectedFile && (
-						<span style={{ fontSize: 12,  color: 'var(--text-secondary)', marginTop: 8  }}>
+						<span style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 8 }}>
 							Size: {(selectedFile.size / 1024).toFixed(1)} KB
 						</span>
 					)}
 					{!selectedFile && (
-						<span style={{ fontSize: 11,  color: 'var(--text-secondary)', marginTop: 8  }}>
+						<span style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 8 }}>
 							Accepted formats: PDF, Word, Excel, PowerPoint, images, text files, and archives
 						</span>
 					)}
@@ -178,7 +186,11 @@ export default function UploadDocumentDialog({ onClose, currentFolderId = null }
 									{ value: DocType.INVOICE, label: 'Invoice' },
 									{ value: DocType.CORRESPONDENCE, label: 'Correspondence' },
 									{ value: DocType.SETTLEMENT, label: 'Settlement' },
-									{ value: DocType.PHOTO, label: 'Photo', disabled: selectedFile !== null && !isFileImage },
+									{
+										value: DocType.PHOTO,
+										label: 'Photo',
+										disabled: selectedFile !== null && !isFileImage,
+									},
 									{ value: DocType.ESTIMATE, label: 'Estimate' },
 									{ value: DocType.REPAIR_INVOICE, label: 'Repair Invoice' },
 									{ value: DocType.PROOF_OF_PAYMENT, label: 'Proof of Payment' },
@@ -225,7 +237,6 @@ const styles = {
 	selectOverrides: {
 		width: 300,
 		padding: '2px 10px',
-		},
-	textFieldOverrides: {
-		},
+	},
+	textFieldOverrides: {},
 };

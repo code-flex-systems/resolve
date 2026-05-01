@@ -52,12 +52,7 @@ export default function Drawer({
 
 	if (!open) return null;
 
-	const drawerClassNames = [
-		styles.drawer,
-		styles[anchor],
-		styles.open,
-		className,
-	]
+	const drawerClassNames = [styles.drawer, styles[anchor], styles.open, className]
 		.filter(Boolean)
 		.join(' ');
 

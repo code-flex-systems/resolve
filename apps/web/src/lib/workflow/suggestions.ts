@@ -143,7 +143,10 @@ const DEFAULT_CONFIG: SuggestionConfig = {
  * Identifies desk locations where load exceeds capacity threshold.
  * Returns breaches sorted by severity (highest first).
  */
-export function detectBreaches(locations: DeskLocationLoad[], config: SuggestionConfig = DEFAULT_CONFIG): Breach[] {
+export function detectBreaches(
+	locations: DeskLocationLoad[],
+	config: SuggestionConfig = DEFAULT_CONFIG
+): Breach[] {
 	const breaches: Breach[] = [];
 
 	for (const loc of locations) {
@@ -279,7 +282,11 @@ function createAssignmentState(scoredUsers: ScoredUser[]): AssignmentState {
  * Finds the lowest available priority slot for a user at a given location.
  * Returns null if no slot available (all P1-P5 occupied by other locations).
  */
-function findLowestAvailablePriority(userId: string, targetLocationId: string, state: AssignmentState): number | null {
+function findLowestAvailablePriority(
+	userId: string,
+	targetLocationId: string,
+	state: AssignmentState
+): number | null {
 	const userPriorities = state.userPriorities.get(userId);
 	if (!userPriorities) return 1; // No assignments, P1 is open
 
@@ -401,14 +408,19 @@ function resolveBreach(
 
 	const assignments: PriorityAssignment[] = [];
 	const cascadedChanges: CascadedChange[] = [];
-	const skippedUsers: Array<{ userId: string; userName: string; reason: 'PRIORITY_EXHAUSTION' }> = [];
+	const skippedUsers: Array<{ userId: string; userName: string; reason: 'PRIORITY_EXHAUSTION' }> =
+		[];
 
 	for (const user of eligible) {
 		if (assignments.length >= usersNeeded) {
 			break; // We have enough
 		}
 
-		const availablePriority = findLowestAvailablePriority(user.userId, breach.deskLocationId, state);
+		const availablePriority = findLowestAvailablePriority(
+			user.userId,
+			breach.deskLocationId,
+			state
+		);
 
 		if (availablePriority !== null) {
 			const { assignment, cascaded } = assignWithCascade(
@@ -513,11 +525,7 @@ export function generateWorkflowSuggestions(
 	}
 
 	// Step 6: Build affected user assignments by comparing initial vs final state
-	const affectedUserAssignments = buildAffectedUserAssignments(
-		scoredUsers,
-		initialState,
-		state
-	);
+	const affectedUserAssignments = buildAffectedUserAssignments(scoredUsers, initialState, state);
 
 	// Step 7: Compile summary
 	// Discard resolutions with 0 assignments (completely unresolvable breaches)
@@ -709,7 +717,5 @@ export function extractApprovedAssignments(
 		}
 	}
 
-	return suggestion.affectedUserAssignments.filter((u) =>
-		approvedUserIds.has(u.userId)
-	);
+	return suggestion.affectedUserAssignments.filter((u) => approvedUserIds.has(u.userId));
 }

@@ -3,8 +3,10 @@
 	background-image:
     /* bottom fade: transparent→white over 40px tall strip */
 		linear-gradient(to bottom, rgba(255, 255, 255, 0), #fff),
-		/* left fade: transparent→white over 40px wide strip */ linear-gradient(to left, rgba(255, 255, 255, 0), #fff),
-		/* right fade: transparent→white over 40px wide strip */ linear-gradient(to right, rgba(255, 255, 255, 0), #fff);
+		/* left fade: transparent→white over 40px wide strip */
+		linear-gradient(to left, rgba(255, 255, 255, 0), #fff),
+		/* right fade: transparent→white over 40px wide strip */
+		linear-gradient(to right, rgba(255, 255, 255, 0), #fff);
 
 	background-repeat: no-repeat, no-repeat, no-repeat;
 	background-size:

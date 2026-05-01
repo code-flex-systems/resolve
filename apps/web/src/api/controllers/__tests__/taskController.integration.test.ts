@@ -31,7 +31,10 @@ describe('taskController integration tests', () => {
 		const client = await createTestClient(db);
 		const user = await createTestUser(db, { client_id: client.id });
 		const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-		const deskType = await createTestDeskLocationType(db, { client_id: client.id, created_by: user.id });
+		const deskType = await createTestDeskLocationType(db, {
+			client_id: client.id,
+			created_by: user.id,
+		});
 		const deskLocation = await createTestDeskLocation(db, {
 			client_id: client.id,
 			desk_location_type_id: deskType.id,
@@ -109,7 +112,9 @@ describe('taskController integration tests', () => {
 			it('should throw when task does not exist', async () => {
 				const { ctx } = await setupTestFixtures();
 
-				await expect(taskController.startTask(ctx, { id: 999999 })).rejects.toThrow();
+				await expect(
+					taskController.startTask(ctx, { id: '00000000-0000-0000-0000-000000000999' })
+				).rejects.toThrow();
 			});
 		});
 
@@ -120,7 +125,10 @@ describe('taskController integration tests', () => {
 				const userA = await createTestUser(db, { client_id: clientA.id });
 				const userB = await createTestUser(db, { client_id: clientB.id });
 				const claimA = await createTestClaim(db, { client_id: clientA.id, created_by: userA.id });
-				const deskTypeA = await createTestDeskLocationType(db, { client_id: clientA.id, created_by: userA.id });
+				const deskTypeA = await createTestDeskLocationType(db, {
+					client_id: clientA.id,
+					created_by: userA.id,
+				});
 				const deskLocationA = await createTestDeskLocation(db, {
 					client_id: clientA.id,
 					desk_location_type_id: deskTypeA.id,
@@ -208,7 +216,9 @@ describe('taskController integration tests', () => {
 			it('should throw when task does not exist', async () => {
 				const { ctx } = await setupTestFixtures();
 
-				await expect(taskController.unassignTask(ctx, { id: 999999 })).rejects.toThrow();
+				await expect(
+					taskController.unassignTask(ctx, { id: '00000000-0000-0000-0000-000000000999' })
+				).rejects.toThrow();
 			});
 		});
 
@@ -219,7 +229,10 @@ describe('taskController integration tests', () => {
 				const userA = await createTestUser(db, { client_id: clientA.id });
 				const userB = await createTestUser(db, { client_id: clientB.id });
 				const claimA = await createTestClaim(db, { client_id: clientA.id, created_by: userA.id });
-				const deskTypeA = await createTestDeskLocationType(db, { client_id: clientA.id, created_by: userA.id });
+				const deskTypeA = await createTestDeskLocationType(db, {
+					client_id: clientA.id,
+					created_by: userA.id,
+				});
 				const deskLocationA = await createTestDeskLocation(db, {
 					client_id: clientA.id,
 					desk_location_type_id: deskTypeA.id,
@@ -296,7 +309,9 @@ describe('taskController integration tests', () => {
 					completionNotes: 'Task completed successfully with all requirements met',
 				});
 
-				expect(result.completion_notes).toBe('Task completed successfully with all requirements met');
+				expect(result.completion_notes).toBe(
+					'Task completed successfully with all requirements met'
+				);
 			});
 
 			it('should complete task without notes when not provided', async () => {
@@ -346,7 +361,9 @@ describe('taskController integration tests', () => {
 			it('should throw when task does not exist', async () => {
 				const { ctx } = await setupTestFixtures();
 
-				await expect(taskController.completeTask(ctx, { id: 999999 })).rejects.toThrow();
+				await expect(
+					taskController.completeTask(ctx, { id: '00000000-0000-0000-0000-000000000999' })
+				).rejects.toThrow();
 			});
 		});
 
@@ -357,7 +374,10 @@ describe('taskController integration tests', () => {
 				const userA = await createTestUser(db, { client_id: clientA.id });
 				const userB = await createTestUser(db, { client_id: clientB.id });
 				const claimA = await createTestClaim(db, { client_id: clientA.id, created_by: userA.id });
-				const deskTypeA = await createTestDeskLocationType(db, { client_id: clientA.id, created_by: userA.id });
+				const deskTypeA = await createTestDeskLocationType(db, {
+					client_id: clientA.id,
+					created_by: userA.id,
+				});
 				const deskLocationA = await createTestDeskLocation(db, {
 					client_id: clientA.id,
 					desk_location_type_id: deskTypeA.id,
@@ -553,8 +573,14 @@ describe('taskController integration tests', () => {
 				const userB = await createTestUser(db, { client_id: clientB.id });
 				const claimA = await createTestClaim(db, { client_id: clientA.id, created_by: userA.id });
 				const claimB = await createTestClaim(db, { client_id: clientB.id, created_by: userB.id });
-				const deskTypeA = await createTestDeskLocationType(db, { client_id: clientA.id, created_by: userA.id });
-				const deskTypeB = await createTestDeskLocationType(db, { client_id: clientB.id, created_by: userB.id });
+				const deskTypeA = await createTestDeskLocationType(db, {
+					client_id: clientA.id,
+					created_by: userA.id,
+				});
+				const deskTypeB = await createTestDeskLocationType(db, {
+					client_id: clientB.id,
+					created_by: userB.id,
+				});
 				const deskLocationA = await createTestDeskLocation(db, {
 					client_id: clientA.id,
 					desk_location_type_id: deskTypeA.id,

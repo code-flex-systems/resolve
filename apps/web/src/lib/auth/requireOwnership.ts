@@ -12,7 +12,10 @@ export async function requireOwnership(ctx: Context, checklistId: string, claimI
 			() => new TRPCError({ code: 'BAD_REQUEST', message: 'Checklist + claim does not exist' })
 		);
 
-	if (!ctx.session?.user.id || ![checklistClaim.created_by, checklistClaim.assignee].includes(ctx.session?.user.id)) {
+	if (
+		!ctx.session?.user.id ||
+		![checklistClaim.created_by, checklistClaim.assignee].includes(ctx.session?.user.id)
+	) {
 		throw new TRPCError({
 			code: 'FORBIDDEN',
 			message: 'User is neither the creator nor the current assignee on this checklist + claim',

@@ -38,7 +38,11 @@ export async function createTestRecoveryEvent(
 		notes: overrides.notes ?? null,
 	};
 
-	const event = await db.insertInto('recovery_event').values(data).returningAll().executeTakeFirstOrThrow();
+	const event = await db
+		.insertInto('recovery_event')
+		.values(data)
+		.returningAll()
+		.executeTakeFirstOrThrow();
 
 	// Mirror production behavior: increment claim.actual_recovery by the recovery amount
 	await db
