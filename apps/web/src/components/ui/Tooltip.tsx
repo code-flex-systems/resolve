@@ -65,21 +65,24 @@ const Tooltip = forwardRef<HTMLSpanElement, TooltipProps>(
 				>
 					{children}
 				</span>
-				{visible && coords && content && createPortal(
-					<div
-						className={tooltipCls}
-						style={{
-							position: 'fixed',
-							top: coords.top,
-							left: coords.left,
-							zIndex: 99999,
-							pointerEvents: 'none',
-						}}
-					>
-						{content}
-					</div>,
-					document.body
-				)}
+				{visible &&
+					coords &&
+					content &&
+					createPortal(
+						<div
+							className={tooltipCls}
+							style={{
+								position: 'fixed',
+								top: coords.top,
+								left: coords.left,
+								zIndex: 99999,
+								pointerEvents: 'none',
+							}}
+						>
+							{content}
+						</div>,
+						document.body
+					)}
 			</>
 		);
 	}

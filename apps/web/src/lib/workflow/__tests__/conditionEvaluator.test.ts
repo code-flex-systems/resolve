@@ -117,7 +117,9 @@ describe('buildConditionSQL', () => {
 		it('in operator produces = ANY with array param', () => {
 			const compiled = compileCondition({
 				logic: 'AND',
-				conditions: [{ field: 'claim.recovery_status', operator: 'in', value: ['open', 'pending'] }],
+				conditions: [
+					{ field: 'claim.recovery_status', operator: 'in', value: ['open', 'pending'] },
+				],
 			});
 			const sql = normalizeSql(compiled.sql);
 			expect(sql).toContain('c.recovery_status IS NOT NULL AND c.recovery_status = ANY($1)');
@@ -341,7 +343,9 @@ describe('buildConditionSQL', () => {
 				conditions: [{ field: 'claim.desk_location_type_id', operator: 'eq', value: 10 }],
 			});
 			const sql = normalizeSql(compiled.sql);
-			expect(sql).toContain('dl.desk_location_type_id IS NOT NULL AND dl.desk_location_type_id = $1');
+			expect(sql).toContain(
+				'dl.desk_location_type_id IS NOT NULL AND dl.desk_location_type_id = $1'
+			);
 			expect(compiled.parameters).toEqual([10]);
 		});
 
@@ -351,7 +355,9 @@ describe('buildConditionSQL', () => {
 				conditions: [{ field: 'claim.previous_desk_location_id', operator: 'eq', value: 3 }],
 			});
 			const sql = normalizeSql(compiled.sql);
-			expect(sql).toContain('cdlt.previous_desk_location_id IS NOT NULL AND cdlt.previous_desk_location_id = $1');
+			expect(sql).toContain(
+				'cdlt.previous_desk_location_id IS NOT NULL AND cdlt.previous_desk_location_id = $1'
+			);
 			expect(compiled.parameters).toEqual([3]);
 		});
 
@@ -372,7 +378,9 @@ describe('buildConditionSQL', () => {
 				conditions: [{ field: 'claim.desk_location_type_id', operator: 'in', value: [1, 2, 3] }],
 			});
 			const sql = normalizeSql(compiled.sql);
-			expect(sql).toContain('dl.desk_location_type_id IS NOT NULL AND dl.desk_location_type_id = ANY($1)');
+			expect(sql).toContain(
+				'dl.desk_location_type_id IS NOT NULL AND dl.desk_location_type_id = ANY($1)'
+			);
 			expect(compiled.parameters).toEqual([[1, 2, 3]]);
 		});
 
@@ -395,7 +403,9 @@ describe('buildConditionSQL', () => {
 		it('values are parameterized, not interpolated', () => {
 			const compiled = compileCondition({
 				logic: 'AND',
-				conditions: [{ field: 'claim.recovery_status', operator: 'eq', value: "'; DROP TABLE claim; --" }],
+				conditions: [
+					{ field: 'claim.recovery_status', operator: 'eq', value: "'; DROP TABLE claim; --" },
+				],
 			});
 			const sql = normalizeSql(compiled.sql);
 			// The malicious string should be in parameters, not in SQL

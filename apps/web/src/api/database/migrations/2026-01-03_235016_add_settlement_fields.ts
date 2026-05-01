@@ -25,15 +25,9 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.addColumn('settlement_structure', 'varchar(20)', (col) => col.defaultTo('lump_sum'))
 		.execute();
 
-	await db.schema
-		.alterTable('settlement')
-		.addColumn('payment_amount', 'numeric(15, 2)')
-		.execute();
+	await db.schema.alterTable('settlement').addColumn('payment_amount', 'numeric(15, 2)').execute();
 
-	await db.schema
-		.alterTable('settlement')
-		.addColumn('payment_frequency', 'varchar(20)')
-		.execute();
+	await db.schema.alterTable('settlement').addColumn('payment_frequency', 'varchar(20)').execute();
 
 	await db.schema
 		.alterTable('settlement')
@@ -89,10 +83,14 @@ export async function down(db: Kysely<any>): Promise<void> {
 	await sql`DROP INDEX IF EXISTS idx_settlement_settled_by`.execute(db);
 
 	// Drop CHECK constraints
-	await sql`ALTER TABLE settlement DROP CONSTRAINT IF EXISTS settled_by_drop_check_exclusive`.execute(db);
+	await sql`ALTER TABLE settlement DROP CONSTRAINT IF EXISTS settled_by_drop_check_exclusive`.execute(
+		db
+	);
 	await sql`ALTER TABLE settlement DROP CONSTRAINT IF EXISTS payment_plan_fields_check`.execute(db);
 	await sql`ALTER TABLE settlement DROP CONSTRAINT IF EXISTS payment_frequency_check`.execute(db);
-	await sql`ALTER TABLE settlement DROP CONSTRAINT IF EXISTS settlement_structure_check`.execute(db);
+	await sql`ALTER TABLE settlement DROP CONSTRAINT IF EXISTS settlement_structure_check`.execute(
+		db
+	);
 
 	// Drop columns
 	await db.schema.alterTable('settlement').dropColumn('is_drop_check').execute();

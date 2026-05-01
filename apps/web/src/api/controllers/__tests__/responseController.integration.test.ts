@@ -40,7 +40,10 @@ describe('responseController integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -65,7 +68,8 @@ describe('responseController integration tests', () => {
 
 		describe('claim status updates', () => {
 			it('should update claim status to IN_PROGRESS when claimStatus is UNWORKED', async () => {
-				const { client, user, claim, checklist, instance, question, answer, ctx } = await setupTestFixtures();
+				const { client, user, claim, checklist, instance, question, answer, ctx } =
+					await setupTestFixtures();
 
 				// Create checklist_claim with UNWORKED status
 				await createTestChecklistClaim(db, {
@@ -103,7 +107,8 @@ describe('responseController integration tests', () => {
 			});
 
 			it('should update claim status to IN_PROGRESS when claimStatus is SUBMITTED', async () => {
-				const { client, user, claim, checklist, instance, question, answer, ctx } = await setupTestFixtures();
+				const { client, user, claim, checklist, instance, question, answer, ctx } =
+					await setupTestFixtures();
 
 				// Create checklist_claim with SUBMITTED status
 				await createTestChecklistClaim(db, {
@@ -141,7 +146,8 @@ describe('responseController integration tests', () => {
 			});
 
 			it('should update claim status to IN_PROGRESS when no claimStatus provided', async () => {
-				const { client, user, claim, checklist, instance, question, answer, ctx } = await setupTestFixtures();
+				const { client, user, claim, checklist, instance, question, answer, ctx } =
+					await setupTestFixtures();
 
 				// Create checklist_claim with some status
 				await createTestChecklistClaim(db, {
@@ -169,7 +175,8 @@ describe('responseController integration tests', () => {
 			});
 
 			it('should NOT update claim status when claimStatus is IN_PROGRESS', async () => {
-				const { client, user, claim, checklist, instance, question, answer, ctx } = await setupTestFixtures();
+				const { client, user, claim, checklist, instance, question, answer, ctx } =
+					await setupTestFixtures();
 
 				// Create checklist_claim with IN_PROGRESS status
 				await createTestChecklistClaim(db, {
@@ -198,7 +205,8 @@ describe('responseController integration tests', () => {
 			});
 
 			it('should NOT update claim status when claimStatus is BLOCKED', async () => {
-				const { client, user, claim, checklist, instance, question, answer, ctx } = await setupTestFixtures();
+				const { client, user, claim, checklist, instance, question, answer, ctx } =
+					await setupTestFixtures();
 
 				// Create checklist_claim with BLOCKED status
 				await createTestChecklistClaim(db, {
@@ -229,7 +237,8 @@ describe('responseController integration tests', () => {
 
 		describe('return values', () => {
 			it('should return updatedInstanceId from the first response', async () => {
-				const { client, user, claim, checklist, instance, question, answer, ctx } = await setupTestFixtures();
+				const { client, user, claim, checklist, instance, question, answer, ctx } =
+					await setupTestFixtures();
 
 				await createTestChecklistClaim(db, {
 					client_id: client.id,
@@ -255,7 +264,8 @@ describe('responseController integration tests', () => {
 			});
 
 			it('should return page instance status', async () => {
-				const { client, user, claim, checklist, instance, question, answer, ctx } = await setupTestFixtures();
+				const { client, user, claim, checklist, instance, question, answer, ctx } =
+					await setupTestFixtures();
 
 				await createTestChecklistClaim(db, {
 					client_id: client.id,
@@ -286,7 +296,8 @@ describe('responseController integration tests', () => {
 			});
 
 			it('should return visible page instance IDs', async () => {
-				const { client, user, claim, checklist, instance, question, answer, ctx } = await setupTestFixtures();
+				const { client, user, claim, checklist, instance, question, answer, ctx } =
+					await setupTestFixtures();
 
 				await createTestChecklistClaim(db, {
 					client_id: client.id,
@@ -344,7 +355,8 @@ describe('responseController integration tests', () => {
 
 		describe('transaction behavior', () => {
 			it('should create response in database', async () => {
-				const { client, user, claim, checklist, instance, question, answer, ctx } = await setupTestFixtures();
+				const { client, user, claim, checklist, instance, question, answer, ctx } =
+					await setupTestFixtures();
 
 				await createTestChecklistClaim(db, {
 					client_id: client.id,
@@ -390,7 +402,10 @@ describe('responseController integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,

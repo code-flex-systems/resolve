@@ -151,10 +151,28 @@ export default function CompactDocumentBrowser({
 		<div style={{ ...styles.container, height }}>
 			{/* Breadcrumbs for navigation - hidden in userFilteredMode */}
 			{!userFilteredMode && (
-				<nav style={{ padding: 16, paddingBottom: 8, display: 'flex', alignItems: 'center', gap: 4, fontSize: 13 }}>
+				<nav
+					style={{
+						padding: 16,
+						paddingBottom: 8,
+						display: 'flex',
+						alignItems: 'center',
+						gap: 4,
+						fontSize: 13,
+					}}
+				>
 					<button
 						onClick={() => !disabled && setCurrentFolderId(null)}
-						style={{ cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1, background: 'none', border: 'none', padding: 0, font: 'inherit', color: currentFolderId === null ? 'var(--text-primary)' : 'var(--text-secondary)', textDecoration: 'none' }}
+						style={{
+							cursor: disabled ? 'default' : 'pointer',
+							opacity: disabled ? 0.5 : 1,
+							background: 'none',
+							border: 'none',
+							padding: 0,
+							font: 'inherit',
+							color: currentFolderId === null ? 'var(--text-primary)' : 'var(--text-secondary)',
+							textDecoration: 'none',
+						}}
 					>
 						Documents
 					</button>
@@ -168,7 +186,16 @@ export default function CompactDocumentBrowser({
 								) : (
 									<button
 										onClick={() => !disabled && setCurrentFolderId(folder.id)}
-										style={{ cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1, background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--text-secondary)', textDecoration: 'none' }}
+										style={{
+											cursor: disabled ? 'default' : 'pointer',
+											opacity: disabled ? 0.5 : 1,
+											background: 'none',
+											border: 'none',
+											padding: 0,
+											font: 'inherit',
+											color: 'var(--text-secondary)',
+											textDecoration: 'none',
+										}}
 									>
 										{folder.name}
 									</button>
@@ -189,7 +216,7 @@ export default function CompactDocumentBrowser({
 			/>
 
 			<div style={{ padding: 8, backgroundColor: '#f5f5f5', borderTop: '1px solid #e0e0e0' }}>
-				<span style={{ fontSize: 11,  color: 'var(--text-secondary)'  }}>
+				<span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
 					Double-click a {filterByType === 'image' ? 'image' : 'document'} to select it
 				</span>
 			</div>
@@ -203,7 +230,12 @@ const COLUMNS: ColumnDef<GridRow, any>[] = [
 		accessorKey: 'name',
 		cell: ({ row: { original: row } }) => {
 			// For user folders, display user's full name and email
-			if (row.type === 'folder' && row.data.group_type === 'user' && row.data.user_first && row.data.user_last) {
+			if (
+				row.type === 'folder' &&
+				row.data.group_type === 'user' &&
+				row.data.user_first &&
+				row.data.user_last
+			) {
 				return (
 					<div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
 						<IconFolder style={{ color: 'var(--text-muted)' }} />
@@ -212,9 +244,7 @@ const COLUMNS: ColumnDef<GridRow, any>[] = [
 								{row.data.user_first} {row.data.user_last}
 							</span>
 							{row.data.user_email && (
-								<span style={{ color: 'var(--text-secondary)' }}>
-									{row.data.user_email}
-								</span>
+								<span style={{ color: 'var(--text-secondary)' }}>{row.data.user_email}</span>
 							)}
 						</div>
 					</div>
@@ -229,9 +259,7 @@ const COLUMNS: ColumnDef<GridRow, any>[] = [
 					) : (
 						<IconFile style={{ color: 'var(--text-muted)' }} />
 					)}
-					<span>
-						{row.type === 'folder' ? row.data.name : row.data.title || row.data.alias}
-					</span>
+					<span>{row.type === 'folder' ? row.data.name : row.data.title || row.data.alias}</span>
 				</div>
 			);
 		},
@@ -251,9 +279,7 @@ const COLUMNS: ColumnDef<GridRow, any>[] = [
 		accessorKey: 'date',
 		size: 150,
 		cell: ({ row: { original: row } }) => (
-			<span style={{ color: 'var(--text-secondary)' }}>
-				{formatMDY(row.data.created_at)}
-			</span>
+			<span style={{ color: 'var(--text-secondary)' }}>{formatMDY(row.data.created_at)}</span>
 		),
 	},
 ];

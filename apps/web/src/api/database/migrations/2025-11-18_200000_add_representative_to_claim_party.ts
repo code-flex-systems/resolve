@@ -11,10 +11,7 @@ import { Kysely, sql } from 'kysely';
 
 export async function up(db: Kysely<any>): Promise<void> {
 	// Add representative_id column
-	await db.schema
-		.alterTable('claim_party')
-		.addColumn('representative_id', 'integer')
-		.execute();
+	await db.schema.alterTable('claim_party').addColumn('representative_id', 'integer').execute();
 
 	// Add foreign key constraint to party_representative
 	await db.schema

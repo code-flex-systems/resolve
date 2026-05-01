@@ -24,20 +24,12 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.execute();
 
 	// Add address reference for facilitator office linking
-	await db.schema
-		.alterTable('claim_party')
-		.addColumn('address_id', 'integer')
-		.execute();
+	await db.schema.alterTable('claim_party').addColumn('address_id', 'integer').execute();
 
 	// Add foreign key constraint to party_address
 	await db.schema
 		.alterTable('claim_party')
-		.addForeignKeyConstraint(
-			'claim_party_address_id_fkey',
-			['address_id'],
-			'party_address',
-			['id']
-		)
+		.addForeignKeyConstraint('claim_party_address_id_fkey', ['address_id'], 'party_address', ['id'])
 		.onDelete('set null')
 		.execute();
 

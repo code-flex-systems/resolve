@@ -41,43 +41,55 @@ export const pageRouter = router({
 		return getPageInstance(ctx, input);
 	}),
 
-	getPageInstances: protectedProcedure.input(getPageInstancesInput).query(async ({ input, ctx }) => {
-		if (!input.parentId) {
-			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-		}
-		return getPageInstances(ctx, input);
-	}),
+	getPageInstances: protectedProcedure
+		.input(getPageInstancesInput)
+		.query(async ({ input, ctx }) => {
+			if (!input.parentId) {
+				requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			}
+			return getPageInstances(ctx, input);
+		}),
 
-	getPageInstanceTree: protectedProcedure.input(getPageInstanceTreeInput).query(async ({ input, ctx }) => {
-		return getPageInstanceTree(ctx, input);
-	}),
+	getPageInstanceTree: protectedProcedure
+		.input(getPageInstanceTreeInput)
+		.query(async ({ input, ctx }) => {
+			return getPageInstanceTree(ctx, input);
+		}),
 
-	getVisiblePageInstances: protectedProcedure.input(getVisiblePageInstancesInput).query(async ({ input, ctx }) => {
-		return getVisiblePageInstances(ctx, input);
-	}),
+	getVisiblePageInstances: protectedProcedure
+		.input(getVisiblePageInstancesInput)
+		.query(async ({ input, ctx }) => {
+			return getVisiblePageInstances(ctx, input);
+		}),
 
 	createPage: protectedProcedure.input(createPageInput).mutation(async ({ input, ctx }) => {
 		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		return createPage(ctx, input);
 	}),
 
-	copyPageTemplate: protectedProcedure.input(copyPageTemplateInput).mutation(async ({ input, ctx }) => {
-		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-		return copyPageTemplate(ctx, input);
-	}),
+	copyPageTemplate: protectedProcedure
+		.input(copyPageTemplateInput)
+		.mutation(async ({ input, ctx }) => {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			return copyPageTemplate(ctx, input);
+		}),
 
-	createPageInstance: protectedProcedure.input(createPageInstanceInput).mutation(async ({ input, ctx }) => {
-		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-		return createPageInstance(ctx, input);
-	}),
+	createPageInstance: protectedProcedure
+		.input(createPageInstanceInput)
+		.mutation(async ({ input, ctx }) => {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			return createPageInstance(ctx, input);
+		}),
 
 	updatePageTemplate: protectedProcedure.input(modifyPageInput).mutation(async ({ input, ctx }) => {
 		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 		return modifyPage(ctx, input);
 	}),
 
-	deletePageInstance: protectedProcedure.input(deletePageInstanceInput).mutation(async ({ input, ctx }) => {
-		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-		return deletePageInstance(ctx, input);
-	}),
+	deletePageInstance: protectedProcedure
+		.input(deletePageInstanceInput)
+		.mutation(async ({ input, ctx }) => {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			return deletePageInstance(ctx, input);
+		}),
 });

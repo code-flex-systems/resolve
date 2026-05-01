@@ -3,18 +3,18 @@ import { z } from 'zod';
 import { QuestionType } from '@/config/enums';
 
 const questionBaseParams = z
-        .object({
-                text: z.string().min(1),
-                type: z.nativeEnum(QuestionType),
-                position: z.number().int().min(1),
-                description_text: z.string().nullable().optional(),
-                description_image_url: z.string().nullable().optional(),
-                placeholder: z.string().nullable().optional(),
-                page_id: z.string().uuid().optional(),
-                hidden: z.boolean().nullable().optional(),
-                id: z.string().uuid().optional(),
-        })
-        .strict();
+	.object({
+		text: z.string().min(1),
+		type: z.nativeEnum(QuestionType),
+		position: z.number().int().min(1),
+		description_text: z.string().nullable().optional(),
+		description_image_url: z.string().nullable().optional(),
+		placeholder: z.string().nullable().optional(),
+		page_id: z.string().uuid().optional(),
+		hidden: z.boolean().nullable().optional(),
+		id: z.string().uuid().optional(),
+	})
+	.strict();
 
 export const questionParams = questionBaseParams;
 export type QuestionParams = z.infer<typeof questionParams>;
@@ -66,8 +66,8 @@ export const getQuestionStatsInput = z.object({
 export type GetQuestionStatsInput = z.infer<typeof getQuestionStatsInput>;
 
 export const modifyQuestionInput = z.object({
-        pageId: z.string().uuid(),
-        questionId: z.string().uuid(),
-        params: questionUpdateParams,
+	pageId: z.string().uuid(),
+	questionId: z.string().uuid(),
+	params: questionUpdateParams,
 });
 export type ModifyQuestionInput = z.infer<typeof modifyQuestionInput>;

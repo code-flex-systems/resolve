@@ -14,7 +14,12 @@ import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import type { Kysely } from 'kysely';
 import type { DB } from '@/api/database/types';
 import { getTestDb, createTestContext } from '@/__tests__/integration/testDb';
-import { createTestClient, createTestUser, resetTestStatuteRule, updateTestStatuteRule } from '@/__tests__/integration/fixtures';
+import {
+	createTestClient,
+	createTestUser,
+	resetTestStatuteRule,
+	updateTestStatuteRule,
+} from '@/__tests__/integration/fixtures';
 import {
 	getStatuteRules,
 	getStatuteRule,
@@ -303,7 +308,12 @@ describe('statuteQueries integration', () => {
 			});
 
 			const withAuto = await getStatuteLimitForScenario(db, TEST_STATE_CODE, 'injury', 'auto');
-			const withHomeowners = await getStatuteLimitForScenario(db, TEST_STATE_CODE, 'injury', 'homeowners');
+			const withHomeowners = await getStatuteLimitForScenario(
+				db,
+				TEST_STATE_CODE,
+				'injury',
+				'homeowners'
+			);
 
 			expect(withAuto.years).toBe(2);
 			expect(withHomeowners.years).toBe(3);

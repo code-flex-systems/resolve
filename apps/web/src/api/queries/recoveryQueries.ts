@@ -186,7 +186,11 @@ export async function listRecoveryEventsWithFilters(
  * @param claimId - claim identifier for verification and recalculation
  * @returns archived recovery event with all fields needed for logging
  */
-export async function archiveRecoveryEvent(ctx: ProtectedContext, recoveryEventId: string, claimId: string) {
+export async function archiveRecoveryEvent(
+	ctx: ProtectedContext,
+	recoveryEventId: string,
+	claimId: string
+) {
 	const clientId = ctx.session.user.client_id!;
 
 	// Soft delete and return all fields needed for logging via RETURNING
@@ -576,7 +580,9 @@ export async function getRecoveryMetricsSummary(
 		.where('claim.client_id', '=', clientId)
 		.where('claim.created_at', '>=', range[0])
 		.where('claim.created_at', '<=', range[1])
-		.$if(!!filters?.recoveryStatus, (qb) => qb.where('claim.recovery_status', '=', filters!.recoveryStatus!))
+		.$if(!!filters?.recoveryStatus, (qb) =>
+			qb.where('claim.recovery_status', '=', filters!.recoveryStatus!)
+		)
 		.$if(!!filters?.checklistId, (qb) =>
 			qb.where('checklist_claim.checklist_id' as any, '=', filters!.checklistId!)
 		)
@@ -634,8 +640,12 @@ export async function getRecoveryMetricsSummary(
 		actualQuery.executeTakeFirst(),
 	]);
 
-	const totalExpected = expectedResult?.total_expected ? parseFloat(expectedResult.total_expected.toString()) : 0;
-	const totalActual = actualResult?.total_actual ? parseFloat(actualResult.total_actual.toString()) : 0;
+	const totalExpected = expectedResult?.total_expected
+		? parseFloat(expectedResult.total_expected.toString())
+		: 0;
+	const totalActual = actualResult?.total_actual
+		? parseFloat(actualResult.total_actual.toString())
+		: 0;
 
 	// Calculate variance and recovery rate
 	const variance = totalActual - totalExpected;
@@ -714,7 +724,11 @@ export async function getRecoveryMetricsTimeSeries(
 		expectedBaseQuery = expectedBaseQuery.where('c.recovery_status', '=', filters.recoveryStatus);
 	}
 	if (filters?.checklistId) {
-		expectedBaseQuery = expectedBaseQuery.where(sql.ref('cc.checklist_id'), '=', filters.checklistId);
+		expectedBaseQuery = expectedBaseQuery.where(
+			sql.ref('cc.checklist_id'),
+			'=',
+			filters.checklistId
+		);
 	}
 	// For recoverySource, use EXISTS to filter claims with matching recovery events
 	if (filters?.recoverySource) {
@@ -731,7 +745,9 @@ export async function getRecoveryMetricsTimeSeries(
 		);
 	}
 
-	const expectedByMonth = expectedBaseQuery.groupBy(sql`date_trunc('month', c.created_at)`).as('expected_by_month');
+	const expectedByMonth = expectedBaseQuery
+		.groupBy(sql`date_trunc('month', c.created_at)`)
+		.as('expected_by_month');
 
 	// ===== ACTUAL BY MONTH CTE (from claim.actual_recovery) =====
 	// Uses the cached claim-level total, grouped by claim.created_at month.
@@ -767,13 +783,19 @@ export async function getRecoveryMetricsTimeSeries(
 		);
 	}
 	if (filters?.recoveryStatus) {
-		actualBaseQuery = actualBaseQuery.where(sql.ref('c2.recovery_status'), '=', filters.recoveryStatus);
+		actualBaseQuery = actualBaseQuery.where(
+			sql.ref('c2.recovery_status'),
+			'=',
+			filters.recoveryStatus
+		);
 	}
 	if (filters?.checklistId) {
 		actualBaseQuery = actualBaseQuery.where(sql.ref('cc2.checklist_id'), '=', filters.checklistId);
 	}
 
-	const actualByMonth = actualBaseQuery.groupBy(sql`date_trunc('month', c2.created_at)`).as('actual_by_month');
+	const actualByMonth = actualBaseQuery
+		.groupBy(sql`date_trunc('month', c2.created_at)`)
+		.as('actual_by_month');
 
 	// Join monthly_series with both expected_by_month and actual_by_month
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -783,7 +805,11 @@ export async function getRecoveryMetricsTimeSeries(
 		'expected_by_month.month_start',
 		'monthly_series.month_start'
 	);
-	joinedQuery = joinedQuery.leftJoin(actualByMonth, 'actual_by_month.month_start', 'monthly_series.month_start');
+	joinedQuery = joinedQuery.leftJoin(
+		actualByMonth,
+		'actual_by_month.month_start',
+		'monthly_series.month_start'
+	);
 
 	const results = await joinedQuery
 		.select([
@@ -822,7 +848,9 @@ export async function getQuarterlyRecoveryStats(
 	const clientId = ctx.session.user.client_id!;
 
 	// Use provided fiscal year start or default from config
-	const fiscalYearStart = params?.fiscalYearStart ? dayjs(params.fiscalYearStart) : getFiscalYearStart();
+	const fiscalYearStart = params?.fiscalYearStart
+		? dayjs(params.fiscalYearStart)
+		: getFiscalYearStart();
 
 	// Calculate quarter date ranges
 	const quarters = [

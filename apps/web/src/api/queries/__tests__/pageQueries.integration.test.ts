@@ -48,7 +48,10 @@ describe('pageQueries integration', () => {
 		it('should create a new page template and instance', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -68,7 +71,10 @@ describe('pageQueries integration', () => {
 			const client2 = await createTestClient(db);
 			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client1.id, created_by: user1.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client1.id,
+				created_by: user1.id,
+			});
 
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
@@ -95,15 +101,41 @@ describe('pageQueries integration', () => {
 		it('should copy a page template with questions and answers', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
-			const page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Original' });
-			const question = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Q1' });
-			await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id, text: 'A1' });
-			await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id, text: 'A2', position: 1 });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
+			const page = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Original',
+			});
+			const question = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Q1',
+			});
+			await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question.id,
+				created_by: user.id,
+				text: 'A1',
+			});
+			await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question.id,
+				created_by: user.id,
+				text: 'A2',
+				position: 1,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			const result = await copyPageTemplate(ctx, checklist.id, page.id, { parentId: null, position: 0 });
+			const result = await copyPageTemplate(ctx, checklist.id, page.id, {
+				parentId: null,
+				position: 0,
+			});
 
 			expect(result.id).not.toBe(page.id);
 			expect(result.title).toBe('Original');
@@ -130,12 +162,18 @@ describe('pageQueries integration', () => {
 		it('should throw if page template does not exist', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			await expect(
-				copyPageTemplate(ctx, checklist.id, '00000000-0000-0000-0000-000000000000', { parentId: null, position: 0 })
+				copyPageTemplate(ctx, checklist.id, '00000000-0000-0000-0000-000000000000', {
+					parentId: null,
+					position: 0,
+				})
 			).rejects.toThrow('Page template does not exist');
 		});
 
@@ -144,7 +182,10 @@ describe('pageQueries integration', () => {
 			const client2 = await createTestClient(db);
 			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client2.id, created_by: user2.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client2.id,
+				created_by: user2.id,
+			});
 			const page = await createTestPage(db, { client_id: client1.id, created_by: user1.id });
 
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
@@ -157,11 +198,22 @@ describe('pageQueries integration', () => {
 		it('should create answer_call_edges for answers that reference instances (bulk INSERT)', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 
 			// Create multiple target page instances that will be referenced by answers
-			const targetPage1 = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Target1' });
-			const targetPage2 = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Target2' });
+			const targetPage1 = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Target1',
+			});
+			const targetPage2 = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Target2',
+			});
 			const targetInstance1 = await createTestPageInstance(db, {
 				client_id: client.id,
 				page_id: targetPage1.id,
@@ -177,7 +229,11 @@ describe('pageQueries integration', () => {
 
 			// Create source page with MULTIPLE questions, each with answers that call different instances
 			// This tests the bulk INSERT with VALUES-based mapping
-			const sourcePage = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Source' });
+			const sourcePage = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Source',
+			});
 
 			// Question 1 with 2 answers (1 with calls_instance_id)
 			const question1 = await createTestQuestion(db, {
@@ -247,7 +303,10 @@ describe('pageQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Copy the page template - this should use the bulk INSERT with VALUES mapping
-			const result = await copyPageTemplate(ctx, checklist.id, sourcePage.id, { parentId: null, position: 0 });
+			const result = await copyPageTemplate(ctx, checklist.id, sourcePage.id, {
+				parentId: null,
+				position: 0,
+			});
 
 			// Verify all questions were copied
 			const copiedQuestions = await db
@@ -288,7 +347,9 @@ describe('pageQueries integration', () => {
 
 			// Verify edge targets
 			const edgeTargets = edges.map((e) => e.to_instance_id).sort();
-			expect(edgeTargets).toEqual([targetInstance1.id, targetInstance1.id, targetInstance2.id].sort());
+			expect(edgeTargets).toEqual(
+				[targetInstance1.id, targetInstance1.id, targetInstance2.id].sort()
+			);
 
 			// Verify all edges have correct checklist_id and client_id
 			expect(edges.every((e) => e.checklist_id === checklist.id)).toBe(true);
@@ -300,7 +361,11 @@ describe('pageQueries integration', () => {
 		it('should return a page template by id', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'My Page' });
+			const page = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'My Page',
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -337,8 +402,18 @@ describe('pageQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const ts = Date.now();
-			await createTestPage(db, { client_id: client.id, created_by: user.id, title: `Page1 ${ts}`, hidden: false });
-			await createTestPage(db, { client_id: client.id, created_by: user.id, title: `Page2 ${ts}`, hidden: false });
+			await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: `Page1 ${ts}`,
+				hidden: false,
+			});
+			await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: `Page2 ${ts}`,
+				hidden: false,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -351,8 +426,18 @@ describe('pageQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const ts = Date.now();
-			const visible = await createTestPage(db, { client_id: client.id, created_by: user.id, title: `Visible ${ts}`, hidden: false });
-			await createTestPage(db, { client_id: client.id, created_by: user.id, title: `Hidden ${ts}`, hidden: true });
+			const visible = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: `Visible ${ts}`,
+				hidden: false,
+			});
+			await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: `Hidden ${ts}`,
+				hidden: true,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -381,7 +466,11 @@ describe('pageQueries integration', () => {
 		it('should update page title', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Original' });
+			const page = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Original',
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -393,7 +482,11 @@ describe('pageQueries integration', () => {
 		it('should update page hidden flag', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const page = await createTestPage(db, { client_id: client.id, created_by: user.id, hidden: false });
+			const page = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				hidden: false,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -421,7 +514,10 @@ describe('pageQueries integration', () => {
 		it('should create a page instance linked to a checklist', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -441,7 +537,10 @@ describe('pageQueries integration', () => {
 		it('should shift positions when inserting', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page1 = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const page2 = await createTestPage(db, { client_id: client.id, created_by: user.id });
 
@@ -476,10 +575,17 @@ describe('pageQueries integration', () => {
 		it('should create answer_call_edges for existing page with calls_instance_id answers', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 
 			// Create a target page instance that will be referenced by an answer
-			const targetPage = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Target' });
+			const targetPage = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Target',
+			});
 			const targetInstance = await createTestPageInstance(db, {
 				client_id: client.id,
 				page_id: targetPage.id,
@@ -488,7 +594,11 @@ describe('pageQueries integration', () => {
 			});
 
 			// Create a page with a question and answer that references the target instance
-			const sourcePage = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Source' });
+			const sourcePage = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Source',
+			});
 			const question = await createTestQuestion(db, {
 				client_id: client.id,
 				page_id: sourcePage.id,
@@ -531,8 +641,15 @@ describe('pageQueries integration', () => {
 		it('should return page instance with page title', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
-			const page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Test Title' });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
+			const page = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Test Title',
+			});
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
 				page_id: page.id,
@@ -564,7 +681,10 @@ describe('pageQueries integration', () => {
 			const client2 = await createTestClient(db);
 			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client1.id, created_by: user1.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client1.id,
+				created_by: user1.id,
+			});
 			const page = await createTestPage(db, { client_id: client1.id, created_by: user1.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client1.id,
@@ -585,7 +705,10 @@ describe('pageQueries integration', () => {
 		it('should delete a page instance', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -610,7 +733,10 @@ describe('pageQueries integration', () => {
 		it('should reorder remaining instances after deletion', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page1 = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const page2 = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const page3 = await createTestPage(db, { client_id: client.id, created_by: user.id });
@@ -659,9 +785,16 @@ describe('pageQueries integration', () => {
 		it('should clear answer calls_instance_id references', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
-			const question = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+			const question = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+			});
 			const targetInstance = await createTestPageInstance(db, {
 				client_id: client.id,
 				page_id: page.id,
@@ -692,11 +825,26 @@ describe('pageQueries integration', () => {
 		it('should clear answer calls, delete instance comments, and reorder siblings', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const page1 = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Page 1' });
-			const page2 = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Page 2' });
-			const page3 = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Page 3' });
+			const page1 = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Page 1',
+			});
+			const page2 = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Page 2',
+			});
+			const page3 = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Page 3',
+			});
 			const question = await createTestQuestion(db, {
 				client_id: client.id,
 				page_id: page1.id,
@@ -782,8 +930,15 @@ describe('pageQueries integration', () => {
 		it('should return a page instance with page template data', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
-			const page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Test' });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
+			const page = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Test',
+			});
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
 				page_id: page.id,
@@ -816,7 +971,10 @@ describe('pageQueries integration', () => {
 			const client2 = await createTestClient(db);
 			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client1.id, created_by: user1.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client1.id,
+				created_by: user1.id,
+			});
 			const page = await createTestPage(db, { client_id: client1.id, created_by: user1.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client1.id,
@@ -835,9 +993,20 @@ describe('pageQueries integration', () => {
 		it('should return all page instances for a checklist', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
-			const page1 = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Page 1' });
-			const page2 = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Page 2' });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
+			const page1 = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Page 1',
+			});
+			const page2 = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Page 2',
+			});
 
 			await createTestPageInstance(db, {
 				client_id: client.id,
@@ -866,9 +1035,20 @@ describe('pageQueries integration', () => {
 		it('should filter by parentId = null (root pages)', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
-			const rootPage = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Root' });
-			const childPage = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Child' });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
+			const rootPage = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Root',
+			});
+			const childPage = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Child',
+			});
 
 			const rootInstance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -896,9 +1076,20 @@ describe('pageQueries integration', () => {
 		it('should filter by specific parentId', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
-			const rootPage = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Root' });
-			const childPage = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Child' });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
+			const rootPage = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Root',
+			});
+			const childPage = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Child',
+			});
 
 			const rootInstance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -928,7 +1119,10 @@ describe('pageQueries integration', () => {
 			const client2 = await createTestClient(db);
 			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client1.id, created_by: user1.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client1.id,
+				created_by: user1.id,
+			});
 			const page = await createTestPage(db, { client_id: client1.id, created_by: user1.id });
 
 			await createTestPageInstance(db, {
@@ -950,9 +1144,16 @@ describe('pageQueries integration', () => {
 		it('should return page instances with status for a claim', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Test' });
+			const page = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Test',
+			});
 
 			await createTestPageInstance(db, {
 				client_id: client.id,
@@ -973,7 +1174,10 @@ describe('pageQueries integration', () => {
 		it('should return STALE status when template version differs', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 
@@ -1009,7 +1213,10 @@ describe('pageQueries integration', () => {
 		it('should return COMPLETE status from page_instance_status', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 
@@ -1042,10 +1249,21 @@ describe('pageQueries integration', () => {
 		it('should filter by parentId = null (root pages)', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const rootPage = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Root' });
-			const childPage = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Child' });
+			const rootPage = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Root',
+			});
+			const childPage = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Child',
+			});
 
 			const rootInstance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -1075,7 +1293,10 @@ describe('pageQueries integration', () => {
 			const client2 = await createTestClient(db);
 			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client1.id, created_by: user1.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client1.id,
+				created_by: user1.id,
+			});
 			const claim = await createTestClaim(db, { client_id: client1.id, created_by: user1.id });
 			const page = await createTestPage(db, { client_id: client1.id, created_by: user1.id });
 
@@ -1098,7 +1319,10 @@ describe('pageQueries integration', () => {
 		it('should return root-level page instances', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 
@@ -1120,7 +1344,10 @@ describe('pageQueries integration', () => {
 		it('should include child instances called via answer responses', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 
 			const rootPage = await createTestPage(db, { client_id: client.id, created_by: user.id });
@@ -1143,7 +1370,11 @@ describe('pageQueries integration', () => {
 			});
 
 			// Create question and answer that calls childInstance
-			const question = await createTestQuestion(db, { client_id: client.id, page_id: rootPage.id, created_by: user.id });
+			const question = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: rootPage.id,
+				created_by: user.id,
+			});
 			const answer = await createTestAnswer(db, {
 				client_id: client.id,
 				question_id: question.id,
@@ -1169,7 +1400,10 @@ describe('pageQueries integration', () => {
 				created_by: user.id,
 				question_id: question.id,
 			});
-			await createTestQuestionResponseAnswer(db, { response_id: response.id, answer_id: answer.id });
+			await createTestQuestionResponseAnswer(db, {
+				response_id: response.id,
+				answer_id: answer.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1184,7 +1418,10 @@ describe('pageQueries integration', () => {
 			const client2 = await createTestClient(db);
 			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client1.id, created_by: user1.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client1.id,
+				created_by: user1.id,
+			});
 			const claim = await createTestClaim(db, { client_id: client1.id, created_by: user1.id });
 			const page = await createTestPage(db, { client_id: client1.id, created_by: user1.id });
 
@@ -1208,7 +1445,10 @@ describe('pageQueries integration', () => {
 		it('should create page instance status', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
@@ -1241,7 +1481,10 @@ describe('pageQueries integration', () => {
 		it('should update existing page instance status (upsert)', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
@@ -1283,7 +1526,10 @@ describe('pageQueries integration', () => {
 		it('should handle multiple instance ids', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			const page1 = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const page2 = await createTestPage(db, { client_id: client.id, created_by: user.id });
@@ -1328,7 +1574,10 @@ describe('pageQueries integration', () => {
 		it('should return correct hierarchical structure with adjacency map', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 
 			// Create a 3-level hierarchy:
 			// Root1 (position 0)
@@ -1337,11 +1586,31 @@ describe('pageQueries integration', () => {
 			//   └── Child2 (position 1)
 			// Root2 (position 1)
 
-			const root1Page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Root1' });
-			const root2Page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Root2' });
-			const child1Page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Child1' });
-			const child2Page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Child2' });
-			const grandchild1Page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Grandchild1' });
+			const root1Page = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Root1',
+			});
+			const root2Page = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Root2',
+			});
+			const child1Page = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Child1',
+			});
+			const child2Page = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Child2',
+			});
+			const grandchild1Page = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Grandchild1',
+			});
 
 			const root1 = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -1437,7 +1706,10 @@ describe('pageQueries integration', () => {
 		it('should return empty tree for checklist with no instances', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1450,9 +1722,16 @@ describe('pageQueries integration', () => {
 		it('should include status when claimId is provided', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Test' });
+			const page = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Test',
+			});
 
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -1476,7 +1755,10 @@ describe('pageQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			const result = await getPageInstanceTree(ctx, { checklistId: checklist.id, claimId: claim.id });
+			const result = await getPageInstanceTree(ctx, {
+				checklistId: checklist.id,
+				claimId: claim.id,
+			});
 
 			expect(result.tree.length).toBe(1);
 			expect(result.tree[0].status).toBe(PageInstanceStatus.COMPLETE);
@@ -1485,13 +1767,32 @@ describe('pageQueries integration', () => {
 		it('should return children in position order', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 
 			// Create parent and multiple children with specific positions
-			const parentPage = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Parent' });
-			const childAPage = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'ChildA' });
-			const childBPage = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'ChildB' });
-			const childCPage = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'ChildC' });
+			const parentPage = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Parent',
+			});
+			const childAPage = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'ChildA',
+			});
+			const childBPage = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'ChildB',
+			});
+			const childCPage = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'ChildC',
+			});
 
 			const parent = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -1553,13 +1854,28 @@ describe('pageQueries integration', () => {
 		it('should return different statuses per instance with claim-filtered path', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 
 			// Create parent with 2 children, each with different status
-			const parentPage = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Parent' });
-			const child1Page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Child1' });
-			const child2Page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Child2' });
+			const parentPage = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Parent',
+			});
+			const child1Page = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Child1',
+			});
+			const child2Page = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Child2',
+			});
 
 			const parent = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -1610,7 +1926,10 @@ describe('pageQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			const result = await getPageInstanceTree(ctx, { checklistId: checklist.id, claimId: claim.id });
+			const result = await getPageInstanceTree(ctx, {
+				checklistId: checklist.id,
+				claimId: claim.id,
+			});
 
 			expect(result.tree.length).toBe(1);
 			const parentNode = result.tree[0];

@@ -26,5 +26,7 @@ export function logAuthMiddleware(
 		if (next < FAILURE_THRESHOLD) return; // don't log yet
 	}
 
-	enqueueLog(() => safeLog(() => logAuthEvent(userId, eventType, { ip, userAgent, details }), 'logAuth'));
+	enqueueLog(() =>
+		safeLog(() => logAuthEvent(userId, eventType, { ip, userAgent, details }), 'logAuth')
+	);
 }

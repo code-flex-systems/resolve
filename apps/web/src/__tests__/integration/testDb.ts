@@ -140,14 +140,17 @@ export async function withRollback<T>(
 	db: Kysely<DB>,
 	fn: (trx: Kysely<DB>) => Promise<T>
 ): Promise<T> {
-	return db.transaction().execute(async (trx) => {
-		const result = await fn(trx);
-		// Force rollback by throwing
-		throw { __rollback: true, result };
-	}).catch((err) => {
-		if (err && err.__rollback) {
-			return err.result as T;
-		}
-		throw err;
-	});
+	return db
+		.transaction()
+		.execute(async (trx) => {
+			const result = await fn(trx);
+			// Force rollback by throwing
+			throw { __rollback: true, result };
+		})
+		.catch((err) => {
+			if (err && err.__rollback) {
+				return err.result as T;
+			}
+			throw err;
+		});
 }

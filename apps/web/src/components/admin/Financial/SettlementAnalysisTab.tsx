@@ -21,7 +21,11 @@ function getCurrentQuarterRange(): [Dayjs, Dayjs] {
 	const startMonth = (now.quarter() - 1) * 3;
 	return [
 		dayjs.utc().year(now.year()).month(startMonth).startOf('month'),
-		dayjs.utc().year(now.year()).month(startMonth + 2).endOf('month'),
+		dayjs
+			.utc()
+			.year(now.year())
+			.month(startMonth + 2)
+			.endOf('month'),
 	];
 }
 
@@ -32,15 +36,15 @@ export default function SettlementAnalysisTab() {
 	const rangeISO = useMemo(
 		() =>
 			range && range[0] && range[1]
-				? ({ range: [range[0].toISOString(), range[1].toISOString()] as [string, string] })
+				? { range: [range[0].toISOString(), range[1].toISOString()] as [string, string] }
 				: null,
 		[range]
 	);
 
-	const { data: capData, isLoading: loadingCap } = api.getCoverageCapUtilization(
-		rangeISO!,
-		{ ...REPORTING_CACHE.MEDIUM, enabled: !!rangeISO }
-	);
+	const { data: capData, isLoading: loadingCap } = api.getCoverageCapUtilization(rangeISO!, {
+		...REPORTING_CACHE.MEDIUM,
+		enabled: !!rangeISO,
+	});
 	const { data: carrierCapData, isLoading: loadingCarrierCap } = api.getCoverageCapByCarrier(
 		rangeISO!,
 		{ ...REPORTING_CACHE.MEDIUM, enabled: !!rangeISO }
@@ -53,7 +57,11 @@ export default function SettlementAnalysisTab() {
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 			<div>
-				<BasicMonthRangePicker defaultLabel="This Quarter" defaultValue={range} onConfirm={setRange} />
+				<BasicMonthRangePicker
+					defaultLabel="This Quarter"
+					defaultValue={range}
+					onConfirm={setRange}
+				/>
 			</div>
 
 			<div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 24 }}>

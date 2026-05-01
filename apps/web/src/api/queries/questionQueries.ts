@@ -15,7 +15,11 @@ import { insertCallEdgesBulk } from './answerQueries';
  * @param params - question fields
  * @returns newly created question
  */
-export async function createQuestion(ctx: ProtectedContext, pageId: string, params: QuestionParams) {
+export async function createQuestion(
+	ctx: ProtectedContext,
+	pageId: string,
+	params: QuestionParams
+) {
 	await ctx.db
 		.updateTable('question')
 		.set((eb) => ({ position: sql`${eb.ref('position')} + 1` }))
@@ -331,7 +335,9 @@ export async function getQuestionStats(
 			'answer.question_id',
 			'answer.id as answer_id',
 			'answer.text as answer_text',
-			sql<string>`COUNT(CASE WHEN ${countCondition} THEN question_response.id END)`.as('answer_count'),
+			sql<string>`COUNT(CASE WHEN ${countCondition} THEN question_response.id END)`.as(
+				'answer_count'
+			),
 		])
 		.where('question.client_id', '=', ctx.session.user.client_id)
 		.where('question.page_id', '=', pageId)
@@ -374,11 +380,13 @@ export async function modifyQuestion(
 	if (params.text) updates.text = params.text;
 	if (params.type) updates.type = params.type;
 	if (params.description_text != null) updates.description_text = params.description_text;
-	if (params.description_image_url !== undefined) updates.description_image_url = params.description_image_url;
+	if (params.description_image_url !== undefined)
+		updates.description_image_url = params.description_image_url;
 	if (params.placeholder !== undefined) updates.placeholder = params.placeholder;
 	if (params.hidden !== undefined) updates.hidden = params.hidden;
 	if (params.page_id) updates.page_id = params.page_id;
-	if (params.position && params.position !== existingQuestion.position) updates.position = params.position;
+	if (params.position && params.position !== existingQuestion.position)
+		updates.position = params.position;
 
 	// Check if converting to free-form
 	const convertingToFreeform =

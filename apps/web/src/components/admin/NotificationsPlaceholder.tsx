@@ -20,9 +20,7 @@ export default function NotificationsPlaceholder() {
 					}}
 				>
 					<IconBell size={40} style={{ color: 'var(--text-muted)' }} />
-					<span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
-						No notifications yet
-					</span>
+					<span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>No notifications yet</span>
 					<span
 						style={{
 							fontSize: 12,

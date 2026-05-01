@@ -23,7 +23,10 @@ export async function getCoverages(ctx: ProtectedContext, { claimId }: { claimId
  * @param claimPartyId - claim party identifier
  * @returns array of coverages
  */
-export async function getCoveragesByClaimParty(ctx: ProtectedContext, { claimPartyId }: { claimPartyId: string }) {
+export async function getCoveragesByClaimParty(
+	ctx: ProtectedContext,
+	{ claimPartyId }: { claimPartyId: string }
+) {
 	return await coverageQueries.getCoveragesByClaimParty(ctx, claimPartyId);
 }
 
@@ -38,7 +41,10 @@ export async function getCoveragesByClaimParty(ctx: ProtectedContext, { claimPar
 export async function createCoverage(ctx: ProtectedContext, params: CreateCoverageInput) {
 	// Create coverage and log admin action within transaction
 	const result = await ctx.db.transaction().execute(async (trx) => {
-		const { coverage, totalIncurred } = await coverageQueries.createCoverage({ ...ctx, db: trx }, params);
+		const { coverage, totalIncurred } = await coverageQueries.createCoverage(
+			{ ...ctx, db: trx },
+			params
+		);
 
 		// Log admin action
 		await logAdminAction(
@@ -78,7 +84,11 @@ export async function updateCoverage(
 ) {
 	// Update coverage and log admin action within transaction
 	const result = await ctx.db.transaction().execute(async (trx) => {
-		const { coverage, totalIncurred } = await coverageQueries.updateCoverage({ ...ctx, db: trx }, id, params);
+		const { coverage, totalIncurred } = await coverageQueries.updateCoverage(
+			{ ...ctx, db: trx },
+			id,
+			params
+		);
 
 		// Log admin action
 		await logAdminAction(

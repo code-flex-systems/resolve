@@ -21,7 +21,11 @@ import { useAlertStore } from '@/stores/useAlertStore';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
 import { formatThresholdType, getThresholdUnit } from '@/lib/utils/workflowUtils';
 import { formatMDY } from '@/lib/utils/utils';
-import type { WorkflowThreshold, WorkflowRule, RuleExecutionSummary } from '@/hooks/trpc/useWorkflowTrpc';
+import type {
+	WorkflowThreshold,
+	WorkflowRule,
+	RuleExecutionSummary,
+} from '@/hooks/trpc/useWorkflowTrpc';
 import Tooltip from '@/components/ui/Tooltip';
 
 interface WorkflowDetailPanelProps {
@@ -49,7 +53,8 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 		isActive: true,
 	});
 
-	const { getDefinition, updateDefinition, archiveThreshold, archiveRule, executeRule } = useWorkflowTrpc();
+	const { getDefinition, updateDefinition, archiveThreshold, archiveRule, executeRule } =
+		useWorkflowTrpc();
 	const { listLocations } = useDeskTrpc();
 	const showAlert = useAlertStore((state) => state.showAlert);
 
@@ -187,18 +192,26 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 			<div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
 				{/* Section 1: Workflow Definition */}
 				<Card variant="float" padding="md">
-					<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-						<span style={{ fontSize: 13, color: 'var(--text-muted)', letterSpacing: 'var(--tracking-wide)' }}>
+					<div
+						style={{
+							display: 'flex',
+							justifyContent: 'space-between',
+							alignItems: 'flex-start',
+							marginBottom: 16,
+						}}
+					>
+						<span
+							style={{
+								fontSize: 13,
+								color: 'var(--text-muted)',
+								letterSpacing: 'var(--tracking-wide)',
+							}}
+						>
 							WORKFLOW DEFINITION
 						</span>
 						{!isEditing && (
 							<Tooltip content="Edit Workflow">
-								<Button
-									variant="icon"
-									size="sm"
-									color="neutral"
-									onClick={() => setIsEditing(true)}
-								>
+								<Button variant="icon" size="sm" color="neutral" onClick={() => setIsEditing(true)}>
 									<IconEdit size={16} />
 								</Button>
 							</Tooltip>
@@ -243,20 +256,29 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 							/>
 
 							<div style={{ display: 'flex', gap: 8 }}>
-								<Button variant="contained" onClick={handleSave} disabled={!formData.name.trim() || updateDefinition.isPending} size="sm">
+								<Button
+									variant="contained"
+									onClick={handleSave}
+									disabled={!formData.name.trim() || updateDefinition.isPending}
+									size="sm"
+								>
 									Save
 								</Button>
-								<Button variant="outlined" onClick={() => {
-											setIsEditing(false);
-											const loc = locations.find((l) => l.id === workflow.desk_location_id);
-											setFormData({
-												name: workflow.name,
-												description: workflow.description || '',
-												deskLocationTypeId: loc?.desk_location_type_id || null,
-												deskLocationId: workflow.desk_location_id,
-												isActive: workflow.is_active,
-											});
-										}} size="sm">
+								<Button
+									variant="outlined"
+									onClick={() => {
+										setIsEditing(false);
+										const loc = locations.find((l) => l.id === workflow.desk_location_id);
+										setFormData({
+											name: workflow.name,
+											description: workflow.description || '',
+											deskLocationTypeId: loc?.desk_location_type_id || null,
+											deskLocationId: workflow.desk_location_id,
+											isActive: workflow.is_active,
+										});
+									}}
+									size="sm"
+								>
 									Cancel
 								</Button>
 							</div>
@@ -289,10 +311,16 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 									</span>
 								)}
 								<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-									Created: {workflow.created_at ? formatMDY(new Date(workflow.created_at).toISOString()) : 'N/A'}
+									Created:{' '}
+									{workflow.created_at
+										? formatMDY(new Date(workflow.created_at).toISOString())
+										: 'N/A'}
 								</span>
 								<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-									Updated: {workflow.updated_at ? formatMDY(new Date(workflow.updated_at).toISOString()) : 'N/A'}
+									Updated:{' '}
+									{workflow.updated_at
+										? formatMDY(new Date(workflow.updated_at).toISOString())
+										: 'N/A'}
 								</span>
 							</div>
 						</div>
@@ -302,20 +330,40 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 				{/* Section 2: Thresholds (Beveled Container with Table) */}
 				<Card variant="beveled" padding="none">
 					<div style={{ padding: 16 }}>
-						<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
-							Thresholds set SLA boundaries. When a claim exceeds these limits, it's flagged for attention.
+						<p
+							style={{
+								color: 'var(--text-secondary)',
+								fontSize: 13,
+								margin: '0 0 12px',
+								lineHeight: 1.5,
+							}}
+						>
+							Thresholds set SLA boundaries. When a claim exceeds these limits, it's flagged for
+							attention.
 						</p>
-						<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+						<div
+							style={{
+								display: 'flex',
+								justifyContent: 'space-between',
+								alignItems: 'center',
+								marginBottom: 16,
+							}}
+						>
 							<span style={{ fontSize: 13, fontWeight: 600 }}>
 								SLA & Capacity Thresholds ({thresholds.length})
 							</span>
-							<Button variant="outlined" onClick={() => setShowThresholdDialog(true)} startIcon={<IconPlus size={16} />} size="sm">
+							<Button
+								variant="outlined"
+								onClick={() => setShowThresholdDialog(true)}
+								startIcon={<IconPlus size={16} />}
+								size="sm"
+							>
 								Threshold
 							</Button>
 						</div>
 
 						{thresholds.length === 0 ? (
-							<span style={{ fontSize: 14,  color: 'var(--text-secondary)'  }}>
+							<span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
 								No thresholds configured
 							</span>
 						) : (
@@ -323,38 +371,109 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 								<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
 									<thead>
 										<tr>
-											<th style={{ textAlign: 'left', fontWeight: 600, fontSize: 12, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>Type</th>
-											<th style={{ textAlign: 'left', fontWeight: 600, fontSize: 12, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>Value</th>
-											<th style={{ textAlign: 'left', fontWeight: 600, fontSize: 12, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>Status</th>
-											<th style={{ textAlign: 'left', fontWeight: 600, fontSize: 12, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', padding: '8px 12px', borderBottom: '1px solid var(--border)', width: 100 }}>Actions</th>
+											<th
+												style={{
+													textAlign: 'left',
+													fontWeight: 600,
+													fontSize: 12,
+													color: 'var(--text-secondary)',
+													textTransform: 'uppercase',
+													letterSpacing: '0.04em',
+													padding: '8px 12px',
+													borderBottom: '1px solid var(--border)',
+												}}
+											>
+												Type
+											</th>
+											<th
+												style={{
+													textAlign: 'left',
+													fontWeight: 600,
+													fontSize: 12,
+													color: 'var(--text-secondary)',
+													textTransform: 'uppercase',
+													letterSpacing: '0.04em',
+													padding: '8px 12px',
+													borderBottom: '1px solid var(--border)',
+												}}
+											>
+												Value
+											</th>
+											<th
+												style={{
+													textAlign: 'left',
+													fontWeight: 600,
+													fontSize: 12,
+													color: 'var(--text-secondary)',
+													textTransform: 'uppercase',
+													letterSpacing: '0.04em',
+													padding: '8px 12px',
+													borderBottom: '1px solid var(--border)',
+												}}
+											>
+												Status
+											</th>
+											<th
+												style={{
+													textAlign: 'left',
+													fontWeight: 600,
+													fontSize: 12,
+													color: 'var(--text-secondary)',
+													textTransform: 'uppercase',
+													letterSpacing: '0.04em',
+													padding: '8px 12px',
+													borderBottom: '1px solid var(--border)',
+													width: 100,
+												}}
+											>
+												Actions
+											</th>
 										</tr>
 									</thead>
 									<tbody>
 										{thresholds.map((threshold) => (
 											<tr key={threshold.id}>
-												<td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>
+												<td
+													style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)' }}
+												>
 													{formatThresholdType(threshold.threshold_type as any)}
 												</td>
-												<td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>
+												<td
+													style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)' }}
+												>
 													{threshold.threshold_value}{' '}
 													{getThresholdUnit(threshold.threshold_type as any)}
 												</td>
-												<td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>
-													<Chip
-														size="sm"
-														color={threshold.is_active ? 'success' : 'neutral'}>{threshold.is_active ? 'Active' : 'Inactive'}</Chip>
+												<td
+													style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)' }}
+												>
+													<Chip size="sm" color={threshold.is_active ? 'success' : 'neutral'}>
+														{threshold.is_active ? 'Active' : 'Inactive'}
+													</Chip>
 												</td>
-												<td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>
+												<td
+													style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)' }}
+												>
 													<div style={{ display: 'flex', gap: 4 }}>
 														<Tooltip content="Edit Threshold">
-															<Button variant="icon" size="sm" color="neutral" onClick={() => handleEditThreshold(threshold)}>
-															<IconEdit size={16} />
-														</Button>
+															<Button
+																variant="icon"
+																size="sm"
+																color="neutral"
+																onClick={() => handleEditThreshold(threshold)}
+															>
+																<IconEdit size={16} />
+															</Button>
 														</Tooltip>
 														<Tooltip content="Archive Threshold">
-															<Button variant="icon" size="sm" color="neutral" onClick={() => handleArchiveThreshold(threshold)}>
-															<IconArchive size={16} />
-														</Button>
+															<Button
+																variant="icon"
+																size="sm"
+																color="neutral"
+																onClick={() => handleArchiveThreshold(threshold)}
+															>
+																<IconArchive size={16} />
+															</Button>
 														</Tooltip>
 													</div>
 												</td>
@@ -370,20 +489,40 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 				{/* Section 3: Rules (Beveled Container with Containerized Items) */}
 				<Card variant="beveled" padding="none">
 					<div style={{ padding: 16 }}>
-						<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
-							Rules automate claim routing based on conditions. Rules in Suggest mode require admin approval before execution.
+						<p
+							style={{
+								color: 'var(--text-secondary)',
+								fontSize: 13,
+								margin: '0 0 12px',
+								lineHeight: 1.5,
+							}}
+						>
+							Rules automate claim routing based on conditions. Rules in Suggest mode require admin
+							approval before execution.
 						</p>
-						<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+						<div
+							style={{
+								display: 'flex',
+								justifyContent: 'space-between',
+								alignItems: 'center',
+								marginBottom: 16,
+							}}
+						>
 							<span style={{ fontSize: 13, fontWeight: 600 }}>
 								Automation Rules ({rules.length})
 							</span>
-							<Button variant="outlined" onClick={() => setShowRuleDialog(true)} startIcon={<IconPlus size={16} />} size="sm">
+							<Button
+								variant="outlined"
+								onClick={() => setShowRuleDialog(true)}
+								startIcon={<IconPlus size={16} />}
+								size="sm"
+							>
 								Rule
 							</Button>
 						</div>
 
 						{rules.length === 0 ? (
-							<span style={{ fontSize: 14,  color: 'var(--text-secondary)'  }}>
+							<span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
 								No rules configured
 							</span>
 						) : (
@@ -407,7 +546,14 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 				{/* Section 4: Execution History */}
 				<Card variant="beveled" padding="none">
 					<div style={{ padding: 16 }}>
-						<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+						<div
+							style={{
+								display: 'flex',
+								justifyContent: 'space-between',
+								alignItems: 'center',
+								marginBottom: 16,
+							}}
+						>
 							<span style={{ fontSize: 13, fontWeight: 600 }}>Execution History</span>
 							<div style={{ minWidth: 160 }}>
 								<Dropdown
@@ -438,7 +584,11 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 			)}
 
 			{showRuleDialog && (
-				<WorkflowRuleDialog onClose={handleCloseRuleDialog} workflowId={workflowId} editingRule={editingRule} />
+				<WorkflowRuleDialog
+					onClose={handleCloseRuleDialog}
+					workflowId={workflowId}
+					editingRule={editingRule}
+				/>
 			)}
 
 			{/* Archive Confirmation Dialogs */}
@@ -457,7 +607,8 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 				>
 					<span>
 						Are you sure you want to archive the threshold "
-						{formatThresholdType(archivingThreshold.threshold_type as any)}"? This action cannot be undone.
+						{formatThresholdType(archivingThreshold.threshold_type as any)}"? This action cannot be
+						undone.
 					</span>
 				</BasicDialog>
 			)}
@@ -476,7 +627,8 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 					width={500}
 				>
 					<span>
-						Are you sure you want to archive the rule "{archivingRule.name}"? This action cannot be undone.
+						Are you sure you want to archive the rule "{archivingRule.name}"? This action cannot be
+						undone.
 					</span>
 				</BasicDialog>
 			)}

@@ -103,7 +103,9 @@ function DescriptionCell({ row, compact }: { row: any; value?: any } & { compact
 								flexWrap: 'wrap',
 							}}
 						>
-							<span style={{ fontStyle: 'italic', fontSize: 13, marginRight: '5px' }}>to answer(s)</span>
+							<span style={{ fontStyle: 'italic', fontSize: 13, marginRight: '5px' }}>
+								to answer(s)
+							</span>
 							{row.new_response_text ? (
 								<Chip size="sm">{row.new_response_text}</Chip>
 							) : (
@@ -142,7 +144,9 @@ function DescriptionCell({ row, compact }: { row: any; value?: any } & { compact
 								flexWrap: 'wrap',
 							}}
 						>
-							<span style={{ fontStyle: 'italic', fontSize: 13, marginRight: '5px' }}>Answers were </span>
+							<span style={{ fontStyle: 'italic', fontSize: 13, marginRight: '5px' }}>
+								Answers were{' '}
+							</span>
 							{row.old_response_text ? (
 								<Chip size="sm">{row.old_response_text}</Chip>
 							) : (
@@ -249,29 +253,36 @@ export default function UserActivityTable({
 	showPagination?: boolean;
 	onCountChange?: (count: number) => void;
 }) {
-	const [constraints, setConstraints] = useState<{ page: number; pageSize: number }>({ page: 0, pageSize });
+	const [constraints, setConstraints] = useState<{ page: number; pageSize: number }>({
+		page: 0,
+		pageSize,
+	});
 
 	const filters = useMemo(
 		() => ({
 			checklistId,
 			claimId,
 			emails: users.map((u) => u.email),
-			range: [range[0]?.toString() ?? null, range[1]?.toString() ?? null] as [string | null, string | null],
+			range: [range[0]?.toString() ?? null, range[1]?.toString() ?? null] as [
+				string | null,
+				string | null,
+			],
 			searchTerm,
 		}),
 		[checklistId, claimId, users, range, searchTerm]
 	);
 
-	const { data: logs = { rows: [], count: undefined }, isFetching: isFetchingLogs } = useResponseTrpc().listLogs(
-		{
-			filters,
-			limit: constraints.pageSize,
-			offset: constraints.page * constraints.pageSize,
-		},
-		{
-			enabled: range.every((r) => !!r),
-		}
-	);
+	const { data: logs = { rows: [], count: undefined }, isFetching: isFetchingLogs } =
+		useResponseTrpc().listLogs(
+			{
+				filters,
+				limit: constraints.pageSize,
+				offset: constraints.page * constraints.pageSize,
+			},
+			{
+				enabled: range.every((r) => !!r),
+			}
+		);
 
 	const columns = useMemo(() => {
 		const gridColumns: ColumnDef<any, any>[] = [

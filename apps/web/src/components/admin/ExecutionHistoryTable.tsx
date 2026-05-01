@@ -9,7 +9,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import dayjs from 'dayjs';
 import { useWorkflowTrpc, RuleExecutionHistory } from '@/hooks/trpc/useWorkflowTrpc';
 import { RuleExecutionStatus, WorkflowActionType, WorkflowTriggerType } from '@/config/enums';
-import { EXECUTION_STATUS_CONFIG, formatActionType, formatTriggerType } from '@/lib/utils/workflowUtils';
+import {
+	EXECUTION_STATUS_CONFIG,
+	formatActionType,
+	formatTriggerType,
+} from '@/lib/utils/workflowUtils';
 import CustomNoRowsOverlay from '../common/CustomNoRowsOverlay';
 import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
@@ -29,7 +33,10 @@ function NoRows() {
 	);
 }
 
-export default function ExecutionHistoryTable({ ruleId, compact = false }: ExecutionHistoryTableProps) {
+export default function ExecutionHistoryTable({
+	ruleId,
+	compact = false,
+}: ExecutionHistoryTableProps) {
 	// Pages already loaded (does not include the current `data` page — that's appended at render time).
 	const [previousPages, setPreviousPages] = useState<ExecutionRow[]>([]);
 	const [cursor, setCursor] = useState<{ createdAt: string; id: string } | undefined>();
@@ -178,12 +185,20 @@ export default function ExecutionHistoryTable({ ruleId, compact = false }: Execu
 						marginBottom: 16,
 					}}
 				>
-					<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
-						View the history of all workflow rule executions, including actions taken, pending approvals,
-						and failures.
+					<p
+						style={{
+							color: 'var(--text-secondary)',
+							fontSize: 13,
+							margin: '0 0 12px',
+							lineHeight: 1.5,
+						}}
+					>
+						View the history of all workflow rule executions, including actions taken, pending
+						approvals, and failures.
 					</p>
 					<div style={{ minWidth: 160 }}>
-						<Dropdown inlineLabel
+						<Dropdown
+							inlineLabel
 							label="Status"
 							options={[
 								{ value: '', label: 'All' },

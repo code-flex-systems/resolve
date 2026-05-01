@@ -112,13 +112,16 @@ describe('getDocsInGroupRecursive', () => {
 				createMockDoc({ id: 2, doc_group_id: 10 }),
 			];
 
-			vi.spyOn(db, 'withRecursive').mockImplementation(() => ({
-				selectFrom: vi.fn().mockReturnThis(),
-				innerJoin: vi.fn().mockReturnThis(),
-				selectAll: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				execute: vi.fn().mockResolvedValue(mockDocs),
-			}) as any);
+			vi.spyOn(db, 'withRecursive').mockImplementation(
+				() =>
+					({
+						selectFrom: vi.fn().mockReturnThis(),
+						innerJoin: vi.fn().mockReturnThis(),
+						selectAll: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						execute: vi.fn().mockResolvedValue(mockDocs),
+					}) as any
+			);
 
 			const result = await getDocsInGroupRecursive(mockContext, 'group-10');
 
@@ -135,13 +138,16 @@ describe('getDocsInGroupRecursive', () => {
 				createMockDoc({ id: 4, doc_group_id: 12 }),
 			];
 
-			vi.spyOn(db, 'withRecursive').mockImplementation(() => ({
-				selectFrom: vi.fn().mockReturnThis(),
-				innerJoin: vi.fn().mockReturnThis(),
-				selectAll: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				execute: vi.fn().mockResolvedValue(mockDocs),
-			}) as any);
+			vi.spyOn(db, 'withRecursive').mockImplementation(
+				() =>
+					({
+						selectFrom: vi.fn().mockReturnThis(),
+						innerJoin: vi.fn().mockReturnThis(),
+						selectAll: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						execute: vi.fn().mockResolvedValue(mockDocs),
+					}) as any
+			);
 
 			const result = await getDocsInGroupRecursive(mockContext, 'group-10');
 
@@ -151,13 +157,16 @@ describe('getDocsInGroupRecursive', () => {
 		});
 
 		it('should return empty array for group with no documents', async () => {
-			vi.spyOn(db, 'withRecursive').mockImplementation(() => ({
-				selectFrom: vi.fn().mockReturnThis(),
-				innerJoin: vi.fn().mockReturnThis(),
-				selectAll: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				execute: vi.fn().mockResolvedValue([]),
-			}) as any);
+			vi.spyOn(db, 'withRecursive').mockImplementation(
+				() =>
+					({
+						selectFrom: vi.fn().mockReturnThis(),
+						innerJoin: vi.fn().mockReturnThis(),
+						selectAll: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						execute: vi.fn().mockResolvedValue([]),
+					}) as any
+			);
 
 			const result = await getDocsInGroupRecursive(mockContext, 'group-999');
 
@@ -168,13 +177,16 @@ describe('getDocsInGroupRecursive', () => {
 	describe('Client Scoping', () => {
 		it('should filter by client_id in both CTE base and recursive parts', async () => {
 			const mockWhere = vi.fn().mockReturnThis();
-			vi.spyOn(db, 'withRecursive').mockImplementation(() => ({
-				selectFrom: vi.fn().mockReturnThis(),
-				innerJoin: vi.fn().mockReturnThis(),
-				selectAll: vi.fn().mockReturnThis(),
-				where: mockWhere,
-				execute: vi.fn().mockResolvedValue([]),
-			}) as any);
+			vi.spyOn(db, 'withRecursive').mockImplementation(
+				() =>
+					({
+						selectFrom: vi.fn().mockReturnThis(),
+						innerJoin: vi.fn().mockReturnThis(),
+						selectAll: vi.fn().mockReturnThis(),
+						where: mockWhere,
+						execute: vi.fn().mockResolvedValue([]),
+					}) as any
+			);
 
 			await getDocsInGroupRecursive(mockContext, 'group-10');
 
@@ -186,13 +198,16 @@ describe('getDocsInGroupRecursive', () => {
 	describe('Return Value Structure', () => {
 		it('should return full document records', async () => {
 			const mockDoc = createMockDoc();
-			vi.spyOn(db, 'withRecursive').mockImplementation(() => ({
-				selectFrom: vi.fn().mockReturnThis(),
-				innerJoin: vi.fn().mockReturnThis(),
-				selectAll: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				execute: vi.fn().mockResolvedValue([mockDoc]),
-			}) as any);
+			vi.spyOn(db, 'withRecursive').mockImplementation(
+				() =>
+					({
+						selectFrom: vi.fn().mockReturnThis(),
+						innerJoin: vi.fn().mockReturnThis(),
+						selectAll: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						execute: vi.fn().mockResolvedValue([mockDoc]),
+					}) as any
+			);
 
 			const result = await getDocsInGroupRecursive(mockContext, 'group-10');
 
@@ -210,13 +225,16 @@ describe('getDocsInGroupRecursive', () => {
 				createMockDoc({ id: i + 1, doc_group_id: 10 + (i % 5) })
 			);
 
-			vi.spyOn(db, 'withRecursive').mockImplementation(() => ({
-				selectFrom: vi.fn().mockReturnThis(),
-				innerJoin: vi.fn().mockReturnThis(),
-				selectAll: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				execute: vi.fn().mockResolvedValue(mockDocs),
-			}) as any);
+			vi.spyOn(db, 'withRecursive').mockImplementation(
+				() =>
+					({
+						selectFrom: vi.fn().mockReturnThis(),
+						innerJoin: vi.fn().mockReturnThis(),
+						selectAll: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						execute: vi.fn().mockResolvedValue(mockDocs),
+					}) as any
+			);
 
 			const result = await getDocsInGroupRecursive(mockContext, 'group-10');
 
@@ -228,13 +246,16 @@ describe('getDocsInGroupRecursive', () => {
 				createMockDoc({ id: i + 1, doc_group_id: 10 })
 			);
 
-			vi.spyOn(db, 'withRecursive').mockImplementation(() => ({
-				selectFrom: vi.fn().mockReturnThis(),
-				innerJoin: vi.fn().mockReturnThis(),
-				selectAll: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				execute: vi.fn().mockResolvedValue(mockDocs),
-			}) as any);
+			vi.spyOn(db, 'withRecursive').mockImplementation(
+				() =>
+					({
+						selectFrom: vi.fn().mockReturnThis(),
+						innerJoin: vi.fn().mockReturnThis(),
+						selectAll: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						execute: vi.fn().mockResolvedValue(mockDocs),
+					}) as any
+			);
 
 			const result = await getDocsInGroupRecursive(mockContext, 'group-10');
 
@@ -265,27 +286,36 @@ describe('getSharedFolderContents', () => {
 			});
 
 			// Mock insertInto for getOrCreateSharedFolder
-			vi.spyOn(db, 'insertInto').mockImplementation(() => ({
-				values: vi.fn().mockReturnThis(),
-				onConflict: vi.fn().mockReturnThis(),
-				returningAll: vi.fn().mockReturnThis(),
-				executeTakeFirst: vi.fn().mockResolvedValue(mockSharedFolder),
-			}) as any);
+			vi.spyOn(db, 'insertInto').mockImplementation(
+				() =>
+					({
+						values: vi.fn().mockReturnThis(),
+						onConflict: vi.fn().mockReturnThis(),
+						returningAll: vi.fn().mockReturnThis(),
+						executeTakeFirst: vi.fn().mockResolvedValue(mockSharedFolder),
+					}) as any
+			);
 
 			// Mock selectFrom for fetching shared folder and child folders
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				selectAll: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirstOrThrow: vi.fn().mockResolvedValue(mockSharedFolder),
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						selectAll: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						executeTakeFirstOrThrow: vi.fn().mockResolvedValue(mockSharedFolder),
+					}) as any
+			);
 
 			// Mock withRecursive for child folders
-			vi.spyOn(db, 'withRecursive').mockImplementation(() => ({
-				selectFrom: vi.fn().mockReturnThis(),
-				selectAll: vi.fn().mockReturnThis(),
-				orderBy: vi.fn().mockReturnThis(),
-				execute: vi.fn().mockResolvedValue([]),
-			}) as any);
+			vi.spyOn(db, 'withRecursive').mockImplementation(
+				() =>
+					({
+						selectFrom: vi.fn().mockReturnThis(),
+						selectAll: vi.fn().mockReturnThis(),
+						orderBy: vi.fn().mockReturnThis(),
+						execute: vi.fn().mockResolvedValue([]),
+					}) as any
+			);
 
 			const result = await getSharedFolderContents(mockContext);
 
@@ -302,29 +332,38 @@ describe('getSharedFolderContents', () => {
 			});
 
 			// Mock insertInto returning null (conflict = folder exists)
-			vi.spyOn(db, 'insertInto').mockImplementation(() => ({
-				values: vi.fn().mockReturnThis(),
-				onConflict: vi.fn().mockReturnThis(),
-				returningAll: vi.fn().mockReturnThis(),
-				executeTakeFirst: vi.fn().mockResolvedValue(null),
-			}) as any);
+			vi.spyOn(db, 'insertInto').mockImplementation(
+				() =>
+					({
+						values: vi.fn().mockReturnThis(),
+						onConflict: vi.fn().mockReturnThis(),
+						returningAll: vi.fn().mockReturnThis(),
+						executeTakeFirst: vi.fn().mockResolvedValue(null),
+					}) as any
+			);
 
 			// Mock selectFrom for fetching existing folder
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				select: vi.fn().mockReturnThis(),
-				selectAll: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirst: vi.fn().mockResolvedValue({ id: 5 }),
-				executeTakeFirstOrThrow: vi.fn().mockResolvedValue(mockSharedFolder),
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						select: vi.fn().mockReturnThis(),
+						selectAll: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						executeTakeFirst: vi.fn().mockResolvedValue({ id: 5 }),
+						executeTakeFirstOrThrow: vi.fn().mockResolvedValue(mockSharedFolder),
+					}) as any
+			);
 
 			// Mock withRecursive for child folders
-			vi.spyOn(db, 'withRecursive').mockImplementation(() => ({
-				selectFrom: vi.fn().mockReturnThis(),
-				selectAll: vi.fn().mockReturnThis(),
-				orderBy: vi.fn().mockReturnThis(),
-				execute: vi.fn().mockResolvedValue([]),
-			}) as any);
+			vi.spyOn(db, 'withRecursive').mockImplementation(
+				() =>
+					({
+						selectFrom: vi.fn().mockReturnThis(),
+						selectAll: vi.fn().mockReturnThis(),
+						orderBy: vi.fn().mockReturnThis(),
+						execute: vi.fn().mockResolvedValue([]),
+					}) as any
+			);
 
 			const result = await getSharedFolderContents(mockContext);
 
@@ -346,25 +385,34 @@ describe('getSharedFolderContents', () => {
 				createMockDocGroup({ id: 4, name: 'Q1 Reports', parent_group_id: 2 }),
 			];
 
-			vi.spyOn(db, 'insertInto').mockImplementation(() => ({
-				values: vi.fn().mockReturnThis(),
-				onConflict: vi.fn().mockReturnThis(),
-				returningAll: vi.fn().mockReturnThis(),
-				executeTakeFirst: vi.fn().mockResolvedValue(mockSharedFolder),
-			}) as any);
+			vi.spyOn(db, 'insertInto').mockImplementation(
+				() =>
+					({
+						values: vi.fn().mockReturnThis(),
+						onConflict: vi.fn().mockReturnThis(),
+						returningAll: vi.fn().mockReturnThis(),
+						executeTakeFirst: vi.fn().mockResolvedValue(mockSharedFolder),
+					}) as any
+			);
 
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				selectAll: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirstOrThrow: vi.fn().mockResolvedValue(mockSharedFolder),
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						selectAll: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						executeTakeFirstOrThrow: vi.fn().mockResolvedValue(mockSharedFolder),
+					}) as any
+			);
 
-			vi.spyOn(db, 'withRecursive').mockImplementation(() => ({
-				selectFrom: vi.fn().mockReturnThis(),
-				selectAll: vi.fn().mockReturnThis(),
-				orderBy: vi.fn().mockReturnThis(),
-				execute: vi.fn().mockResolvedValue(mockChildFolders),
-			}) as any);
+			vi.spyOn(db, 'withRecursive').mockImplementation(
+				() =>
+					({
+						selectFrom: vi.fn().mockReturnThis(),
+						selectAll: vi.fn().mockReturnThis(),
+						orderBy: vi.fn().mockReturnThis(),
+						execute: vi.fn().mockResolvedValue(mockChildFolders),
+					}) as any
+			);
 
 			const result = await getSharedFolderContents(mockContext);
 
@@ -381,25 +429,34 @@ describe('getSharedFolderContents', () => {
 				system: true,
 			});
 
-			vi.spyOn(db, 'insertInto').mockImplementation(() => ({
-				values: vi.fn().mockReturnThis(),
-				onConflict: vi.fn().mockReturnThis(),
-				returningAll: vi.fn().mockReturnThis(),
-				executeTakeFirst: vi.fn().mockResolvedValue(mockSharedFolder),
-			}) as any);
+			vi.spyOn(db, 'insertInto').mockImplementation(
+				() =>
+					({
+						values: vi.fn().mockReturnThis(),
+						onConflict: vi.fn().mockReturnThis(),
+						returningAll: vi.fn().mockReturnThis(),
+						executeTakeFirst: vi.fn().mockResolvedValue(mockSharedFolder),
+					}) as any
+			);
 
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				selectAll: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirstOrThrow: vi.fn().mockResolvedValue(mockSharedFolder),
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						selectAll: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						executeTakeFirstOrThrow: vi.fn().mockResolvedValue(mockSharedFolder),
+					}) as any
+			);
 
-			vi.spyOn(db, 'withRecursive').mockImplementation(() => ({
-				selectFrom: vi.fn().mockReturnThis(),
-				selectAll: vi.fn().mockReturnThis(),
-				orderBy: vi.fn().mockReturnThis(),
-				execute: vi.fn().mockResolvedValue([]),
-			}) as any);
+			vi.spyOn(db, 'withRecursive').mockImplementation(
+				() =>
+					({
+						selectFrom: vi.fn().mockReturnThis(),
+						selectAll: vi.fn().mockReturnThis(),
+						orderBy: vi.fn().mockReturnThis(),
+						execute: vi.fn().mockResolvedValue([]),
+					}) as any
+			);
 
 			const result = await getSharedFolderContents(mockContext);
 
@@ -415,25 +472,34 @@ describe('getSharedFolderContents', () => {
 				system: true,
 			});
 
-			vi.spyOn(db, 'insertInto').mockImplementation(() => ({
-				values: vi.fn().mockReturnThis(),
-				onConflict: vi.fn().mockReturnThis(),
-				returningAll: vi.fn().mockReturnThis(),
-				executeTakeFirst: vi.fn().mockResolvedValue(mockSharedFolder),
-			}) as any);
+			vi.spyOn(db, 'insertInto').mockImplementation(
+				() =>
+					({
+						values: vi.fn().mockReturnThis(),
+						onConflict: vi.fn().mockReturnThis(),
+						returningAll: vi.fn().mockReturnThis(),
+						executeTakeFirst: vi.fn().mockResolvedValue(mockSharedFolder),
+					}) as any
+			);
 
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				selectAll: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirstOrThrow: vi.fn().mockResolvedValue(mockSharedFolder),
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						selectAll: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						executeTakeFirstOrThrow: vi.fn().mockResolvedValue(mockSharedFolder),
+					}) as any
+			);
 
-			vi.spyOn(db, 'withRecursive').mockImplementation(() => ({
-				selectFrom: vi.fn().mockReturnThis(),
-				selectAll: vi.fn().mockReturnThis(),
-				orderBy: vi.fn().mockReturnThis(),
-				execute: vi.fn().mockResolvedValue([]),
-			}) as any);
+			vi.spyOn(db, 'withRecursive').mockImplementation(
+				() =>
+					({
+						selectFrom: vi.fn().mockReturnThis(),
+						selectAll: vi.fn().mockReturnThis(),
+						orderBy: vi.fn().mockReturnThis(),
+						execute: vi.fn().mockResolvedValue([]),
+					}) as any
+			);
 
 			const result = await getSharedFolderContents(mockContext);
 
@@ -457,26 +523,35 @@ describe('getSharedFolderContents', () => {
 				createMockDocGroup({ id: 4, name: 'Important', sort_order: 0, parent_group_id: 1 }),
 			];
 
-			vi.spyOn(db, 'insertInto').mockImplementation(() => ({
-				values: vi.fn().mockReturnThis(),
-				onConflict: vi.fn().mockReturnThis(),
-				returningAll: vi.fn().mockReturnThis(),
-				executeTakeFirst: vi.fn().mockResolvedValue(mockSharedFolder),
-			}) as any);
+			vi.spyOn(db, 'insertInto').mockImplementation(
+				() =>
+					({
+						values: vi.fn().mockReturnThis(),
+						onConflict: vi.fn().mockReturnThis(),
+						returningAll: vi.fn().mockReturnThis(),
+						executeTakeFirst: vi.fn().mockResolvedValue(mockSharedFolder),
+					}) as any
+			);
 
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				selectAll: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirstOrThrow: vi.fn().mockResolvedValue(mockSharedFolder),
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						selectAll: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						executeTakeFirstOrThrow: vi.fn().mockResolvedValue(mockSharedFolder),
+					}) as any
+			);
 
 			const mockOrderBy = vi.fn().mockReturnThis();
-			vi.spyOn(db, 'withRecursive').mockImplementation(() => ({
-				selectFrom: vi.fn().mockReturnThis(),
-				selectAll: vi.fn().mockReturnThis(),
-				orderBy: mockOrderBy,
-				execute: vi.fn().mockResolvedValue(mockChildFolders),
-			}) as any);
+			vi.spyOn(db, 'withRecursive').mockImplementation(
+				() =>
+					({
+						selectFrom: vi.fn().mockReturnThis(),
+						selectAll: vi.fn().mockReturnThis(),
+						orderBy: mockOrderBy,
+						execute: vi.fn().mockResolvedValue(mockChildFolders),
+					}) as any
+			);
 
 			await getSharedFolderContents(mockContext);
 
@@ -496,26 +571,35 @@ describe('getSharedFolderContents', () => {
 				client_id: 'client-xyz',
 			});
 
-			vi.spyOn(db, 'insertInto').mockImplementation(() => ({
-				values: vi.fn().mockReturnThis(),
-				onConflict: vi.fn().mockReturnThis(),
-				returningAll: vi.fn().mockReturnThis(),
-				executeTakeFirst: vi.fn().mockResolvedValue(mockSharedFolder),
-			}) as any);
+			vi.spyOn(db, 'insertInto').mockImplementation(
+				() =>
+					({
+						values: vi.fn().mockReturnThis(),
+						onConflict: vi.fn().mockReturnThis(),
+						returningAll: vi.fn().mockReturnThis(),
+						executeTakeFirst: vi.fn().mockResolvedValue(mockSharedFolder),
+					}) as any
+			);
 
 			const mockWhere = vi.fn().mockReturnThis();
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				selectAll: vi.fn().mockReturnThis(),
-				where: mockWhere,
-				executeTakeFirstOrThrow: vi.fn().mockResolvedValue(mockSharedFolder),
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						selectAll: vi.fn().mockReturnThis(),
+						where: mockWhere,
+						executeTakeFirstOrThrow: vi.fn().mockResolvedValue(mockSharedFolder),
+					}) as any
+			);
 
-			vi.spyOn(db, 'withRecursive').mockImplementation(() => ({
-				selectFrom: vi.fn().mockReturnThis(),
-				selectAll: vi.fn().mockReturnThis(),
-				orderBy: vi.fn().mockReturnThis(),
-				execute: vi.fn().mockResolvedValue([]),
-			}) as any);
+			vi.spyOn(db, 'withRecursive').mockImplementation(
+				() =>
+					({
+						selectFrom: vi.fn().mockReturnThis(),
+						selectAll: vi.fn().mockReturnThis(),
+						orderBy: vi.fn().mockReturnThis(),
+						execute: vi.fn().mockResolvedValue([]),
+					}) as any
+			);
 
 			await getSharedFolderContents(mockContext2);
 

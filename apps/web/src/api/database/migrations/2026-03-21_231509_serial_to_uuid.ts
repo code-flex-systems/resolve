@@ -11,7 +11,9 @@ import { Kysely, sql } from 'kysely';
 export async function up(db: Kysely<any>): Promise<void> {
 	// Run the entire migration as a single raw SQL block for atomicity and simplicity.
 	// This avoids issues with Kysely's sql.table/sql.ref helpers and cross-schema references.
-	await sql.raw(`
+	await sql
+		.raw(
+			`
 		-- ================================================================
 		-- STEP 1: Truncate all tables (CASCADE handles dependencies)
 		-- ================================================================
@@ -384,11 +386,15 @@ export async function up(db: Kysely<any>): Promise<void> {
 		DROP SEQUENCE IF EXISTS workflow_rule_execution_id_seq CASCADE;
 		DROP SEQUENCE IF EXISTS workflow_threshold_id_seq CASCADE;
 		DROP SEQUENCE IF EXISTS claim_desk_location_transition_id_seq CASCADE;
-	`).execute(db);
+	`
+		)
+		.execute(db);
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
 	// Reverse migration is not practical for this change.
 	// In pre-production, recreate the database from scratch if needed.
-	throw new Error('UUID migration cannot be reversed. Recreate the database from the baseline if needed.');
+	throw new Error(
+		'UUID migration cannot be reversed. Recreate the database from the baseline if needed.'
+	);
 }

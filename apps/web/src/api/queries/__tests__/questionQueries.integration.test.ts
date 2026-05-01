@@ -86,7 +86,12 @@ describe('questionQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 
-			const q1 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, position: 0 });
+			const q1 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				position: 0,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -133,9 +138,26 @@ describe('questionQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
-			const question = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Original Q' });
-			await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id, text: 'Answer 1', position: 0 });
-			await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id, text: 'Answer 2', position: 1 });
+			const question = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Original Q',
+			});
+			await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question.id,
+				created_by: user.id,
+				text: 'Answer 1',
+				position: 0,
+			});
+			await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question.id,
+				created_by: user.id,
+				text: 'Answer 2',
+				position: 1,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -161,9 +183,24 @@ describe('questionQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
-			await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, position: 0 });
-			await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, position: 1 });
-			const question = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, position: 2 });
+			await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				position: 0,
+			});
+			await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				position: 1,
+			});
+			const question = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				position: 2,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -181,7 +218,9 @@ describe('questionQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(copyQuestion(ctx, page.id, '00000000-0000-0000-0000-000000000000')).rejects.toThrow('Question does not exist');
+			await expect(
+				copyQuestion(ctx, page.id, '00000000-0000-0000-0000-000000000000')
+			).rejects.toThrow('Question does not exist');
 		});
 
 		it('should enforce tenant isolation', async () => {
@@ -191,7 +230,11 @@ describe('questionQueries integration', () => {
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const page1 = await createTestPage(db, { client_id: client1.id, created_by: user1.id });
 			const page2 = await createTestPage(db, { client_id: client2.id, created_by: user2.id });
-			const question = await createTestQuestion(db, { client_id: client1.id, page_id: page1.id, created_by: user1.id });
+			const question = await createTestQuestion(db, {
+				client_id: client1.id,
+				page_id: page1.id,
+				created_by: user1.id,
+			});
 
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
@@ -202,7 +245,11 @@ describe('questionQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
-			const question = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+			const question = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+			});
 			const originalVersion = page.version;
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -224,7 +271,12 @@ describe('questionQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
-			const question = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Test Q' });
+			const question = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Test Q',
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -252,7 +304,11 @@ describe('questionQueries integration', () => {
 			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const page = await createTestPage(db, { client_id: client1.id, created_by: user1.id });
-			const question = await createTestQuestion(db, { client_id: client1.id, page_id: page.id, created_by: user1.id });
+			const question = await createTestQuestion(db, {
+				client_id: client1.id,
+				page_id: page.id,
+				created_by: user1.id,
+			});
 
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
@@ -267,7 +323,11 @@ describe('questionQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
-			const question = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+			const question = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -287,9 +347,24 @@ describe('questionQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 
-			const q1 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, position: 0 });
-			const q2 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, position: 1 });
-			const q3 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, position: 2 });
+			const q1 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				position: 0,
+			});
+			const q2 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				position: 1,
+			});
+			const q3 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				position: 2,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -312,7 +387,11 @@ describe('questionQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
-			const question = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+			const question = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+			});
 			const originalVersion = page.version;
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -334,7 +413,12 @@ describe('questionQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
-			const question = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Test Q' });
+			const question = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Test Q',
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -359,7 +443,11 @@ describe('questionQueries integration', () => {
 			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const page = await createTestPage(db, { client_id: client1.id, created_by: user1.id });
-			const question = await createTestQuestion(db, { client_id: client1.id, page_id: page.id, created_by: user1.id });
+			const question = await createTestQuestion(db, {
+				client_id: client1.id,
+				page_id: page.id,
+				created_by: user1.id,
+			});
 
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
@@ -373,9 +461,24 @@ describe('questionQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 
-			await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, position: 0 });
-			await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, position: 1 });
-			await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, position: 2 });
+			await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				position: 0,
+			});
+			await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				position: 1,
+			});
+			await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				position: 2,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -403,7 +506,11 @@ describe('questionQueries integration', () => {
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const page = await createTestPage(db, { client_id: client1.id, created_by: user1.id });
 
-			await createTestQuestion(db, { client_id: client1.id, page_id: page.id, created_by: user1.id });
+			await createTestQuestion(db, {
+				client_id: client1.id,
+				page_id: page.id,
+				created_by: user1.id,
+			});
 
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
@@ -418,9 +525,26 @@ describe('questionQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
-			const question = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Q1' });
-			await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id, text: 'A1', position: 0 });
-			await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id, text: 'A2', position: 1 });
+			const question = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Q1',
+			});
+			await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question.id,
+				created_by: user.id,
+				text: 'A1',
+				position: 0,
+			});
+			await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question.id,
+				created_by: user.id,
+				text: 'A2',
+				position: 1,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -439,9 +563,27 @@ describe('questionQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 
-			await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Q3', position: 2 });
-			await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Q1', position: 0 });
-			await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Q2', position: 1 });
+			await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Q3',
+				position: 2,
+			});
+			await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Q1',
+				position: 0,
+			});
+			await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Q2',
+				position: 1,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -472,7 +614,11 @@ describe('questionQueries integration', () => {
 			const user1 = await createTestUser(db, { client_id: client1.id, role: 'Admin' });
 			const user2 = await createTestUser(db, { client_id: client2.id, role: 'Admin' });
 			const page = await createTestPage(db, { client_id: client1.id, created_by: user1.id });
-			await createTestQuestion(db, { client_id: client1.id, page_id: page.id, created_by: user1.id });
+			await createTestQuestion(db, {
+				client_id: client1.id,
+				page_id: page.id,
+				created_by: user1.id,
+			});
 
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
@@ -486,7 +632,10 @@ describe('questionQueries integration', () => {
 		it('should return answer statistics for questions', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
@@ -495,8 +644,18 @@ describe('questionQueries integration', () => {
 				checklist_id: checklist.id,
 				created_by: user.id,
 			});
-			const question = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Q1' });
-			const answer = await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id, text: 'A1' });
+			const question = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Q1',
+			});
+			const answer = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question.id,
+				created_by: user.id,
+				text: 'A1',
+			});
 
 			// Create responses
 			const response = await createTestQuestionResponse(db, {
@@ -507,7 +666,10 @@ describe('questionQueries integration', () => {
 				created_by: user.id,
 				question_id: question.id,
 			});
-			await createTestQuestionResponseAnswer(db, { response_id: response.id, answer_id: answer.id });
+			await createTestQuestionResponseAnswer(db, {
+				response_id: response.id,
+				answer_id: answer.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 			const pastDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000); // 1 year ago
@@ -524,7 +686,10 @@ describe('questionQueries integration', () => {
 		it('should filter by claimId', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const claim1 = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			const claim2 = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
@@ -534,8 +699,16 @@ describe('questionQueries integration', () => {
 				checklist_id: checklist.id,
 				created_by: user.id,
 			});
-			const question = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
-			const answer = await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id });
+			const question = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+			});
+			const answer = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question.id,
+				created_by: user.id,
+			});
 
 			// Create response for claim1
 			const response1 = await createTestQuestionResponse(db, {
@@ -546,7 +719,10 @@ describe('questionQueries integration', () => {
 				created_by: user.id,
 				question_id: question.id,
 			});
-			await createTestQuestionResponseAnswer(db, { response_id: response1.id, answer_id: answer.id });
+			await createTestQuestionResponseAnswer(db, {
+				response_id: response1.id,
+				answer_id: answer.id,
+			});
 
 			// Create response for claim2
 			const response2 = await createTestQuestionResponse(db, {
@@ -557,13 +733,19 @@ describe('questionQueries integration', () => {
 				created_by: user.id,
 				question_id: question.id,
 			});
-			await createTestQuestionResponseAnswer(db, { response_id: response2.id, answer_id: answer.id });
+			await createTestQuestionResponseAnswer(db, {
+				response_id: response2.id,
+				answer_id: answer.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 			const pastDate = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000); // 1 year ago
 			const futureDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1 year from now
 
-			const result = await getQuestionStats(ctx, page.id, { claimId: claim1.id, range: [pastDate, futureDate] });
+			const result = await getQuestionStats(ctx, page.id, {
+				claimId: claim1.id,
+				range: [pastDate, futureDate],
+			});
 
 			const stat = result.find((r) => r.answer_id === answer.id);
 			expect(Number(stat?.answer_count)).toBe(1);
@@ -572,7 +754,10 @@ describe('questionQueries integration', () => {
 		it('should filter by date range', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
@@ -581,8 +766,16 @@ describe('questionQueries integration', () => {
 				checklist_id: checklist.id,
 				created_by: user.id,
 			});
-			const question = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
-			const answer = await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id });
+			const question = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+			});
+			const answer = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question.id,
+				created_by: user.id,
+			});
 
 			// Create response
 			const response = await createTestQuestionResponse(db, {
@@ -593,7 +786,10 @@ describe('questionQueries integration', () => {
 				created_by: user.id,
 				question_id: question.id,
 			});
-			await createTestQuestionResponseAnswer(db, { response_id: response.id, answer_id: answer.id });
+			await createTestQuestionResponseAnswer(db, {
+				response_id: response.id,
+				answer_id: answer.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -615,7 +811,12 @@ describe('questionQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
-			const question = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Original' });
+			const question = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Original',
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -652,8 +853,20 @@ describe('questionQueries integration', () => {
 				created_by: user.id,
 				type: QuestionType.SINGLE,
 			});
-			await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id, text: 'Answer A', position: 0 });
-			await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id, text: 'Answer B', position: 1 });
+			await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question.id,
+				created_by: user.id,
+				text: 'Answer A',
+				position: 0,
+			});
+			await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question.id,
+				created_by: user.id,
+				text: 'Answer B',
+				position: 1,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -678,7 +891,11 @@ describe('questionQueries integration', () => {
 				created_by: user.id,
 				type: 'single',
 			});
-			await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id });
+			await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question.id,
+				created_by: user.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -698,10 +915,34 @@ describe('questionQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 
-			const q1 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Q1', position: 0 });
-			const q2 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Q2', position: 1 });
-			const q3 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Q3', position: 2 });
-			const q4 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Q4', position: 3 });
+			const q1 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Q1',
+				position: 0,
+			});
+			const q2 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Q2',
+				position: 1,
+			});
+			const q3 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Q3',
+				position: 2,
+			});
+			const q4 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Q4',
+				position: 3,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -725,10 +966,34 @@ describe('questionQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 
-			const q1 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Q1', position: 0 });
-			const q2 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Q2', position: 1 });
-			const q3 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Q3', position: 2 });
-			const q4 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Q4', position: 3 });
+			const q1 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Q1',
+				position: 0,
+			});
+			const q2 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Q2',
+				position: 1,
+			});
+			const q3 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Q3',
+				position: 2,
+			});
+			const q4 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Q4',
+				position: 3,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -753,9 +1018,27 @@ describe('questionQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 
-			const q1 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Q1', position: 0 });
-			const q2 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Q2', position: 1 });
-			const q3 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Q3', position: 2 });
+			const q1 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Q1',
+				position: 0,
+			});
+			const q2 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Q2',
+				position: 1,
+			});
+			const q3 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Q3',
+				position: 2,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -778,7 +1061,11 @@ describe('questionQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
-			const question = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+			const question = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+			});
 			const originalVersion = page.version;
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -799,7 +1086,11 @@ describe('questionQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const page1 = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const page2 = await createTestPage(db, { client_id: client.id, created_by: user.id });
-			const question = await createTestQuestion(db, { client_id: client.id, page_id: page1.id, created_by: user.id });
+			const question = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page1.id,
+				created_by: user.id,
+			});
 			const originalVersion1 = page1.version;
 			const originalVersion2 = page2.version;
 
@@ -807,9 +1098,21 @@ describe('questionQueries integration', () => {
 
 			await modifyQuestion(ctx, page1.id, question.id, { page_id: page2.id });
 
-			const updatedPage1 = await db.selectFrom('page').select('version').where('id', '=', page1.id).executeTakeFirst();
-			const updatedPage2 = await db.selectFrom('page').select('version').where('id', '=', page2.id).executeTakeFirst();
-			const updatedQuestion = await db.selectFrom('question').select('page_id').where('id', '=', question.id).executeTakeFirst();
+			const updatedPage1 = await db
+				.selectFrom('page')
+				.select('version')
+				.where('id', '=', page1.id)
+				.executeTakeFirst();
+			const updatedPage2 = await db
+				.selectFrom('page')
+				.select('version')
+				.where('id', '=', page2.id)
+				.executeTakeFirst();
+			const updatedQuestion = await db
+				.selectFrom('question')
+				.select('page_id')
+				.where('id', '=', question.id)
+				.executeTakeFirst();
 
 			expect(updatedPage1?.version).toBe(originalVersion1 + 1);
 			expect(updatedPage2?.version).toBe(originalVersion2 + 1);

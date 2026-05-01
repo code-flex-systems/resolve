@@ -179,7 +179,11 @@ export default function StatuteRulesTab() {
 				enableSorting: false,
 				cell: ({ row: { original: row } }: any) => (
 					<div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-						{renderNegligenceCell(row.negligence_type, row.negligence_bar_percent, row.negligence_notes)}
+						{renderNegligenceCell(
+							row.negligence_type,
+							row.negligence_bar_percent,
+							row.negligence_notes
+						)}
 					</div>
 				),
 			},

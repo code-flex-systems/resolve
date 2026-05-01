@@ -53,11 +53,7 @@ export default function AlertContainer() {
 				<div key={alert.id} className={[css.alert, severityClassMap[alert.severity]].join(' ')}>
 					<span className={css.alertIcon}>{severityIconMap[alert.severity]}</span>
 					<span className={css.alertMessage}>{alert.message}</span>
-					<button
-						type="button"
-						className={css.closeButton}
-						onClick={() => hideAlert(alert.id)}
-					>
+					<button type="button" className={css.closeButton} onClick={() => hideAlert(alert.id)}>
 						<IconX size={16} />
 					</button>
 				</div>

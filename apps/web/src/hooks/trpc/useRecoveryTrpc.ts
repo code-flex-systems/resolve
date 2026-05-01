@@ -78,7 +78,8 @@ export function useRecoveryTrpc() {
 
 // Export types for use in components
 export type RecoveryEvent = RecoveryOutput['listRecoveryEvents'][number];
-export type RecoveryEventWithDetails = RecoveryOutput['listRecoveryEventsWithFilters']['rows'][number];
+export type RecoveryEventWithDetails =
+	RecoveryOutput['listRecoveryEventsWithFilters']['rows'][number];
 export type RecoverySummaryByCoverage = RecoveryOutput['getRecoverySummaryByCoverage'][number];
 export type RecoveryMetricsSummary = RecoveryOutput['getRecoveryMetricsSummary'];
 export type RecoveryMetricsTimeSeries = RecoveryOutput['getRecoveryMetricsTimeSeries'];

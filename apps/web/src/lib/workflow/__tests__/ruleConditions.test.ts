@@ -42,9 +42,7 @@ const mockCtx = {
 function makeConditions(overrides: Partial<RuleConditions> = {}): RuleConditions {
 	return {
 		logic: 'AND',
-		conditions: [
-			{ field: 'claim.claim_amount', operator: 'gt', value: 1000 },
-		],
+		conditions: [{ field: 'claim.claim_amount', operator: 'gt', value: 1000 }],
 		...overrides,
 	};
 }
@@ -232,9 +230,7 @@ describe('getFieldSQLExpression', () => {
 		expect(getFieldSQLExpression('claim.previous_desk_location_id')).toBe(
 			'cdlt.previous_desk_location_id'
 		);
-		expect(getFieldSQLExpression('claim.desk_location_type_id')).toBe(
-			'dl.desk_location_type_id'
-		);
+		expect(getFieldSQLExpression('claim.desk_location_type_id')).toBe('dl.desk_location_type_id');
 	});
 });
 
@@ -251,7 +247,16 @@ describe('operatorRequiresValue', () => {
 		expect(operatorRequiresValue('is_not_null')).toBe(false);
 	});
 
-	const valueOperators: ConditionOperator[] = ['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'in', 'not_in'];
+	const valueOperators: ConditionOperator[] = [
+		'eq',
+		'neq',
+		'gt',
+		'gte',
+		'lt',
+		'lte',
+		'in',
+		'not_in',
+	];
 	valueOperators.forEach((op) => {
 		it(`returns true for ${op}`, () => {
 			expect(operatorRequiresValue(op)).toBe(true);
@@ -272,7 +277,16 @@ describe('operatorRequiresArray', () => {
 		expect(operatorRequiresArray('not_in')).toBe(true);
 	});
 
-	const nonArrayOperators: ConditionOperator[] = ['eq', 'neq', 'gt', 'gte', 'lt', 'lte', 'is_null', 'is_not_null'];
+	const nonArrayOperators: ConditionOperator[] = [
+		'eq',
+		'neq',
+		'gt',
+		'gte',
+		'lt',
+		'lte',
+		'is_null',
+		'is_not_null',
+	];
 	nonArrayOperators.forEach((op) => {
 		it(`returns false for ${op}`, () => {
 			expect(operatorRequiresArray(op)).toBe(false);
@@ -509,10 +523,7 @@ describe('validateRuleConditions', () => {
 	// -------------------------------------------------------------------------
 
 	it('rejects empty conditions array', async () => {
-		const result = await validateRuleConditions(
-			mockCtx,
-			makeConditions({ conditions: [] })
-		);
+		const result = await validateRuleConditions(mockCtx, makeConditions({ conditions: [] }));
 		expect(result.valid).toBe(false);
 		expect(result.errors.some((e) => e.message.includes('At least one condition'))).toBe(true);
 	});
@@ -557,9 +568,7 @@ describe('validateRuleConditions', () => {
 		const result = await validateRuleConditions(
 			mockCtx,
 			makeConditions({
-				conditions: [
-					{ field: 'claim.recovery_status', operator: 'gt', value: 'pending' },
-				],
+				conditions: [{ field: 'claim.recovery_status', operator: 'gt', value: 'pending' }],
 			})
 		);
 		expect(result.valid).toBe(false);
@@ -585,9 +594,7 @@ describe('validateRuleConditions', () => {
 		const result = await validateRuleConditions(
 			mockCtx,
 			makeConditions({
-				conditions: [
-					{ field: 'claim.recovery_status', operator: 'in', value: 'pending' },
-				],
+				conditions: [{ field: 'claim.recovery_status', operator: 'in', value: 'pending' }],
 			})
 		);
 		expect(result.valid).toBe(false);
@@ -598,9 +605,7 @@ describe('validateRuleConditions', () => {
 		const result = await validateRuleConditions(
 			mockCtx,
 			makeConditions({
-				conditions: [
-					{ field: 'claim.recovery_status', operator: 'in', value: [] },
-				],
+				conditions: [{ field: 'claim.recovery_status', operator: 'in', value: [] }],
 			})
 		);
 		expect(result.valid).toBe(false);
@@ -632,9 +637,7 @@ describe('validateRuleConditions', () => {
 		const result = await validateRuleConditions(
 			mockCtx,
 			makeConditions({
-				conditions: [
-					{ field: 'claim.claim_amount', operator: 'gt', value: 'not-a-number' },
-				],
+				conditions: [{ field: 'claim.claim_amount', operator: 'gt', value: 'not-a-number' }],
 			})
 		);
 		expect(result.valid).toBe(false);
@@ -656,9 +659,7 @@ describe('validateRuleConditions', () => {
 		const result = await validateRuleConditions(
 			mockCtx,
 			makeConditions({
-				conditions: [
-					{ field: 'claim.desk_location_id', operator: 'eq', value: 3.5 },
-				],
+				conditions: [{ field: 'claim.desk_location_id', operator: 'eq', value: 3.5 }],
 			})
 		);
 		expect(result.valid).toBe(false);
@@ -669,9 +670,7 @@ describe('validateRuleConditions', () => {
 		const result = await validateRuleConditions(
 			mockCtx,
 			makeConditions({
-				conditions: [
-					{ field: 'claim.recovery_status', operator: 'eq', value: 123 },
-				],
+				conditions: [{ field: 'claim.recovery_status', operator: 'eq', value: 123 }],
 			})
 		);
 		expect(result.valid).toBe(false);
@@ -685,9 +684,7 @@ describe('validateRuleConditions', () => {
 		const result = await validateRuleConditions(
 			mockCtx,
 			makeConditions({
-				conditions: [
-					{ field: 'claim.claim_amount', operator: 'eq', value: undefined },
-				],
+				conditions: [{ field: 'claim.claim_amount', operator: 'eq', value: undefined }],
 			})
 		);
 		expect(result.valid).toBe(false);
@@ -698,9 +695,7 @@ describe('validateRuleConditions', () => {
 		const result = await validateRuleConditions(
 			mockCtx,
 			makeConditions({
-				conditions: [
-					{ field: 'claim.claim_amount', operator: 'eq', value: null },
-				],
+				conditions: [{ field: 'claim.claim_amount', operator: 'eq', value: null }],
 			})
 		);
 		expect(result.valid).toBe(false);
@@ -741,9 +736,7 @@ describe('validateRuleConditions', () => {
 		const result = await validateRuleConditions(
 			mockCtx,
 			makeConditions({
-				conditions: [
-					{ field: 'claim.recovery_status', operator: 'eq', value: 'totally_invalid' },
-				],
+				conditions: [{ field: 'claim.recovery_status', operator: 'eq', value: 'totally_invalid' }],
 			})
 		);
 		expect(result.valid).toBe(false);
@@ -771,9 +764,7 @@ describe('validateRuleConditions', () => {
 		const result = await validateRuleConditions(
 			mockCtx,
 			makeConditions({
-				conditions: [
-					{ field: 'claim.recovery_status', operator: 'eq', value: 'pending' },
-				],
+				conditions: [{ field: 'claim.recovery_status', operator: 'eq', value: 'pending' }],
 			})
 		);
 		expect(result.valid).toBe(true);
@@ -783,9 +774,7 @@ describe('validateRuleConditions', () => {
 		const result = await validateRuleConditions(
 			mockCtx,
 			makeConditions({
-				conditions: [
-					{ field: 'claim.substatus', operator: 'eq', value: 'investigation' },
-				],
+				conditions: [{ field: 'claim.substatus', operator: 'eq', value: 'investigation' }],
 			})
 		);
 		expect(result.valid).toBe(true);
@@ -799,9 +788,7 @@ describe('validateRuleConditions', () => {
 		const result = await validateRuleConditions(
 			mockCtx,
 			makeConditions({
-				conditions: [
-					{ field: 'claim.line_of_business', operator: 'eq', value: 'auto' },
-				],
+				conditions: [{ field: 'claim.line_of_business', operator: 'eq', value: 'auto' }],
 			})
 		);
 		expect(result.valid).toBe(true);
@@ -811,9 +798,7 @@ describe('validateRuleConditions', () => {
 		const result = await validateRuleConditions(
 			mockCtx,
 			makeConditions({
-				conditions: [
-					{ field: 'claim.line_of_business', operator: 'eq', value: 'spaceflight' },
-				],
+				conditions: [{ field: 'claim.line_of_business', operator: 'eq', value: 'spaceflight' }],
 			})
 		);
 		expect(result.valid).toBe(false);
@@ -857,9 +842,7 @@ describe('validateRuleConditions', () => {
 		const result = await validateRuleConditions(
 			mockCtx,
 			makeConditions({
-				conditions: [
-					{ field: 'claim.line_of_business', operator: 'is_null' },
-				],
+				conditions: [{ field: 'claim.line_of_business', operator: 'is_null' }],
 			})
 		);
 		expect(result.valid).toBe(true);
@@ -912,9 +895,7 @@ describe('validateRuleConditions', () => {
 		const result = await validateRuleConditions(
 			mockCtx,
 			makeConditions({
-				conditions: [
-					{ field: 'claim.desk_location_id', operator: 'eq', value: 5 },
-				],
+				conditions: [{ field: 'claim.desk_location_id', operator: 'eq', value: 5 }],
 			})
 		);
 		expect(result.valid).toBe(true);
@@ -924,9 +905,7 @@ describe('validateRuleConditions', () => {
 		const result = await validateRuleConditions(
 			mockCtx,
 			makeConditions({
-				conditions: [
-					{ field: 'claim.desk_location_id', operator: 'in', value: [1, 2, 3] },
-				],
+				conditions: [{ field: 'claim.desk_location_id', operator: 'in', value: [1, 2, 3] }],
 			})
 		);
 		expect(result.valid).toBe(true);

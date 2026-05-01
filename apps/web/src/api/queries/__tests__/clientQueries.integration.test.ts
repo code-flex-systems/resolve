@@ -54,7 +54,7 @@ describe('clientQueries integration tests', () => {
 			const clerkOrgId = `org_fields_${Date.now()}`;
 			const client = await createTestClient(db, {
 				name: 'Fields Test Client',
-				clerk_org_id: clerkOrgId
+				clerk_org_id: clerkOrgId,
 			});
 
 			const result = await getClientByClerkOrgId(db, clerkOrgId);

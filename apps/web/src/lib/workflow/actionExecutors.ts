@@ -123,7 +123,11 @@ async function executeMoveClaim(input: ActionExecutorInput): Promise<ActionExecu
 	});
 
 	// Update the claim's current desk location
-	await deskQueries.updateClaimDeskLocation(input.ctx, input.claimId, config.destination_location_id);
+	await deskQueries.updateClaimDeskLocation(
+		input.ctx,
+		input.claimId,
+		config.destination_location_id
+	);
 
 	return {
 		success: true,

@@ -104,11 +104,7 @@ async function createClaimTransition(
 }
 
 /** Read snapshot rows for a client + date directly from analytics schema. */
-async function readSnapshots(
-	db: Kysely<DB>,
-	clientId: string,
-	snapshotDate: string
-) {
+async function readSnapshots(db: Kysely<DB>, clientId: string, snapshotDate: string) {
 	const result = await sql<{
 		desk_location_id: string;
 		claims_count: string;
@@ -474,11 +470,7 @@ describe('workflowAnalyticsRefreshQueries integration tests', () => {
 			});
 
 			// All 3 desks get a workflow + 5h SLA.
-			const setupDesk = async (
-				name: string,
-				isActive: boolean,
-				deletedAt: Date | null
-			) => {
+			const setupDesk = async (name: string, isActive: boolean, deletedAt: Date | null) => {
 				const desk = await createTestDeskLocation(db, {
 					client_id: client.id,
 					desk_location_type_id: deskType.id,

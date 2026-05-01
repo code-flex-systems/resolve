@@ -20,7 +20,14 @@ export default function CheckGradient(props: React.SVGProps<SVGSVGElement>) {
   `;
 
 	return (
-		<svg {...props} viewBox="0 0 24 24" width="1em" height="1em" fill="currentColor" style={{ fontSize: 'inherit', ...props.style }}>
+		<svg
+			{...props}
+			viewBox="0 0 24 24"
+			width="1em"
+			height="1em"
+			fill="currentColor"
+			style={{ fontSize: 'inherit', ...props.style }}
+		>
 			<defs>
 				<clipPath id="halfLeft">
 					<rect x="0" y="0" width="12" height="24" />

@@ -331,7 +331,11 @@ export async function getPageInstance(ctx: ProtectedContext, instanceId: string)
  * @param parentId - optional parent instance filter
  * @returns list of page instances
  */
-export async function getPageInstances(ctx: ProtectedContext, checklistId: string, parentId?: string | null) {
+export async function getPageInstances(
+	ctx: ProtectedContext,
+	checklistId: string,
+	parentId?: string | null
+) {
 	return await ctx.db
 		.selectFrom('page')
 		.innerJoin('page_instance', 'page_instance.page_id', 'page.id')
@@ -425,7 +429,11 @@ export async function getPageInstancesForClaim(
  * @param claimId - claim identifier
  * @returns list of visible instance ids
  */
-export async function getVisiblePageInstances(ctx: ProtectedContext, checklistId: string, claimId: string) {
+export async function getVisiblePageInstances(
+	ctx: ProtectedContext,
+	checklistId: string,
+	claimId: string
+) {
 	// Page instances are visible if:
 	// 1. They are root instances (no parent)
 	// 2. OR an answer that unlocks them was selected in a question response
@@ -469,7 +477,8 @@ export async function modifyPage(ctx: ProtectedContext, pageId: string, params: 
 	const updates: UpdateObjectExpression<DB, 'page'> = {};
 	if (params.title !== undefined) updates.title = params.title;
 	if (params.hidden != null) updates.hidden = params.hidden;
-	if (!Object.keys(updates).length) throw new TRPCError({ code: 'BAD_REQUEST', message: 'No updates' });
+	if (!Object.keys(updates).length)
+		throw new TRPCError({ code: 'BAD_REQUEST', message: 'No updates' });
 	return await ctx.db
 		.updateTable('page')
 		.set({

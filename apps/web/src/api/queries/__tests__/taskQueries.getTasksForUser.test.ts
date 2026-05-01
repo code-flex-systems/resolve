@@ -26,10 +26,7 @@ vi.mock('@/api/database/kysely', () => ({
 	},
 }));
 
-const createMockContext = (
-	clientId = 'client-abc',
-	userId = 'user-123'
-): ProtectedContext => ({
+const createMockContext = (clientId = 'client-abc', userId = 'user-123'): ProtectedContext => ({
 	session: {
 		user: {
 			id: userId,

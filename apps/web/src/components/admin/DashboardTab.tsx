@@ -25,8 +25,7 @@ export default function DashboardTab() {
 	const { data: configHealth } =
 		trpc.workflowAnalytics.getConfigurationHealthCheck.useQuery(undefined);
 
-	const { data: inactiveData } =
-		trpc.user.getInactiveUserCount.useQuery(undefined);
+	const { data: inactiveData } = trpc.user.getInactiveUserCount.useQuery(undefined);
 
 	const { data: recentResources, isLoading: isLoadingResources } =
 		trpc.user.getRecentResources.useQuery({ limit: 8 });
@@ -54,10 +53,7 @@ export default function DashboardTab() {
 
 				{/* Top row: Recently Visited + Workflow Health */}
 				<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-					<RecentResources
-						data={recentResources ?? []}
-						isLoading={isLoadingResources}
-					/>
+					<RecentResources data={recentResources ?? []} isLoading={isLoadingResources} />
 					<WorkflowHealthCard
 						counts={overviewCounts ?? defaultCounts}
 						configHealth={configHealth ?? null}

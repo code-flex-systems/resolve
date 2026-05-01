@@ -28,13 +28,17 @@ const OLD_VALUES = ['CREATE', 'UPDATE', 'DELETE', 'CLAIM', 'UNCLAIM', 'COMPLETE'
 
 export async function up(db: Kysely<any>): Promise<void> {
 	// Drop the old constraint first so we can rewrite legacy values
-	await sql`ALTER TABLE claim_activity_logs DROP CONSTRAINT IF EXISTS claim_activity_logs_action_check`.execute(db);
+	await sql`ALTER TABLE claim_activity_logs DROP CONSTRAINT IF EXISTS claim_activity_logs_action_check`.execute(
+		db
+	);
 
 	// Migrate legacy values to current enum equivalents
 	// CLAIM (legacy: user claims/picks up a task) → ASSIGN (current: task assigned to user)
 	// UNCLAIM → UNASSIGN
 	await sql`UPDATE claim_activity_logs SET action = 'ASSIGN' WHERE action = 'CLAIM'`.execute(db);
-	await sql`UPDATE claim_activity_logs SET action = 'UNASSIGN' WHERE action = 'UNCLAIM'`.execute(db);
+	await sql`UPDATE claim_activity_logs SET action = 'UNASSIGN' WHERE action = 'UNCLAIM'`.execute(
+		db
+	);
 
 	const valuesList = sql.join(NEW_VALUES.map((v) => sql.lit(v)));
 	await sql`
@@ -45,7 +49,9 @@ export async function up(db: Kysely<any>): Promise<void> {
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
-	await sql`ALTER TABLE claim_activity_logs DROP CONSTRAINT IF EXISTS claim_activity_logs_action_check`.execute(db);
+	await sql`ALTER TABLE claim_activity_logs DROP CONSTRAINT IF EXISTS claim_activity_logs_action_check`.execute(
+		db
+	);
 	const valuesList = sql.join(OLD_VALUES.map((v) => sql.lit(v)));
 	await sql`
 		ALTER TABLE claim_activity_logs

@@ -37,7 +37,9 @@ export default function AdminSidebar({ title, categories, width = 240 }: AdminSi
 	const pathname = usePathname();
 
 	const isCategoryActive = (category: AdminNavCategory) => {
-		return category.items.some((item) => pathname === item.route || pathname.startsWith(item.route + '/'));
+		return category.items.some(
+			(item) => pathname === item.route || pathname.startsWith(item.route + '/')
+		);
 	};
 
 	useEffect(() => {
@@ -63,9 +65,7 @@ export default function AdminSidebar({ title, categories, width = 240 }: AdminSi
 
 	return (
 		<div className={styles.container} style={{ width }}>
-			{!!title && (
-				<div className={styles.title}>{title}</div>
-			)}
+			{!!title && <div className={styles.title}>{title}</div>}
 			<ul className={styles.list}>
 				{categories.map((category) => {
 					const isCategoryExpanded = expandedCategories[category.label];

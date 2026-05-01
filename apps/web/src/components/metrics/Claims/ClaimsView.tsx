@@ -16,7 +16,12 @@ import CheckGradient from '@/components/common/CheckGradient';
 import ChecklistClaims from './ChecklistClaims';
 import ClaimStatusIcon from '@/components/checklist/ClaimStatusIcon';
 import { ClaimStatus } from '@/config/enums';
-import { formatAmount, formatDateForSentence, formatMDY, getCurrentFiscalQuarterStart } from '@/lib/utils/utils';
+import {
+	formatAmount,
+	formatDateForSentence,
+	formatMDY,
+	getCurrentFiscalQuarterStart,
+} from '@/lib/utils/utils';
 import ClaimStatusSelect from '@/components/common/ClaimStatusSelect';
 import { useMetricsStore } from '@/stores/useMetricsStore';
 import { formatCurrency } from '@/lib/utils/recoveryUtils';
@@ -33,17 +38,16 @@ const Highlight = ({
 	children: React.ReactNode;
 	color?: string;
 	bold?: boolean;
-}) => (
-	<div style={{ color, fontWeight: bold ? 600 : 'inherit' }}>
-		{children}
-	</div>
-);
+}) => <div style={{ color, fontWeight: bold ? 600 : 'inherit' }}>{children}</div>;
 
 export default function ClaimsView() {
 	const router = useRouter();
 	const today = dayjs();
 	const currentQuarterStart = getCurrentFiscalQuarterStart();
-	const [range, setRange] = useState<DateRange<Dayjs>>([currentQuarterStart.startOf('day'), today.endOf('day')]);
+	const [range, setRange] = useState<DateRange<Dayjs>>([
+		currentQuarterStart.startOf('day'),
+		today.endOf('day'),
+	]);
 	const [users, setUsers] = useState<GetUserOutput[]>([]);
 	const [checklist, setChecklist] = useState<GetChecklistOutput | null>(null);
 	const [claim, setClaim] = useState<ChecklistClaimsOutput[number] | null>(null);
@@ -55,17 +59,36 @@ export default function ClaimsView() {
 	return (
 		<PageWrapper>
 			<div
-style={{ flex: 1, width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', padding: '10px' }}>
-				<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+				style={{
+					flex: 1,
+					width: '100%',
+					display: 'flex',
+					justifyContent: 'flex-start',
+					alignItems: 'flex-start',
+					padding: '10px',
+				}}
+			>
+				<div
+					style={{
+						width: '100%',
+						display: 'flex',
+						justifyContent: 'flex-start',
+						alignItems: 'center',
+					}}
+				>
 					<div style={{ marginRight: '5px' }}>
 						<Tooltip content="Back to dashboard">
 							<Button variant="icon" size="sm" color="neutral">
-							<IconArrowLeft size={16} />
-						</Button>
+								<IconArrowLeft size={16} />
+							</Button>
 						</Tooltip>
 					</div>
 					<div style={{ marginRight: '5px' }}>
-						<BasicDateRangePicker defaultLabel="This Quarter" defaultValue={range} onConfirm={setRange} />
+						<BasicDateRangePicker
+							defaultLabel="This Quarter"
+							defaultValue={range}
+							onConfirm={setRange}
+						/>
 					</div>
 					<div style={{ marginRight: '5px' }}>
 						<ChecklistSelect checklist={checklist} setChecklist={setChecklist} clearable={false} />
@@ -86,11 +109,36 @@ style={{ flex: 1, width: '100%', display: 'flex', justifyContent: 'flex-start', 
 					<Divider />
 				</div>
 				<div
-style={{ width: '100%', height: 'calc(100vh - 70px)', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', padding: '20px', overflow: 'auto' }}>
-					<div style={{ width: 400, height: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' }}>
+					style={{
+						width: '100%',
+						height: 'calc(100vh - 70px)',
+						display: 'flex',
+						justifyContent: 'flex-start',
+						alignItems: 'flex-start',
+						padding: '20px',
+						overflow: 'auto',
+					}}
+				>
+					<div
+						style={{
+							width: 400,
+							height: '100%',
+							display: 'flex',
+							justifyContent: 'flex-start',
+							alignItems: 'flex-start',
+						}}
+					>
 						<div style={styles.paper}>
 							<div
-style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', paddingTop: '10px', paddingLeft: '10px' }}>
+								style={{
+									width: '100%',
+									display: 'flex',
+									justifyContent: 'flex-start',
+									alignItems: 'center',
+									paddingTop: '10px',
+									paddingLeft: '10px',
+								}}
+							>
 								{claim ? (
 									<ClaimStatusIcon status={claim.status as ClaimStatus} fontSize={17} />
 								) : (
@@ -103,7 +151,14 @@ style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItem
 
 							<div>
 								<div
-style={{ width: '100%', height: 150, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+									style={{
+										width: '100%',
+										height: 150,
+										display: 'flex',
+										justifyContent: 'center',
+										alignItems: 'center',
+									}}
+								>
 									{!!claim && (
 										<ChecklistProgress
 											checklistId={checklist?.id ?? ''}
@@ -123,7 +178,15 @@ style={{ width: '100%', height: 150, display: 'flex', justifyContent: 'center', 
 						</div>
 						<div style={{ ...styles.paper, flex: 1, marginTop: '20px' }}>
 							<div
-style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center', paddingTop: '10px', paddingLeft: '10px' }}>
+								style={{
+									width: '100%',
+									display: 'flex',
+									justifyContent: 'flex-start',
+									alignItems: 'center',
+									paddingTop: '10px',
+									paddingLeft: '10px',
+								}}
+							>
 								<IconFileText size={20} style={{ color: 'var(--text-muted)' }} />
 								<span style={{ fontSize: 13, color: 'var(--text-muted)', marginLeft: '5px' }}>
 									Details
@@ -131,18 +194,32 @@ style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItem
 							</div>
 							<div>
 								<div
-style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '0px 20px' }}>
+									style={{
+										width: '100%',
+										height: '100%',
+										display: 'flex',
+										justifyContent: 'center',
+										alignItems: 'center',
+										padding: '0px 20px',
+									}}
+								>
 									{!!claim && (
 										<div
-style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', paddingTop: '20px' }}>
-											<span style={{ fontSize: 30, color: 'primary' }}>
-												{claim.claim_number}
-											</span>
-											<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+											style={{
+												width: '100%',
+												height: '100%',
+												display: 'flex',
+												justifyContent: 'flex-start',
+												alignItems: 'flex-start',
+												paddingTop: '20px',
+											}}
+										>
+											<span style={{ fontSize: 30, color: 'primary' }}>{claim.claim_number}</span>
+											<div
+												style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+											>
 												<div style={{ padding: 8 }}>
-													<span style={{ color: '#d9d9d9', fontSize: 15 }}>
-														Actual Recovery
-													</span>
+													<span style={{ color: '#d9d9d9', fontSize: 15 }}>Actual Recovery</span>
 													<span style={{ fontSize: 18 }}>
 														{formatAmount(claim.actual_recovery ?? 0, true)}
 													</span>
@@ -180,10 +257,7 @@ style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'flex-s
 											<span style={{ fontSize: 14, paddingTop: '10px' }}>
 												{claim.updated_at ? (
 													isClaimBlocked ? (
-														<>
-															The claim has been blocked since{' '}
-															{formatMDY(claim.updated_at)}.
-														</>
+														<>The claim has been blocked since {formatMDY(claim.updated_at)}.</>
 													) : (
 														<>
 															The last update was made{' '}
@@ -198,20 +272,26 @@ style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'flex-s
 												)}
 											</span>
 											<div style={{ paddingTop: '20px' }}>
-												<Button variant="outlined" onClick={() => {
-															router.push(
-																`/checklists/${claim.checklist_id}/claim/${claim.claim_id}`
-															);
-														}}>
+												<Button
+													variant="outlined"
+													onClick={() => {
+														router.push(
+															`/checklists/${claim.checklist_id}/claim/${claim.claim_id}`
+														);
+													}}
+												>
 													Open in checklist...
 												</Button>
 											</div>
 											<div style={{ paddingTop: '10px' }}>
-												<Button variant="outlined" onClick={() => {
-															router.push(
-																`/checklists/${claim.checklist_id}/claim/${claim.claim_id}/summary`
-															);
-														}}>
+												<Button
+													variant="outlined"
+													onClick={() => {
+														router.push(
+															`/checklists/${claim.checklist_id}/claim/${claim.claim_id}/summary`
+														);
+													}}
+												>
 													Go to checklist summary...
 												</Button>
 											</div>
@@ -232,7 +312,12 @@ style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'flex-s
 						</div>
 					</div>
 
-					<ChecklistClaims checklistId={checklist?.id} user={users[0]} range={range} setClaim={setClaim} />
+					<ChecklistClaims
+						checklistId={checklist?.id}
+						user={users[0]}
+						range={range}
+						setClaim={setClaim}
+					/>
 				</div>
 			</div>
 		</PageWrapper>

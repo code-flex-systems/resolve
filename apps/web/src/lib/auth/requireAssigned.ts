@@ -13,6 +13,9 @@ export async function requireAssigned(ctx: Context, checklistId: string, claimId
 		);
 
 	if (ctx.session?.user.id !== checklistClaim.assignee) {
-		throw new TRPCError({ code: 'FORBIDDEN', message: 'User is not currently assigned to this checklist + claim' });
+		throw new TRPCError({
+			code: 'FORBIDDEN',
+			message: 'User is not currently assigned to this checklist + claim',
+		});
 	}
 }

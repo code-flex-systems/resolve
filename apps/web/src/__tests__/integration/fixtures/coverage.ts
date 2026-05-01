@@ -47,7 +47,11 @@ export async function createTestCoverage(
 		deleted_by: overrides.deleted_by ?? null,
 	};
 
-	const coverage = await db.insertInto('claim_coverage').values(data).returningAll().executeTakeFirstOrThrow();
+	const coverage = await db
+		.insertInto('claim_coverage')
+		.values(data)
+		.returningAll()
+		.executeTakeFirstOrThrow();
 
 	// Update claim.total_incurred via delta increment (matches production behavior)
 	// Includes both reserves and deductible (if applicable based on status)

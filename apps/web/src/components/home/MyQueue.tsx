@@ -51,25 +51,49 @@ export default function MyQueue() {
 	return (
 		<>
 			<Card variant="beveled" padding="none" style={{ ...styles.container, overflow: 'hidden' }}>
-				<div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
+				<div
+					style={{
+						display: 'flex',
+						alignItems: 'center',
+						padding: '12px 16px',
+						fontSize: 13,
+						fontWeight: 600,
+						color: 'var(--text-primary)',
+						backgroundColor: 'var(--bg-secondary)',
+						borderBottom: '1px solid var(--border)',
+					}}
+				>
 					<IconList style={{ fontSize: 16, marginRight: 8, verticalAlign: 'text-bottom' }} />
 					My Queue
-					{claims.length> 0 && (
-						<span style={{ ...{ marginLeft: 8 }, color: 'text.secondary' }}>
-							({claims.length})
-						</span>
+					{claims.length > 0 && (
+						<span style={{ ...{ marginLeft: 8 }, color: 'text.secondary' }}>({claims.length})</span>
 					)}
 				</div>
 				<div style={{ ...styles.contentContainer, padding: 16 }}>
 					{isFetching ? (
 						<Skeleton variant="rect" width="100%" height="100%" />
 					) : (
-						<div style={{ display: 'flex', flexDirection: 'column' as const, width: '100%', height: '100%', gap: 8 }}>
+						<div
+							style={{
+								display: 'flex',
+								flexDirection: 'column' as const,
+								width: '100%',
+								height: '100%',
+								gap: 8,
+							}}
+						>
 							{/* Claims List */}
 							<div style={styles.listContainer}>
 								{claims.length === 0 ? (
 									<div
-style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+										style={{
+											width: '100%',
+											height: '100%',
+											display: 'flex',
+											justifyContent: 'center',
+											alignItems: 'center',
+										}}
+									>
 										<span style={{ fontSize: 13, color: 'text.secondary', fontStyle: 'italic' }}>
 											No claims in queue
 										</span>
@@ -94,9 +118,24 @@ style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center
 							</div>
 
 							{/* Footer */}
-							{claims.length> 0 && (
-								<div style={{ width: '100%', display: 'flex', justifyContent: 'center', paddingTop: 1 }}>
-									<Link href="/my-claims" style={{ fontSize: 12, color: 'var(--text-accent)', textDecoration: 'none', cursor: 'pointer' }}>
+							{claims.length > 0 && (
+								<div
+									style={{
+										width: '100%',
+										display: 'flex',
+										justifyContent: 'center',
+										paddingTop: 1,
+									}}
+								>
+									<Link
+										href="/my-claims"
+										style={{
+											fontSize: 12,
+											color: 'var(--text-accent)',
+											textDecoration: 'none',
+											cursor: 'pointer',
+										}}
+									>
 										View All My Claims
 									</Link>
 								</div>

@@ -72,7 +72,7 @@ describe('claimQueries.getClaims', () => {
 		mockChain.offset.mockReturnValue(mockChain);
 		mockChain.as.mockReturnValue(mockChain);
 		mockChain.groupBy.mockReturnValue(mockChain);
-		mockChain.$if.mockImplementation((condition, fn) => condition ? fn(mockChain) : mockChain);
+		mockChain.$if.mockImplementation((condition, fn) => (condition ? fn(mockChain) : mockChain));
 
 		return mockChain;
 	};
@@ -89,8 +89,20 @@ describe('claimQueries.getClaims', () => {
 		it('should allow admin to see all claims without visibility filtering', async () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.execute.mockResolvedValue([
-				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', feed_name: 'Feed A', total_count: '2' },
-				{ id: 2, claim_number: 'CLM-002', insured: 'Jane Smith', feed_name: 'Feed B', total_count: '2' },
+				{
+					id: 1,
+					claim_number: 'CLM-001',
+					insured: 'John Doe',
+					feed_name: 'Feed A',
+					total_count: '2',
+				},
+				{
+					id: 2,
+					claim_number: 'CLM-002',
+					insured: 'Jane Smith',
+					feed_name: 'Feed B',
+					total_count: '2',
+				},
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
@@ -107,7 +119,14 @@ describe('claimQueries.getClaims', () => {
 		it('should filter claims for contributor - owned by them (bucket 1)', async () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.execute.mockResolvedValue([
-				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', date_of_loss: '2025-01-01', feed_name: 'Feed A', total_count: '1' },
+				{
+					id: 1,
+					claim_number: 'CLM-001',
+					insured: 'John Doe',
+					date_of_loss: '2025-01-01',
+					feed_name: 'Feed A',
+					total_count: '1',
+				},
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
@@ -123,7 +142,7 @@ describe('claimQueries.getClaims', () => {
 			// The where clause should contain logic for visibility filtering (via EXISTS subqueries):
 			// EXISTS(created_by) OR EXISTS(assignee) OR NOT EXISTS(checklist_claim) OR EXISTS(desk access)
 			const whereCalls = mockChain.where.mock.calls;
-			const hasVisibilityFilter = whereCalls.some(call => typeof call[0] === 'function');
+			const hasVisibilityFilter = whereCalls.some((call) => typeof call[0] === 'function');
 			expect(hasVisibilityFilter).toBe(true);
 		});
 
@@ -132,7 +151,14 @@ describe('claimQueries.getClaims', () => {
 
 			// Simulate a claim that's assigned to the current user
 			mockChain.execute.mockResolvedValue([
-				{ id: 2, claim_number: 'CLM-002', insured: 'Jane Smith', date_of_loss: '2025-01-02', feed_name: 'Feed B', total_count: '1' },
+				{
+					id: 2,
+					claim_number: 'CLM-002',
+					insured: 'Jane Smith',
+					date_of_loss: '2025-01-02',
+					feed_name: 'Feed B',
+					total_count: '1',
+				},
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
@@ -141,7 +167,7 @@ describe('claimQueries.getClaims', () => {
 
 			// Verify visibility filtering is applied via WHERE clause
 			const whereCalls = mockChain.where.mock.calls;
-			const hasVisibilityFilter = whereCalls.some(call => typeof call[0] === 'function');
+			const hasVisibilityFilter = whereCalls.some((call) => typeof call[0] === 'function');
 			expect(hasVisibilityFilter).toBe(true);
 		});
 
@@ -150,7 +176,14 @@ describe('claimQueries.getClaims', () => {
 
 			// Simulate claims with no checklist_claim entry (available to start)
 			mockChain.execute.mockResolvedValue([
-				{ id: 3, claim_number: 'CLM-003', insured: 'Bob Johnson', date_of_loss: '2025-01-03', feed_name: null, total_count: '1' },
+				{
+					id: 3,
+					claim_number: 'CLM-003',
+					insured: 'Bob Johnson',
+					date_of_loss: '2025-01-03',
+					feed_name: null,
+					total_count: '1',
+				},
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
@@ -159,7 +192,7 @@ describe('claimQueries.getClaims', () => {
 
 			// The OR condition should include: NOT EXISTS(checklist_claim) for unassigned claims
 			const whereCalls = mockChain.where.mock.calls;
-			const hasVisibilityFilter = whereCalls.some(call => typeof call[0] === 'function');
+			const hasVisibilityFilter = whereCalls.some((call) => typeof call[0] === 'function');
 			expect(hasVisibilityFilter).toBe(true);
 		});
 
@@ -268,7 +301,7 @@ describe('claimQueries.getClaims', () => {
 			// selectAll('claim') should NOT be called for contributors
 			// Note: selectAll() might be called on the CTE, but not selectAll('claim')
 			const selectAllCalls = mockChain.selectAll.mock.calls;
-			const hasClaimSelectAll = selectAllCalls.some(call => call[0] === 'claim');
+			const hasClaimSelectAll = selectAllCalls.some((call) => call[0] === 'claim');
 			expect(hasClaimSelectAll).toBe(false);
 		});
 
@@ -342,7 +375,14 @@ describe('claimQueries.getClaims', () => {
 
 			// Result should only contain claims from client-abc, not other clients
 			mockChain.execute.mockResolvedValue([
-				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', client_id: 'client-abc', feed_name: 'Feed A', total_count: '1' },
+				{
+					id: 1,
+					claim_number: 'CLM-001',
+					insured: 'John Doe',
+					client_id: 'client-abc',
+					feed_name: 'Feed A',
+					total_count: '1',
+				},
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
@@ -350,11 +390,7 @@ describe('claimQueries.getClaims', () => {
 			const result = await getClaims(mockContributorContext, {});
 
 			// Verify client scoping was applied
-			expect(mockChain.where).toHaveBeenCalledWith(
-				'claim.client_id',
-				'=',
-				'client-abc'
-			);
+			expect(mockChain.where).toHaveBeenCalledWith('claim.client_id', '=', 'client-abc');
 
 			// All results should belong to the user's client
 			expect(result.rows.every((claim: any) => claim.client_id === 'client-abc')).toBe(true);
@@ -365,7 +401,13 @@ describe('claimQueries.getClaims', () => {
 		it('should apply search filter for admin', async () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.execute.mockResolvedValue([
-				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', feed_name: 'Feed A', total_count: '1' },
+				{
+					id: 1,
+					claim_number: 'CLM-001',
+					insured: 'John Doe',
+					feed_name: 'Feed A',
+					total_count: '1',
+				},
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
@@ -376,14 +418,21 @@ describe('claimQueries.getClaims', () => {
 
 			// Verify search filter was applied
 			const whereCalls = mockChain.where.mock.calls;
-			const hasSearchFilter = whereCalls.some(call => typeof call[0] === 'function');
+			const hasSearchFilter = whereCalls.some((call) => typeof call[0] === 'function');
 			expect(hasSearchFilter).toBe(true);
 		});
 
 		it('should apply search filter AND visibility filter for contributor', async () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.execute.mockResolvedValue([
-				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', date_of_loss: '2025-01-01', feed_name: 'Feed A', total_count: '1' },
+				{
+					id: 1,
+					claim_number: 'CLM-001',
+					insured: 'John Doe',
+					date_of_loss: '2025-01-01',
+					feed_name: 'Feed A',
+					total_count: '1',
+				},
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
@@ -400,7 +449,14 @@ describe('claimQueries.getClaims', () => {
 		it('should search by claim number with case-insensitive matching', async () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.execute.mockResolvedValue([
-				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', date_of_loss: '2025-01-01', feed_name: 'Feed A', total_count: '1' },
+				{
+					id: 1,
+					claim_number: 'CLM-001',
+					insured: 'John Doe',
+					date_of_loss: '2025-01-01',
+					feed_name: 'Feed A',
+					total_count: '1',
+				},
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
@@ -435,7 +491,14 @@ describe('claimQueries.getClaims', () => {
 		it('should apply limit and offset for contributor data query', async () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.execute.mockResolvedValue([
-				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', date_of_loss: '2025-01-01', feed_name: 'Feed A', total_count: '1' },
+				{
+					id: 1,
+					claim_number: 'CLM-001',
+					insured: 'John Doe',
+					date_of_loss: '2025-01-01',
+					feed_name: 'Feed A',
+					total_count: '1',
+				},
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
@@ -452,7 +515,14 @@ describe('claimQueries.getClaims', () => {
 		it('should apply limit and offset when provided', async () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.execute.mockResolvedValue([
-				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', date_of_loss: '2025-01-01', feed_name: 'Feed A', total_count: '1' },
+				{
+					id: 1,
+					claim_number: 'CLM-001',
+					insured: 'John Doe',
+					date_of_loss: '2025-01-01',
+					feed_name: 'Feed A',
+					total_count: '1',
+				},
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
@@ -488,7 +558,14 @@ describe('claimQueries.getClaims', () => {
 		it('should extract count from total_count field for contributor WITH visibility filtering', async () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.execute.mockResolvedValue([
-				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', date_of_loss: '2025-01-01', feed_name: 'Feed A', total_count: '25' },
+				{
+					id: 1,
+					claim_number: 'CLM-001',
+					insured: 'John Doe',
+					date_of_loss: '2025-01-01',
+					feed_name: 'Feed A',
+					total_count: '25',
+				},
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
@@ -501,7 +578,7 @@ describe('claimQueries.getClaims', () => {
 
 			// SHOULD have visibility filtering via where clause
 			const whereCalls = mockChain.where.mock.calls;
-			const hasVisibilityFilter = whereCalls.some(call => typeof call[0] === 'function');
+			const hasVisibilityFilter = whereCalls.some((call) => typeof call[0] === 'function');
 			expect(hasVisibilityFilter).toBe(true);
 		});
 
@@ -548,7 +625,15 @@ describe('claimQueries.getClaims', () => {
 		it('should filter by feedId for contributor with visibility', async () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.execute.mockResolvedValue([
-				{ id: 1, claim_number: 'CLM-001', insured: 'John Doe', date_of_loss: '2025-01-01', feed_id: 5, feed_name: 'Feed A', total_count: '1' },
+				{
+					id: 1,
+					claim_number: 'CLM-001',
+					insured: 'John Doe',
+					date_of_loss: '2025-01-01',
+					feed_id: 5,
+					feed_name: 'Feed A',
+					total_count: '1',
+				},
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
@@ -566,7 +651,15 @@ describe('claimQueries.getClaims', () => {
 		it('should handle null feedId (manual claims)', async () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.execute.mockResolvedValue([
-				{ id: 2, claim_number: 'CLM-002', insured: 'Jane Smith', date_of_loss: '2025-01-02', feed_id: null, feed_name: null, total_count: '1' },
+				{
+					id: 2,
+					claim_number: 'CLM-002',
+					insured: 'Jane Smith',
+					date_of_loss: '2025-01-02',
+					feed_id: null,
+					feed_name: null,
+					total_count: '1',
+				},
 			]);
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);

@@ -44,10 +44,12 @@ export const claimRouter = router({
 		return getClaimDetail(ctx, input);
 	}),
 
-	getNextClaimToAssign: protectedProcedure.input(getNextClaimToAssignInput).query(async ({ input, ctx }) => {
-		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-		return getNextClaimToAssign(ctx, input);
-	}),
+	getNextClaimToAssign: protectedProcedure
+		.input(getNextClaimToAssignInput)
+		.query(async ({ input, ctx }) => {
+			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+			return getNextClaimToAssign(ctx, input);
+		}),
 
 	getClaims: protectedProcedure.input(getClaimsInput).query(async ({ input, ctx }) => {
 		return getClaims(ctx, input);
@@ -75,7 +77,9 @@ export const claimRouter = router({
 	}),
 
 	updateClaim: protectedProcedure.input(updateClaimInput).mutation(async ({ input, ctx }) => {
-		const isAdmin = ctx.session.user.role === config.ROLES.ADMIN || ctx.session.user.role === config.ROLES.SUPER_ADMIN;
+		const isAdmin =
+			ctx.session.user.role === config.ROLES.ADMIN ||
+			ctx.session.user.role === config.ROLES.SUPER_ADMIN;
 
 		// Restricted fields that only admins can update
 		const hasRestrictedFields =
@@ -97,9 +101,11 @@ export const claimRouter = router({
 		return listMyClaims(ctx, input);
 	}),
 
-	listMyDeskClaims: protectedProcedure.input(listMyDeskClaimsInput).query(async ({ input, ctx }) => {
-		return listMyDeskClaims(ctx, input);
-	}),
+	listMyDeskClaims: protectedProcedure
+		.input(listMyDeskClaimsInput)
+		.query(async ({ input, ctx }) => {
+			return listMyDeskClaims(ctx, input);
+		}),
 
 	getClaimStatusBreakdown: protectedProcedure.query(async ({ ctx }) => {
 		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);

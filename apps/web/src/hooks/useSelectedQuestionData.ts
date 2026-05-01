@@ -6,7 +6,10 @@ import { DEFAULT_QUESTION } from '@/config/defaults';
 export function useSelectedQuestionData() {
 	const selectedQuestionId = useChecklistStore((state) => state.selectedQuestion);
 	const pageId = useChecklistStore((state) => state.selectedPageInfo?.pageId);
-	const { data: questions = [] } = useQuestionTrpc().list({ pageId: pageId ?? '' }, { enabled: Boolean(pageId) });
+	const { data: questions = [] } = useQuestionTrpc().list(
+		{ pageId: pageId ?? '' },
+		{ enabled: Boolean(pageId) }
+	);
 
 	return useMemo(() => {
 		if (!pageId || !selectedQuestionId || questions.length === 0) {

@@ -44,9 +44,21 @@ export async function up(db: Kysely<any>): Promise<void> {
 	`.execute(db);
 
 	// Add indexes
-	await db.schema.createIndex('idx_claim_payment_client').on('claim_payment').column('client_id').execute();
-	await db.schema.createIndex('idx_claim_payment_claim').on('claim_payment').column('claim_id').execute();
-	await db.schema.createIndex('idx_claim_payment_coverage').on('claim_payment').column('coverage_id').execute();
+	await db.schema
+		.createIndex('idx_claim_payment_client')
+		.on('claim_payment')
+		.column('client_id')
+		.execute();
+	await db.schema
+		.createIndex('idx_claim_payment_claim')
+		.on('claim_payment')
+		.column('claim_id')
+		.execute();
+	await db.schema
+		.createIndex('idx_claim_payment_coverage')
+		.on('claim_payment')
+		.column('coverage_id')
+		.execute();
 	await db.schema
 		.createIndex('idx_claim_payment_payee')
 		.on('claim_payment')
@@ -54,7 +66,9 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.execute();
 
 	// Partial index for active (non-deleted) payments - optimizes common queries
-	await sql`CREATE INDEX idx_claim_payment_active ON claim_payment (claim_id, client_id) WHERE deleted_at IS NULL`.execute(db);
+	await sql`CREATE INDEX idx_claim_payment_active ON claim_payment (claim_id, client_id) WHERE deleted_at IS NULL`.execute(
+		db
+	);
 }
 
 export async function down(db: Kysely<any>): Promise<void> {

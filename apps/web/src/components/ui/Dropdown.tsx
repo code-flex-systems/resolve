@@ -1,6 +1,14 @@
 'use client';
 
-import { forwardRef, useState, useRef, useEffect, useCallback, useImperativeHandle, type ReactNode } from 'react';
+import {
+	forwardRef,
+	useState,
+	useRef,
+	useEffect,
+	useCallback,
+	useImperativeHandle,
+	type ReactNode,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { IconChevronDown } from '@tabler/icons-react';
 import { getPortalTarget } from './usePortalTarget';
@@ -88,7 +96,11 @@ const Dropdown = forwardRef<DropdownRef, DropdownProps>(
 		ref
 	) => {
 		const [open, setOpen] = useState(false);
-		const [menuPosition, setMenuPosition] = useState<{ top: number; left: number; width: number } | null>(null);
+		const [menuPosition, setMenuPosition] = useState<{
+			top: number;
+			left: number;
+			width: number;
+		} | null>(null);
 		const triggerRef = useRef<HTMLButtonElement>(null);
 		const menuRef = useRef<HTMLDivElement>(null);
 		const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -137,7 +149,10 @@ const Dropdown = forwardRef<DropdownRef, DropdownProps>(
 		useEffect(() => {
 			if (!open) return;
 			const handleClickOutside = (e: MouseEvent) => {
-				if (triggerRef.current?.contains(e.target as Node) || menuRef.current?.contains(e.target as Node)) {
+				if (
+					triggerRef.current?.contains(e.target as Node) ||
+					menuRef.current?.contains(e.target as Node)
+				) {
 					return;
 				}
 				closeMenu();
@@ -216,7 +231,9 @@ const Dropdown = forwardRef<DropdownRef, DropdownProps>(
 		} else if (selectedOption) {
 			displayContent = (
 				<span className={styles.selectedContent}>
-					{selectedOption.icon && <span className={styles.selectedIcon}>{selectedOption.icon}</span>}
+					{selectedOption.icon && (
+						<span className={styles.selectedIcon}>{selectedOption.icon}</span>
+					)}
 					<span>
 						{inlineLabel && label ? `${label}: ` : ''}
 						{selectedOption.label}
@@ -224,10 +241,14 @@ const Dropdown = forwardRef<DropdownRef, DropdownProps>(
 				</span>
 			);
 		} else if (displayEmpty || !hasValue) {
-			displayContent = <span className={styles.placeholder}>{inlineLabel && label ? label : placeholder}</span>;
+			displayContent = (
+				<span className={styles.placeholder}>{inlineLabel && label ? label : placeholder}</span>
+			);
 		}
 
-		const wrapperClassNames = [styles.wrapper, fullWidth && styles.fullWidth, className].filter(Boolean).join(' ');
+		const wrapperClassNames = [styles.wrapper, fullWidth && styles.fullWidth, className]
+			.filter(Boolean)
+			.join(' ');
 
 		const triggerClassNames = [
 			styles.trigger,

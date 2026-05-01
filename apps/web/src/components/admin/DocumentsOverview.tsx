@@ -17,33 +17,40 @@ export default function DocumentsOverview() {
 	const { data, isLoading } = useDocTrpc().getDocumentStats(undefined);
 	const { data: recentDocs } = useDocTrpc().listDocs({ limit: 10 });
 
-	const recentDocColumns = useMemo<ColumnDef<any>[]>(() => [
-		{
-			accessorKey: 'filename',
-			header: 'Filename',
-			size: 240,
-			cell: ({ row }) => (
-				<span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-					{row.original.title || row.original.alias || row.original.filename}
-				</span>
-			),
-		},
-		{
-			accessorKey: 'doc_type',
-			header: 'Type',
-			size: 120,
-			cell: ({ getValue }) => {
-				const type = (getValue() as string).replace(/_/g, ' ');
-				return <Chip size="sm" color="neutral">{type}</Chip>;
+	const recentDocColumns = useMemo<ColumnDef<any>[]>(
+		() => [
+			{
+				accessorKey: 'filename',
+				header: 'Filename',
+				size: 240,
+				cell: ({ row }) => (
+					<span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+						{row.original.title || row.original.alias || row.original.filename}
+					</span>
+				),
 			},
-		},
-		{
-			accessorKey: 'created_at',
-			header: 'Uploaded',
-			size: 120,
-			cell: ({ getValue }) => dayjs(getValue() as Date).fromNow(),
-		},
-	], []);
+			{
+				accessorKey: 'doc_type',
+				header: 'Type',
+				size: 120,
+				cell: ({ getValue }) => {
+					const type = (getValue() as string).replace(/_/g, ' ');
+					return (
+						<Chip size="sm" color="neutral">
+							{type}
+						</Chip>
+					);
+				},
+			},
+			{
+				accessorKey: 'created_at',
+				header: 'Uploaded',
+				size: 120,
+				cell: ({ getValue }) => dayjs(getValue() as Date).fromNow(),
+			},
+		],
+		[]
+	);
 
 	if (isLoading || !data) {
 		return <CardioLoadingIndicator message="Loading documents..." />;
@@ -103,7 +110,9 @@ export default function DocumentsOverview() {
 			{recentDocs && recentDocs.rows.length > 0 && (
 				<Card variant="beveled" padding="md">
 					<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-						<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>Recent Uploads</span>
+						<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+							Recent Uploads
+						</span>
 						<DataTable
 							rows={recentDocs.rows}
 							columns={recentDocColumns}

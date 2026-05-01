@@ -16,21 +16,33 @@ export default function UserActivitySummary({
 	const hasValidBusiestDay = busiestDayDate?.isValid() ?? false;
 
 	return (
-		<div style={{ display: 'flex', gap: isBreakdown ? 16 : 8, marginBottom: isBreakdown ? 24 : 12, marginTop: isBreakdown ? 8 : 0 }}>
-			<KpiCard size="sm"
+		<div
+			style={{
+				display: 'flex',
+				gap: isBreakdown ? 16 : 8,
+				marginBottom: isBreakdown ? 24 : 12,
+				marginTop: isBreakdown ? 8 : 0,
+			}}
+		>
+			<KpiCard
+				size="sm"
 				value={totalEvents.toLocaleString()}
 				label="Total Events"
 				subtitle={isBreakdown ? 'in selected range' : 'past 30 days'}
 			/>
-			<KpiCard size="sm"
+			<KpiCard
+				size="sm"
 				value={avgEvents.toLocaleString()}
 				label="Avg Events a Day"
 				subtitle="daily average"
 			/>
-			<KpiCard size="sm"
+			<KpiCard
+				size="sm"
 				value={hasValidBusiestDay ? busiestDayDate!.format('MMM D') : '-'}
 				label="Busiest Day"
-				subtitle={hasValidBusiestDay ? `${maxEventsRow!.event_count.toLocaleString()} events` : 'no data'}
+				subtitle={
+					hasValidBusiestDay ? `${maxEventsRow!.event_count.toLocaleString()} events` : 'no data'
+				}
 			/>
 		</div>
 	);

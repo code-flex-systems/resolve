@@ -9,7 +9,12 @@ interface MyClaimsMetricsProps {
 	isLoading?: boolean;
 }
 
-export default function MyClaimsMetrics({ count, totalValue, avgDaysInQueue, isLoading }: MyClaimsMetricsProps) {
+export default function MyClaimsMetrics({
+	count,
+	totalValue,
+	avgDaysInQueue,
+	isLoading,
+}: MyClaimsMetricsProps) {
 	if (isLoading) {
 		return (
 			<div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
@@ -22,17 +27,20 @@ export default function MyClaimsMetrics({ count, totalValue, avgDaysInQueue, isL
 
 	return (
 		<div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-			<KpiCard size="sm"
+			<KpiCard
+				size="sm"
 				value={count}
 				label="Filtered Results"
 				subtitle={count === 1 ? 'claim' : 'claims'}
 			/>
-			<KpiCard size="sm"
+			<KpiCard
+				size="sm"
 				value={formatCurrency(totalValue)}
 				label="Total Value"
 				subtitle="claim amounts"
 			/>
-			<KpiCard size="sm"
+			<KpiCard
+				size="sm"
 				value={`${avgDaysInQueue} days`}
 				label="Avg Time in Queue"
 				subtitle="since assignment"

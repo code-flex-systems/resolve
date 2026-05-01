@@ -73,7 +73,9 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 	const isPending = creating || updating;
 
 	// Search for duplicates (only when searchTerm is at least 2 chars)
-	const { data: searchResults } = partyTrpc.search(searchTerm.length >= 2 ? { searchTerm } : skipToken);
+	const { data: searchResults } = partyTrpc.search(
+		searchTerm.length >= 2 ? { searchTerm } : skipToken
+	);
 
 	const {
 		control,
@@ -229,7 +231,9 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 				? {
 						email: data.contact_email || undefined,
 						phone: data.contact_phone || undefined,
-						phone_type: data.contact_phone ? (data.contact_phone_type as 'mobile' | 'home' | 'work' | 'fax') : undefined,
+						phone_type: data.contact_phone
+							? (data.contact_phone_type as 'mobile' | 'home' | 'work' | 'fax')
+							: undefined,
 						address:
 							data.contact_street_address ||
 							data.contact_city ||
@@ -243,9 +247,13 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 										country: (data.contact_country as CountryCode) || null,
 									}
 								: undefined,
-						address_type: (data.contact_street_address || data.contact_city || data.contact_state || data.contact_postal_code)
-							? (data.contact_address_type as 'home' | 'business')
-							: undefined,
+						address_type:
+							data.contact_street_address ||
+							data.contact_city ||
+							data.contact_state ||
+							data.contact_postal_code
+								? (data.contact_address_type as 'home' | 'business')
+								: undefined,
 					}
 				: undefined;
 
@@ -314,7 +322,15 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 	   ========================================================================= */
 
 	const stepIdentityContent = (
-		<div style={{ width: '100%', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 16 }}>
+		<div
+			style={{
+				width: '100%',
+				display: 'flex',
+				alignItems: 'center',
+				flexDirection: 'column',
+				gap: 16,
+			}}
+		>
 			<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: 0, width: 400 }}>
 				Choose a party type and provide identity details.
 			</p>
@@ -490,7 +506,15 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 	);
 
 	const stepContactContent = (
-		<div style={{ width: '100%', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 16 }}>
+		<div
+			style={{
+				width: '100%',
+				display: 'flex',
+				alignItems: 'center',
+				flexDirection: 'column',
+				gap: 16,
+			}}
+		>
 			<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: 0, width: 400 }}>
 				Add contact information and address details. All fields are optional.
 			</p>
@@ -589,7 +613,9 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 	);
 
 	const stepReviewContent = (
-		<div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 480 }}>
+		<div
+			style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 480 }}
+		>
 			<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: 0 }}>
 				Review the party details below, then add any notes before submitting.
 			</p>
@@ -600,7 +626,9 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 				<div style={fieldStyles.reviewGrid}>
 					<div style={fieldStyles.reviewField}>
 						<span style={fieldStyles.reviewLabel}>Type</span>
-						<span style={fieldStyles.reviewValue}>{partyType === PartyType.ENTITY ? 'Entity' : 'Facilitator'}</span>
+						<span style={fieldStyles.reviewValue}>
+							{partyType === PartyType.ENTITY ? 'Entity' : 'Facilitator'}
+						</span>
 					</div>
 					<div style={fieldStyles.reviewField}>
 						<span style={fieldStyles.reviewLabel}>Classification</span>
@@ -615,7 +643,9 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 						<>
 							<div style={fieldStyles.reviewField}>
 								<span style={fieldStyles.reviewLabel}>Name</span>
-								<span style={fieldStyles.reviewValue}>{[firstName, watch('middle_name'), lastName].filter(Boolean).join(' ') || '--'}</span>
+								<span style={fieldStyles.reviewValue}>
+									{[firstName, watch('middle_name'), lastName].filter(Boolean).join(' ') || '--'}
+								</span>
 							</div>
 							{watch('suffix') && (
 								<div style={fieldStyles.reviewField}>
@@ -653,9 +683,17 @@ export default function PartyDialog({ party, lockedType, onClose }: PartyDialogP
 						)}
 						{(contactStreetAddress || contactCity || contactState || contactPostalCode) && (
 							<div style={fieldStyles.reviewField}>
-								<span style={fieldStyles.reviewLabel}>Address ({contactAddressType || 'business'})</span>
+								<span style={fieldStyles.reviewLabel}>
+									Address ({contactAddressType || 'business'})
+								</span>
 								<span style={fieldStyles.reviewValue}>
-									{[contactStreetAddress, contactCity, contactState, contactPostalCode, contactCountry]
+									{[
+										contactStreetAddress,
+										contactCity,
+										contactState,
+										contactPostalCode,
+										contactCountry,
+									]
 										.filter(Boolean)
 										.join(', ') || '--'}
 								</span>

@@ -11,12 +11,22 @@ interface ClaimSummaryDialogProps {
 	showChecklistProgress?: boolean;
 }
 
-export default function ClaimSummaryDialog({ claimId, open, onClose, onStartChecklist, showChecklistProgress = true }: ClaimSummaryDialogProps) {
+export default function ClaimSummaryDialog({
+	claimId,
+	open,
+	onClose,
+	onStartChecklist,
+	showChecklistProgress = true,
+}: ClaimSummaryDialogProps) {
 	if (!open || !claimId) return null;
 
 	return (
 		<BasicDialog title="Claim Details" onClose={onClose} width={500}>
-			<ClaimSummary claimId={claimId} onStartChecklist={onStartChecklist} showChecklistProgress={showChecklistProgress} />
+			<ClaimSummary
+				claimId={claimId}
+				onStartChecklist={onStartChecklist}
+				showChecklistProgress={showChecklistProgress}
+			/>
 		</BasicDialog>
 	);
 }

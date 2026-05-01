@@ -15,9 +15,9 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.addColumn('entity_id', 'text', (col) => col.notNull())
 		.addColumn('entity_name', 'text', (col) => col.notNull())
 		.addColumn('action', 'text', (col) =>
-			col.notNull().check(
-				sql`action IN ('CREATE', 'UPDATE', 'DELETE', 'BULK_UPDATE', 'BULK_DELETE')`
-			)
+			col
+				.notNull()
+				.check(sql`action IN ('CREATE', 'UPDATE', 'DELETE', 'BULK_UPDATE', 'BULK_DELETE')`)
 		)
 		.addColumn('value', 'jsonb')
 		.addColumn('created_at', 'timestamptz', (col) => col.notNull().defaultTo(sql`now()`))
@@ -48,9 +48,11 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.addColumn('entity_id', 'text', (col) => col.notNull())
 		.addColumn('entity_name', 'text', (col) => col.notNull())
 		.addColumn('action', 'text', (col) =>
-			col.notNull().check(
-				sql`action IN ('CREATE', 'UPDATE', 'DELETE', 'CLAIM', 'UNCLAIM', 'COMPLETE', 'CANCEL')`
-			)
+			col
+				.notNull()
+				.check(
+					sql`action IN ('CREATE', 'UPDATE', 'DELETE', 'CLAIM', 'UNCLAIM', 'COMPLETE', 'CANCEL')`
+				)
 		)
 		.addColumn('actor_type', 'text', (col) =>
 			col.notNull().check(sql`actor_type IN ('admin', 'user')`)
@@ -155,9 +157,9 @@ export async function down(db: Kysely<any>): Promise<void> {
 		.addColumn('entity_id', 'text', (col) => col.notNull())
 		.addColumn('entity_name', 'text', (col) => col.notNull())
 		.addColumn('action', 'text', (col) =>
-			col.notNull().check(
-				sql`action IN ('CREATE', 'UPDATE', 'DELETE', 'BULK_UPDATE', 'BULK_DELETE')`
-			)
+			col
+				.notNull()
+				.check(sql`action IN ('CREATE', 'UPDATE', 'DELETE', 'BULK_UPDATE', 'BULK_DELETE')`)
 		)
 		.addColumn('value', 'jsonb')
 		.addColumn('created_at', 'timestamptz', (col) => col.notNull().defaultTo(sql`now()`))

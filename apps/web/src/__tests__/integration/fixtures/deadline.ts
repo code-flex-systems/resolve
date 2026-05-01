@@ -34,9 +34,5 @@ export async function createTestDeadline(
 		entity_id: overrides.entity_id ?? null,
 	};
 
-	return db
-		.insertInto('deadline')
-		.values(data)
-		.returningAll()
-		.executeTakeFirstOrThrow();
+	return db.insertInto('deadline').values(data).returningAll().executeTakeFirstOrThrow();
 }

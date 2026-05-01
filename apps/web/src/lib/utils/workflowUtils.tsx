@@ -1,4 +1,9 @@
-import { WorkflowThresholdType, WorkflowTriggerType, WorkflowActionType, RuleExecutionStatus } from '@/config/enums';
+import {
+	WorkflowThresholdType,
+	WorkflowTriggerType,
+	WorkflowActionType,
+	RuleExecutionStatus,
+} from '@/config/enums';
 
 export const formatThresholdType = (type: WorkflowThresholdType): string => {
 	const map: Record<WorkflowThresholdType, string> = {
@@ -30,7 +35,10 @@ export const formatActionType = (type: WorkflowActionType): string => {
 	return map[type] || type;
 };
 
-export const EXECUTION_STATUS_CONFIG: Record<RuleExecutionStatus, { label: string; color: 'info' | 'success' | 'error' | 'neutral' }> = {
+export const EXECUTION_STATUS_CONFIG: Record<
+	RuleExecutionStatus,
+	{ label: string; color: 'info' | 'success' | 'error' | 'neutral' }
+> = {
 	[RuleExecutionStatus.PENDING]: { label: 'Pending', color: 'info' },
 	[RuleExecutionStatus.EXECUTED]: { label: 'Executed', color: 'success' },
 	[RuleExecutionStatus.FAILED]: { label: 'Failed', color: 'error' },

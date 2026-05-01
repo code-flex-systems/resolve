@@ -15,7 +15,11 @@ export default async function SummaryPage({
 		helpers.checklist.getChecklist.prefetch({ id: checklistId }),
 		helpers.page.getPageInstanceTree.prefetch({ checklistId, claimId }),
 		helpers.checklist.getChecklistSummary.prefetch({ checklistId, claimId }),
-		helpers.checklist.getChecklistSummaryDetail.prefetch({ checklistId, claimId, segment: SummarySegment.ANSWERED }),
+		helpers.checklist.getChecklistSummaryDetail.prefetch({
+			checklistId,
+			claimId,
+			segment: SummarySegment.ANSWERED,
+		}),
 	]);
 
 	const dehydratedState = helpers.dehydrate();

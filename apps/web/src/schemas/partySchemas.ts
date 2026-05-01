@@ -131,7 +131,8 @@ export const createPartyInput = z
 			}
 		},
 		{
-			message: 'Business parties require name (min 2 chars); individuals require first_name and last_name',
+			message:
+				'Business parties require name (min 2 chars); individuals require first_name and last_name',
 		}
 	);
 

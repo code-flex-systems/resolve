@@ -86,12 +86,28 @@ export const CSVStep3Preview = forwardRef<Step3RefHandle, Props>(
 			<>
 				{submitting && <ProgressBar />}
 				{submitSuccess === true && (
-					<div style={{ padding: '12px 16px', borderRadius: 'var(--radius-lg)', backgroundColor: 'var(--status-success-bg)', color: 'var(--status-success)', fontSize: 13 }}>
+					<div
+						style={{
+							padding: '12px 16px',
+							borderRadius: 'var(--radius-lg)',
+							backgroundColor: 'var(--status-success-bg)',
+							color: 'var(--status-success)',
+							fontSize: 13,
+						}}
+					>
 						Import successful!
 					</div>
 				)}
 				{submitSuccess === false && (
-					<div style={{ padding: '12px 16px', borderRadius: 'var(--radius-lg)', backgroundColor: 'var(--status-error-bg)', color: 'var(--status-error)', fontSize: 13 }}>
+					<div
+						style={{
+							padding: '12px 16px',
+							borderRadius: 'var(--radius-lg)',
+							backgroundColor: 'var(--status-error-bg)',
+							color: 'var(--status-error)',
+							fontSize: 13,
+						}}
+					>
 						Import failed. Please try again.
 					</div>
 				)}
@@ -106,10 +122,10 @@ export const CSVStep3Preview = forwardRef<Step3RefHandle, Props>(
 					/>
 				</div>
 
-				{skippedRows.length> 0 && (
+				{skippedRows.length > 0 && (
 					<>
 						<div
-style={{
+							style={{
 								width: '100%',
 								height: 30,
 								cursor: 'pointer',
@@ -118,7 +134,8 @@ style={{
 								justifyContent: 'flex-start',
 								alignItems: 'center',
 							}}
-							onClick={() => setSkippedRowsExpanded((prev) => !prev)}>
+							onClick={() => setSkippedRowsExpanded((prev) => !prev)}
+						>
 							<IconChevronDown
 								size={20}
 								style={{
@@ -129,8 +146,7 @@ style={{
 							/>
 							<span style={{ fontSize: 13 }}>{skippedRows.length} skipped row(s)</span>
 						</div>
-						<Collapse
-							open={skippedRowsExpanded}>
+						<Collapse open={skippedRowsExpanded}>
 							{skippedRows.map((row, idx) => (
 								<p key={idx} style={{ fontSize: 13, padding: '4px 0' }}>
 									<b>Row {row.rowIndex}:</b> Invalid entry for <b>{row.reason}</b>

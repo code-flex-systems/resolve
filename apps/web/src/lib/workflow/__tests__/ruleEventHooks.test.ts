@@ -129,9 +129,7 @@ describe('onClaimFieldChange', () => {
 		vi.mocked(evaluateRules).mockRejectedValueOnce(new Error('DB connection lost'));
 
 		// Should resolve without throwing
-		await expect(
-			onClaimFieldChange(ctx, 'claim-10', ['recovery_status'])
-		).resolves.toBeUndefined();
+		await expect(onClaimFieldChange(ctx, 'claim-10', ['recovery_status'])).resolves.toBeUndefined();
 	});
 
 	it('logs error to console when evaluateRules fails', async () => {

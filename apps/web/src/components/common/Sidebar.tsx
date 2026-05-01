@@ -31,11 +31,7 @@ export interface SidebarProps {
 	hoverColor?: string;
 }
 
-export default function Sidebar({
-	items,
-	collapsedWidth = 60,
-	expandedWidth = 240,
-}: SidebarProps) {
+export default function Sidebar({ items, collapsedWidth = 60, expandedWidth = 240 }: SidebarProps) {
 	const [open, setOpen] = useState(false);
 	const pathname = usePathname();
 	const sidebarRef = useRef<HTMLDivElement>(null);
@@ -74,21 +70,29 @@ export default function Sidebar({
 					return (
 						<li
 							key={item.route}
-							className={[css.navItem, selected ? css.navItemSelected : ''].filter(Boolean).join(' ')}
+							className={[css.navItem, selected ? css.navItemSelected : '']
+								.filter(Boolean)
+								.join(' ')}
 						>
 							<Link
 								href={item.route}
-								className={[css.navLink, selected ? css.navLinkSelected : ''].filter(Boolean).join(' ')}
+								className={[css.navLink, selected ? css.navLinkSelected : '']
+									.filter(Boolean)
+									.join(' ')}
 								style={{ color: selected ? 'var(--text-accent)' : undefined }}
 							>
 								<span
-									className={[css.navIcon, selected ? css.navIconSelected : ''].filter(Boolean).join(' ')}
+									className={[css.navIcon, selected ? css.navIconSelected : '']
+										.filter(Boolean)
+										.join(' ')}
 									style={{ width: iconWidth, minWidth: iconWidth }}
 								>
 									{item.icon}
 								</span>
 								<span
-									className={[css.navLabel, !open ? css.navLabelHidden : ''].filter(Boolean).join(' ')}
+									className={[css.navLabel, !open ? css.navLabelHidden : '']
+										.filter(Boolean)
+										.join(' ')}
 								>
 									{item.label}
 								</span>

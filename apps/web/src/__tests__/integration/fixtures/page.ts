@@ -166,7 +166,11 @@ export async function createTestQuestionResponseAnswer(
 		additional_info: overrides.additional_info ?? null,
 	};
 
-	return db.insertInto('question_response_answer').values(data).returningAll().executeTakeFirstOrThrow();
+	return db
+		.insertInto('question_response_answer')
+		.values(data)
+		.returningAll()
+		.executeTakeFirstOrThrow();
 }
 
 /**

@@ -157,8 +157,12 @@ export default function MyClaims() {
 							avgDaysInQueue={metrics.avgDaysInQueue}
 							isLoading={isFetching}
 						/>
-						<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 4, marginRight: 16 }}>
-							<span style={{ fontSize: 11, fontWeight: 600, color: 'text.secondary', marginBottom: 4 }}>
+						<div
+							style={{ display: 'flex', flexDirection: 'column' as const, gap: 4, marginRight: 16 }}
+						>
+							<span
+								style={{ fontSize: 11, fontWeight: 600, color: 'text.secondary', marginBottom: 4 }}
+							>
 								LAST ACTIVITY
 							</span>
 							<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -202,7 +206,11 @@ export default function MyClaims() {
 			</div>
 
 			{/* Claim Detail Panel */}
-			<ClaimDetailPanel claimId={selectedClaimId} open={!!selectedClaimId} onClose={handleClosePanel} />
+			<ClaimDetailPanel
+				claimId={selectedClaimId}
+				open={!!selectedClaimId}
+				onClose={handleClosePanel}
+			/>
 		</div>
 	);
 }

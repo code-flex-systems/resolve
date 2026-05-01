@@ -46,7 +46,10 @@ export interface AdminActionLogParams {
  *   action: AdminAction.DELETE,
  * });
  */
-export async function logAdminAction(ctx: ProtectedContext, params: AdminActionLogParams): Promise<void> {
+export async function logAdminAction(
+	ctx: ProtectedContext,
+	params: AdminActionLogParams
+): Promise<void> {
 	// Import and use the new activity logger for auto-routing
 	const { logAction } = await import('./activityLogger');
 
@@ -64,7 +67,10 @@ export async function logAdminAction(ctx: ProtectedContext, params: AdminActionL
  * @param ctx - The protected context containing user, client info, and db (with transaction if applicable)
  * @param logs - Array of log parameters
  */
-export async function logAdminActions(ctx: ProtectedContext, logs: AdminActionLogParams[]): Promise<void> {
+export async function logAdminActions(
+	ctx: ProtectedContext,
+	logs: AdminActionLogParams[]
+): Promise<void> {
 	if (logs.length === 0) return;
 
 	// Import and use the new activity logger for auto-routing

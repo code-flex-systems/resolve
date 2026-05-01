@@ -153,7 +153,10 @@ export function useUrlFilters() {
  * @example
  * const [search, setSearch] = useUrlParam('search');
  */
-export function useUrlParam(key: string, defaultValue: string = ''): [string, (value: string) => void] {
+export function useUrlParam(
+	key: string,
+	defaultValue: string = ''
+): [string, (value: string) => void] {
 	const { getParam, setParam } = useUrlFilters();
 	const [localValue, setLocalValue] = useState(() => getParam(key) ?? defaultValue);
 

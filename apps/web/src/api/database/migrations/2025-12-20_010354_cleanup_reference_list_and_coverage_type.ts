@@ -44,7 +44,9 @@ export async function up(db: Kysely<unknown>): Promise<void> {
 
 	// Rename claim_coverage.coverage_type to loss_type
 	// First, drop the existing CHECK constraint
-	await sql`ALTER TABLE claim_coverage DROP CONSTRAINT IF EXISTS claim_coverage_coverage_type_check`.execute(db);
+	await sql`ALTER TABLE claim_coverage DROP CONSTRAINT IF EXISTS claim_coverage_coverage_type_check`.execute(
+		db
+	);
 
 	// Rename the column
 	await sql`ALTER TABLE claim_coverage RENAME COLUMN coverage_type TO loss_type`.execute(db);
@@ -64,7 +66,9 @@ export async function up(db: Kysely<unknown>): Promise<void> {
 
 export async function down(db: Kysely<unknown>): Promise<void> {
 	// Rename loss_type back to coverage_type
-	await sql`ALTER TABLE claim_coverage DROP CONSTRAINT IF EXISTS claim_coverage_loss_type_check`.execute(db);
+	await sql`ALTER TABLE claim_coverage DROP CONSTRAINT IF EXISTS claim_coverage_loss_type_check`.execute(
+		db
+	);
 	await sql`ALTER TABLE claim_coverage RENAME COLUMN loss_type TO coverage_type`.execute(db);
 
 	// Restore the original CHECK constraint

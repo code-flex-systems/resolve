@@ -60,16 +60,38 @@ export default function SystemOverview() {
 			{logsData?.rows && logsData.rows.length > 0 && (
 				<Card variant="beveled" padding="md" style={{ marginTop: 24 }}>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-						<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>Recent Configuration Changes</span>
+						<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+							Recent Configuration Changes
+						</span>
 						{logsData.rows.map((log) => (
-							<div key={log.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0', borderBottom: '1px solid var(--border-primary)' }}>
+							<div
+								key={log.id}
+								style={{
+									display: 'flex',
+									alignItems: 'center',
+									gap: 10,
+									padding: '6px 0',
+									borderBottom: '1px solid var(--border-primary)',
+								}}
+							>
 								{/* User initials circle */}
-								<div style={{
-									width: 28, height: 28, borderRadius: '50%', backgroundColor: 'var(--bg-tertiary)',
-									display: 'flex', alignItems: 'center', justifyContent: 'center',
-									fontSize: 11, fontWeight: 600, color: 'var(--text-secondary)', flexShrink: 0,
-								}}>
-									{(log.first_name?.[0] ?? '').toUpperCase()}{(log.last_name?.[0] ?? '').toUpperCase()}
+								<div
+									style={{
+										width: 28,
+										height: 28,
+										borderRadius: '50%',
+										backgroundColor: 'var(--bg-tertiary)',
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+										fontSize: 11,
+										fontWeight: 600,
+										color: 'var(--text-secondary)',
+										flexShrink: 0,
+									}}
+								>
+									{(log.first_name?.[0] ?? '').toUpperCase()}
+									{(log.last_name?.[0] ?? '').toUpperCase()}
 								</div>
 								<div style={{ flex: 1, minWidth: 0 }}>
 									<span style={{ fontSize: 13, color: 'var(--text-primary)' }}>

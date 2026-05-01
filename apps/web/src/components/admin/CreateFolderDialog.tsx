@@ -17,7 +17,10 @@ interface CreateFolderDialogProps {
 	parentGroupId?: string | null;
 }
 
-export default function CreateFolderDialog({ onClose, parentGroupId = null }: CreateFolderDialogProps) {
+export default function CreateFolderDialog({
+	onClose,
+	parentGroupId = null,
+}: CreateFolderDialogProps) {
 	const { mutateAsync: createDocGroup, isPending } = useDocTrpc().createDocGroup;
 	const {
 		register,
@@ -56,9 +59,7 @@ export default function CreateFolderDialog({ onClose, parentGroupId = null }: Cr
 			onClose={onClose}
 			width={450}
 		>
-			<span style={{ fontSize: 13 }}>
-				Create a new folder to organize your documents.
-			</span>
+			<span style={{ fontSize: 13 }}>Create a new folder to organize your documents.</span>
 			<form>
 				<Input
 					id="name"

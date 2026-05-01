@@ -44,11 +44,9 @@ export const taskRouter = router({
 	/**
 	 * Get tasks for a specific claim
 	 */
-	getTasksByClaim: protectedProcedure
-		.input(getTasksByClaimInput)
-		.query(async ({ input, ctx }) => {
-			return taskController.getTasksByClaim(ctx, input);
-		}),
+	getTasksByClaim: protectedProcedure.input(getTasksByClaimInput).query(async ({ input, ctx }) => {
+		return taskController.getTasksByClaim(ctx, input);
+	}),
 
 	/**
 	 * Get tasks for a specific desk location (Admin only)
@@ -63,21 +61,17 @@ export const taskRouter = router({
 	/**
 	 * Get tasks visible to current user (via desk location assignments)
 	 */
-	getTasksForUser: protectedProcedure
-		.input(getTasksForUserInput)
-		.query(async ({ input, ctx }) => {
-			return taskController.getTasksForUser(ctx, input);
-		}),
+	getTasksForUser: protectedProcedure.input(getTasksForUserInput).query(async ({ input, ctx }) => {
+		return taskController.getTasksForUser(ctx, input);
+	}),
 
 	/**
 	 * Get desk location capacity usage (Admin only)
 	 */
-	getDeskCapacity: protectedProcedure
-		.input(getDeskCapacityInput)
-		.query(async ({ input, ctx }) => {
-			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-			return taskController.getDeskCapacity(ctx, input);
-		}),
+	getDeskCapacity: protectedProcedure.input(getDeskCapacityInput).query(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return taskController.getDeskCapacity(ctx, input);
+	}),
 
 	/**
 	 * Get task counts by status for a desk location (Admin only)

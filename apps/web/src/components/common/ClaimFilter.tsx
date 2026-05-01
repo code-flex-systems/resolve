@@ -43,7 +43,11 @@ export default function ClaimFilter({
 	}));
 
 	const selectedOption = claim
-		? options.find((o) => o.value === claim.id) ?? { value: claim.id, label: claim.claim_number ?? '', description: claim.insured ?? undefined }
+		? (options.find((o) => o.value === claim.id) ?? {
+				value: claim.id,
+				label: claim.claim_number ?? '',
+				description: claim.insured ?? undefined,
+			})
 		: null;
 
 	return (

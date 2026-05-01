@@ -233,7 +233,12 @@ describe('Client-Scoping Security Tests', () => {
 				}),
 			} as any);
 
-			const result = await getResponsesForPageInstance(mockContext, 'checklist-999', 'claim-999', 'instance-1');
+			const result = await getResponsesForPageInstance(
+				mockContext,
+				'checklist-999',
+				'claim-999',
+				'instance-1'
+			);
 
 			expect(result).toEqual({});
 		});
@@ -241,7 +246,9 @@ describe('Client-Scoping Security Tests', () => {
 		it('should filter responses by both checklist/claim AND client_id', async () => {
 			const mockExecute = vi
 				.fn()
-				.mockResolvedValue([{ id: 1, question_id: 5, response_text: 'Answer', selected_answers: [] }]);
+				.mockResolvedValue([
+					{ id: 1, question_id: 5, response_text: 'Answer', selected_answers: [] },
+				]);
 
 			const mockOrderBy = vi.fn().mockReturnValue({ execute: mockExecute });
 			const mockGroupBy = vi.fn().mockReturnValue({ orderBy: mockOrderBy });
@@ -743,7 +750,11 @@ describe('Client-Scoping Security Tests', () => {
 			await getQuestions(mockContext, 'page-1');
 
 			// Verify leftJoin was called for answer table
-			expect(mockLeftJoinAnswer).toHaveBeenCalledWith('answer', 'answer.question_id', 'question.id');
+			expect(mockLeftJoinAnswer).toHaveBeenCalledWith(
+				'answer',
+				'answer.question_id',
+				'question.id'
+			);
 
 			// Verify client_id is used in where clause
 			expect(mockWhere1).toHaveBeenCalledWith('question.client_id', '=', 'client-abc');
@@ -1034,9 +1045,7 @@ describe('Client-Scoping Security Tests', () => {
 
 		it('should NOT return comments from other clients in getComment()', async () => {
 			// Simulate: User from client-abc tries to access comment from client-xyz
-			const mockExecuteTakeFirstOrThrow = vi.fn().mockRejectedValue(
-				new Error('no result')
-			);
+			const mockExecuteTakeFirstOrThrow = vi.fn().mockRejectedValue(new Error('no result'));
 
 			vi.spyOn(db, 'selectFrom').mockReturnValue({
 				innerJoin: vi.fn().mockReturnValue({
@@ -1079,7 +1088,10 @@ describe('Client-Scoping Security Tests', () => {
 				innerJoin: mockInnerJoin,
 			} as any);
 
-			const result = await getCommentCount(mockContext, { checklistId: 'checklist-1', claimId: 'claim-100' });
+			const result = await getCommentCount(mockContext, {
+				checklistId: 'checklist-1',
+				claimId: 'claim-100',
+			});
 
 			// Verify client_id filter was applied
 			expect(mockWhere1).toHaveBeenCalledWith('comment.client_id', '=', 'client-abc');
@@ -1153,7 +1165,12 @@ describe('Client-Scoping Security Tests', () => {
 				innerJoin: mockInnerJoin,
 			} as any);
 
-			const result = await getComments(mockContext, { checklistId: 'checklist-1', claimId: 'claim-100' }, 10, 0);
+			const result = await getComments(
+				mockContext,
+				{ checklistId: 'checklist-1', claimId: 'claim-100' },
+				10,
+				0
+			);
 
 			// Verify client_id filter was applied
 			expect(mockWhere1).toHaveBeenCalledWith('comment.client_id', '=', 'client-abc');

@@ -110,12 +110,10 @@ export const deskRouter = router({
 	/**
 	 * Get single desk location by ID (Admin only)
 	 */
-	getDeskLocation: protectedProcedure
-		.input(getDeskLocationInput)
-		.query(async ({ input, ctx }) => {
-			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-			return deskController.getDeskLocation(ctx, input);
-		}),
+	getDeskLocation: protectedProcedure.input(getDeskLocationInput).query(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return deskController.getDeskLocation(ctx, input);
+	}),
 
 	/**
 	 * Create desk location (Admin only)

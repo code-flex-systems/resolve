@@ -2,15 +2,9 @@ import { Kysely, sql } from 'kysely';
 
 export async function up(db: Kysely<any>): Promise<void> {
 	// Add soft delete columns to settlement table
-	await db.schema
-		.alterTable('settlement')
-		.addColumn('deleted_at', 'timestamptz')
-		.execute();
+	await db.schema.alterTable('settlement').addColumn('deleted_at', 'timestamptz').execute();
 
-	await db.schema
-		.alterTable('settlement')
-		.addColumn('deleted_by', 'text')
-		.execute();
+	await db.schema.alterTable('settlement').addColumn('deleted_by', 'text').execute();
 
 	// Add index for efficient filtering of non-deleted settlements
 	await db.schema

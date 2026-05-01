@@ -18,7 +18,11 @@ interface ChecklistSelectionDialogProps {
  * Dialog for selecting a checklist to start for a claim
  * Features scrollable list of all checklists with modern styling
  */
-export default function ChecklistSelectionDialog({ claimId, open, onClose }: ChecklistSelectionDialogProps) {
+export default function ChecklistSelectionDialog({
+	claimId,
+	open,
+	onClose,
+}: ChecklistSelectionDialogProps) {
 	const router = useRouter();
 	const { data: checklists = [], isLoading } = useChecklistTrpc().list({});
 	const [selectedChecklist, setSelectedChecklist] = useState<any>(null);
@@ -86,15 +90,10 @@ export default function ChecklistSelectionDialog({ claimId, open, onClose }: Che
 										<div className={css.nameRow}>
 											<div className={css.nameGroup}>
 												<IconChecklist size={20} style={{ color: 'var(--text-accent)' }} />
-												<span style={{ fontSize: 16, fontWeight: 600 }}>
-													{checklist.name}
-												</span>
+												<span style={{ fontSize: 16, fontWeight: 600 }}>{checklist.name}</span>
 												{isSelected && (
 													<span style={{ display: 'inline-flex' }}>
-														<IconCircleCheck
-															size={20}
-															style={{ color: 'var(--text-accent)' }}
-														/>
+														<IconCircleCheck size={20} style={{ color: 'var(--text-accent)' }} />
 													</span>
 												)}
 											</div>
@@ -111,15 +110,11 @@ export default function ChecklistSelectionDialog({ claimId, open, onClose }: Che
 
 										{/* Description */}
 										{checklist.description && (
-											<p className={css.description}>
-												{checklist.description}
-											</p>
+											<p className={css.description}>{checklist.description}</p>
 										)}
 
 										{!checklist.description && (
-											<span className={css.noDescription}>
-												No description provided
-											</span>
+											<span className={css.noDescription}>No description provided</span>
 										)}
 									</div>
 								</div>

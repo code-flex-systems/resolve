@@ -169,7 +169,9 @@ export function hasLossAddressData(addr: Partial<LossAddress> | null | undefined
 /**
  * Convert a loss address to a standard address format.
  */
-export function lossAddressToAddress(addr: Partial<LossAddress> | null | undefined): Address | null {
+export function lossAddressToAddress(
+	addr: Partial<LossAddress> | null | undefined
+): Address | null {
 	if (!addr) return null;
 	return {
 		street_address: addr.loss_street_address ?? null,

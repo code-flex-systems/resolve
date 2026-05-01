@@ -1209,9 +1209,9 @@ describe('deadlineQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act & Assert
-			await expect(syncDeadlineStatus(ctx, '00000000-0000-0000-0000-000000000000', DeadlineStatus.MET)).rejects.toThrow(
-				'Deadline not found'
-			);
+			await expect(
+				syncDeadlineStatus(ctx, '00000000-0000-0000-0000-000000000000', DeadlineStatus.MET)
+			).rejects.toThrow('Deadline not found');
 		});
 
 		it('should enforce tenant isolation', async () => {

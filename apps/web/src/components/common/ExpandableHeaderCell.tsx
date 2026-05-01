@@ -13,7 +13,9 @@ interface ExpandableHeaderCellProps {
 export default function ExpandableHeaderCell(props: ExpandableHeaderCellProps) {
 	const headerName = props.headerName ?? props.colDef?.headerName ?? '';
 	return (
-		<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+		<div
+			style={{ width: '100%', display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}
+		>
 			<ExpandableTitle title={headerName.toUpperCase()} icon={props.icon} size={25} />
 		</div>
 	);

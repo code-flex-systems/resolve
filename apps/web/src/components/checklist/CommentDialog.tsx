@@ -13,8 +13,12 @@ import Tooltip from '@/components/ui/Tooltip';
 
 export default function CommentDialog() {
 	const { data: session } = useClerkSession();
-	const { instanceId, questionId, existingComment } = useChecklistStore((state) => state.questionCommentDialog);
-	const toggleQuestionCommentDialog = useChecklistStore((state) => state.toggleQuestionCommentDialog);
+	const { instanceId, questionId, existingComment } = useChecklistStore(
+		(state) => state.questionCommentDialog
+	);
+	const toggleQuestionCommentDialog = useChecklistStore(
+		(state) => state.toggleQuestionCommentDialog
+	);
 	const clearExistingComment = useChecklistStore((state) => state.clearExistingComment);
 	const [comment, setComment] = useState(existingComment?.body ?? '');
 	const { checklistId = '', claimId = '' } = useChecklistParams();
@@ -55,7 +59,8 @@ export default function CommentDialog() {
 			title={existingComment ? `${formatUser(existingComment)} said...` : 'Add a comment...'}
 			onClose={() => toggleQuestionCommentDialog()}
 			closeDisabled={inTransition}
-			width={400}>
+			width={400}
+		>
 			<Textarea
 				value={comment}
 				placeholder="New comment..."
@@ -69,16 +74,28 @@ export default function CommentDialog() {
 						<span style={{ marginTop: 90, marginRight: 5 }}>
 							{existingComment ? (
 								<Tooltip content="Delete comment">
-							<Button variant="icon" size="sm" color="neutral" onClick={() => deleteComment().catch(console.error)} disabled={inTransition}>
-							<IconTrash size={16} />
-						</Button>
-						</Tooltip>
+									<Button
+										variant="icon"
+										size="sm"
+										color="neutral"
+										onClick={() => deleteComment().catch(console.error)}
+										disabled={inTransition}
+									>
+										<IconTrash size={16} />
+									</Button>
+								</Tooltip>
 							) : (
 								<Tooltip content="Add comment">
-							<Button variant="icon" size="sm" color="neutral" onClick={() => addComment().catch(console.error)} disabled={!comment || inTransition}>
-							<IconCirclePlus size={16} />
-						</Button>
-						</Tooltip>
+									<Button
+										variant="icon"
+										size="sm"
+										color="neutral"
+										onClick={() => addComment().catch(console.error)}
+										disabled={!comment || inTransition}
+									>
+										<IconCirclePlus size={16} />
+									</Button>
+								</Tooltip>
 							)}
 						</span>
 					) : undefined
@@ -86,14 +103,27 @@ export default function CommentDialog() {
 				autoFocus
 				disabled={comment.length >= config.MAX_COMMENT_SIZE || !!existingComment || inTransition}
 			/>
-			<div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', paddingTop: '2px' }}>
+			<div
+				style={{
+					width: '100%',
+					display: 'flex',
+					justifyContent: 'flex-end',
+					alignItems: 'center',
+					paddingTop: '2px',
+				}}
+			>
 				{!!existingComment && (
 					<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
 						{formatMDY(existingComment.created_at)}
 					</span>
 				)}
 				{!existingComment && (
-					<span style={{ fontSize: 12, color: comment.length === config.MAX_COMMENT_SIZE ? 'error' : undefined }}>
+					<span
+						style={{
+							fontSize: 12,
+							color: comment.length === config.MAX_COMMENT_SIZE ? 'error' : undefined,
+						}}
+					>
 						Max characters: {comment.length}/{config.MAX_COMMENT_SIZE}
 					</span>
 				)}

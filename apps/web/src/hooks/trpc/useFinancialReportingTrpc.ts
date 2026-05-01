@@ -20,7 +20,8 @@ export function useFinancialReportingTrpc() {
 		getNetRecoveryByLineOfBusiness: trpc.financialReporting.getNetRecoveryByLineOfBusiness.useQuery,
 		getCoverageCapUtilization: trpc.financialReporting.getCoverageCapUtilization.useQuery,
 		getCoverageCapByCarrier: trpc.financialReporting.getCoverageCapByCarrier.useQuery,
-		getNegotiationEfficiencyScatter: trpc.financialReporting.getNegotiationEfficiencyScatter.useQuery,
+		getNegotiationEfficiencyScatter:
+			trpc.financialReporting.getNegotiationEfficiencyScatter.useQuery,
 
 		// LONG tier (30 min stale) — strategic/historical views
 		getRecoveryRateByCarrier: trpc.financialReporting.getRecoveryRateByCarrier.useQuery,
@@ -99,11 +100,15 @@ export type RecoveryAgingBreakdown = FinancialReportingOutput['getRecoveryAgingB
 export type RecoveryRateByCarrier = FinancialReportingOutput['getRecoveryRateByCarrier'][number];
 export type NetRecoveryByMonth = FinancialReportingOutput['getNetRecoveryByMonth'][number];
 export type NetRecoveryByLob = FinancialReportingOutput['getNetRecoveryByLineOfBusiness'][number];
-export type PaymentToRecoveryTimeline = FinancialReportingOutput['getPaymentToRecoveryTimeline'][number];
-export type RecoveryTimeDistribution = FinancialReportingOutput['getRecoveryTimeDistribution'][number];
+export type PaymentToRecoveryTimeline =
+	FinancialReportingOutput['getPaymentToRecoveryTimeline'][number];
+export type RecoveryTimeDistribution =
+	FinancialReportingOutput['getRecoveryTimeDistribution'][number];
 export type CoverageCapUtilization = FinancialReportingOutput['getCoverageCapUtilization'][number];
 export type CoverageCapByCarrier = FinancialReportingOutput['getCoverageCapByCarrier'][number];
-export type VarianceDecompositionItem = FinancialReportingOutput['getVarianceDecomposition'][number];
+export type VarianceDecompositionItem =
+	FinancialReportingOutput['getVarianceDecomposition'][number];
 export type SettlementFunnelStage = FinancialReportingOutput['getSettlementFunnel'][number];
-export type NegotiationEfficiencyPoint = FinancialReportingOutput['getNegotiationEfficiencyScatter'][number];
+export type NegotiationEfficiencyPoint =
+	FinancialReportingOutput['getNegotiationEfficiencyScatter'][number];
 export type StatuteDeadlineRisk = FinancialReportingOutput['getStatuteDeadlineRisk'][number];

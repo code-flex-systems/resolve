@@ -69,7 +69,7 @@ describe('formatAmount', () => {
 
 		it('should handle negative numbers', () => {
 			expect(formatAmount(-100)).toBe('-100.00');
-			expect(formatAmount(-1000.50)).toBe('-1,000.50');
+			expect(formatAmount(-1000.5)).toBe('-1,000.50');
 			expect(formatAmount(-100, true)).toBe('$-100.00');
 		});
 
@@ -134,7 +134,10 @@ describe('formatMetric', () => {
 	describe('Floating Point Option', () => {
 		it('should format with decimal precision when floating=true', () => {
 			expect(formatMetric(1234, { floating: true })).toEqual({ value: '1.23k', isNegative: false });
-			expect(formatMetric(1234567, { floating: true })).toEqual({ value: '1.23m', isNegative: false });
+			expect(formatMetric(1234567, { floating: true })).toEqual({
+				value: '1.23m',
+				isNegative: false,
+			});
 		});
 
 		it('should format without decimals when floating=false', () => {
@@ -163,13 +166,25 @@ describe('formatMetric', () => {
 
 	describe('ShowNegative Option', () => {
 		it('should wrap negative values in parentheses when showNegative=true', () => {
-			expect(formatMetric(-100, { showNegative: true })).toEqual({ value: '(100)', isNegative: true });
-			expect(formatMetric(-5000, { showNegative: true })).toEqual({ value: '(5k)', isNegative: true });
+			expect(formatMetric(-100, { showNegative: true })).toEqual({
+				value: '(100)',
+				isNegative: true,
+			});
+			expect(formatMetric(-5000, { showNegative: true })).toEqual({
+				value: '(5k)',
+				isNegative: true,
+			});
 		});
 
 		it('should not wrap when showNegative=false', () => {
-			expect(formatMetric(-100, { showNegative: false })).toEqual({ value: '100', isNegative: true });
-			expect(formatMetric(-5000, { showNegative: false })).toEqual({ value: '5k', isNegative: true });
+			expect(formatMetric(-100, { showNegative: false })).toEqual({
+				value: '100',
+				isNegative: true,
+			});
+			expect(formatMetric(-5000, { showNegative: false })).toEqual({
+				value: '5k',
+				isNegative: true,
+			});
 		});
 
 		it('should default to no parentheses', () => {
@@ -177,21 +192,33 @@ describe('formatMetric', () => {
 		});
 
 		it('should not affect positive numbers', () => {
-			expect(formatMetric(100, { showNegative: true })).toEqual({ value: '100', isNegative: false });
+			expect(formatMetric(100, { showNegative: true })).toEqual({
+				value: '100',
+				isNegative: false,
+			});
 		});
 	});
 
 	describe('Combined Options', () => {
 		it('should handle floating + cap', () => {
-			expect(formatMetric(10000, { floating: true, cap: 5000 })).toEqual({ value: '5.00k+', isNegative: false });
+			expect(formatMetric(10000, { floating: true, cap: 5000 })).toEqual({
+				value: '5.00k+',
+				isNegative: false,
+			});
 		});
 
 		it('should handle cap + showNegative', () => {
-			expect(formatMetric(-10000, { cap: 5000, showNegative: true })).toEqual({ value: '(5k+)', isNegative: true });
+			expect(formatMetric(-10000, { cap: 5000, showNegative: true })).toEqual({
+				value: '(5k+)',
+				isNegative: true,
+			});
 		});
 
 		it('should handle all options together', () => {
-			expect(formatMetric(-10000, { floating: true, cap: 5000, showNegative: true })).toEqual({ value: '(5.00k+)', isNegative: true });
+			expect(formatMetric(-10000, { floating: true, cap: 5000, showNegative: true })).toEqual({
+				value: '(5.00k+)',
+				isNegative: true,
+			});
 		});
 	});
 

@@ -24,7 +24,11 @@ function getCurrentQuarterRange(): [Dayjs, Dayjs] {
 	const startMonth = (now.quarter() - 1) * 3;
 	return [
 		dayjs.utc().year(now.year()).month(startMonth).startOf('month'),
-		dayjs.utc().year(now.year()).month(startMonth + 2).endOf('month'),
+		dayjs
+			.utc()
+			.year(now.year())
+			.month(startMonth + 2)
+			.endOf('month'),
 	];
 }
 
@@ -52,17 +56,27 @@ export default function RecoveryView() {
 	return (
 		<div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column' }}>
 			<div style={{ width: '100%', display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-				<BasicMonthRangePicker defaultLabel="This Quarter" defaultValue={range} onConfirm={setRange} />
+				<BasicMonthRangePicker
+					defaultLabel="This Quarter"
+					defaultValue={range}
+					onConfirm={setRange}
+				/>
 			</div>
 			<div style={styles.divider}>
 				<Divider />
 			</div>
-			<div style={{ width: '100%', height: 'calc(100vh - 70px)', display: 'flex', flexDirection: 'column', padding: '20px', overflow: 'auto' }}>
+			<div
+				style={{
+					width: '100%',
+					height: 'calc(100vh - 70px)',
+					display: 'flex',
+					flexDirection: 'column',
+					padding: '20px',
+					overflow: 'auto',
+				}}
+			>
 				<div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 16 }}>
-					<RecoveryMetricsChart
-						range={range}
-						isBreakdown={true}
-					/>
+					<RecoveryMetricsChart range={range} isBreakdown={true} />
 					<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
 						<Card variant="beveled" padding="none" style={{ padding: '24px' }}>
 							<span style={{ fontSize: 16, fontWeight: 600, marginBottom: 12, display: 'block' }}>

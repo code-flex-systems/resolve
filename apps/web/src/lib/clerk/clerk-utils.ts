@@ -23,7 +23,10 @@ export function getClerkClient() {
  * Note: Super Admin is handled via user metadata (publicMetadata.isSuperAdmin),
  * not via org roles, since it's a cross-organization role.
  */
-export function mapClerkRoleToAppRole(clerkRole: string | undefined, isSuperAdmin: boolean = false): string {
+export function mapClerkRoleToAppRole(
+	clerkRole: string | undefined,
+	isSuperAdmin: boolean = false
+): string {
 	if (isSuperAdmin) {
 		return config.ROLES.SUPER_ADMIN;
 	}

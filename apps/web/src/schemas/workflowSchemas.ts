@@ -6,10 +6,7 @@ import {
 	WorkflowExecutionMode,
 	RuleExecutionStatus,
 } from '@/config/enums';
-import {
-	WORKFLOW_CONDITION_FIELDS,
-	CONDITION_OPERATORS,
-} from '@/lib/workflow/ruleConditions';
+import { WORKFLOW_CONDITION_FIELDS, CONDITION_OPERATORS } from '@/lib/workflow/ruleConditions';
 
 // ============================================================================
 // CONDITION SCHEMAS

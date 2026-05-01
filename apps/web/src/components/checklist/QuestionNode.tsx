@@ -17,7 +17,8 @@ export default function QuestionNode(props: {
 	level: number;
 	idx: number;
 }) {
-	const { pagePosition, questionId, questionText, questionType, questionAnswers, level, idx } = props;
+	const { pagePosition, questionId, questionText, questionType, questionAnswers, level, idx } =
+		props;
 	const [expanded, setExpanded] = useState(false);
 	const expandAll = useChecklistStore((state) => state.expandAll);
 	const selectedQuestion = useChecklistStore((state) => state.selectedQuestion);
@@ -35,10 +36,19 @@ export default function QuestionNode(props: {
 				className="flex-row-between"
 			>
 				<div className="flex-row-left">
-					<IconHelpCircle size={16} style={{ marginRight: '10px', color: selected ? 'var(--text-accent)' : '' }} />
+					<IconHelpCircle
+						size={16}
+						style={{ marginRight: '10px', color: selected ? 'var(--text-accent)' : '' }}
+					/>
 					<span
 						className={isPlaceholder ? 'node-p' : 'node-q'}
-						style={{ cursor: 'pointer', color: selected ? 'var(--status-success)' : isPlaceholder ? 'var(--text-muted)' : '', fontWeight: isPlaceholder ? 'bold' : '', fontStyle: isPlaceholder ? 'italic' : undefined, lineHeight: '19px' }}
+						style={{
+							cursor: 'pointer',
+							color: selected ? 'var(--status-success)' : isPlaceholder ? 'var(--text-muted)' : '',
+							fontWeight: isPlaceholder ? 'bold' : '',
+							fontStyle: isPlaceholder ? 'italic' : undefined,
+							lineHeight: '19px',
+						}}
 					>
 						{questionId !== '' ? `${idx + 1}. ` : ''}
 						{questionText} (p{pagePosition}.q{questionId === '' ? '?' : idx + 1})
@@ -48,7 +58,14 @@ export default function QuestionNode(props: {
 					<div style={{ width: 25 }} />
 				) : (
 					<button
-						style={{ background: 'none', border: 'none', padding: '2px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+						style={{
+							background: 'none',
+							border: 'none',
+							padding: '2px',
+							cursor: 'pointer',
+							display: 'flex',
+							alignItems: 'center',
+						}}
 						onClick={(e) => {
 							setExpanded((prev) => !prev);
 							e.stopPropagation();

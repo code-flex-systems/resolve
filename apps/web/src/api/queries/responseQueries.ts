@@ -1,7 +1,13 @@
 import { CompiledQuery, ExpressionWrapper, sql, SqlBool } from 'kysely';
 import { getUpdatedPageStatus, isEqual, sqlFilters } from '@/api/utils/utils';
 import * as pageQueries from '@/api/queries/pageQueries';
-import { DateRange, DateRangeStrict, Interval, QuestionResponse, QuestionResponseAnswer } from '@/types/types';
+import {
+	DateRange,
+	DateRangeStrict,
+	Interval,
+	QuestionResponse,
+	QuestionResponseAnswer,
+} from '@/types/types';
 import { ProtectedContext } from '@/server/trpc/trpc';
 import { DB } from '../database/types';
 
@@ -24,7 +30,11 @@ export async function getResponseCount(
 ) {
 	const countRow = await ctx.db
 		.selectFrom('question_response')
-		.leftJoin('question_response_answer', 'question_response_answer.response_id', 'question_response.id')
+		.leftJoin(
+			'question_response_answer',
+			'question_response_answer.response_id',
+			'question_response.id'
+		)
 		.select((eb) =>
 			eb.fn
 				.count('question_response.id')
@@ -76,7 +86,11 @@ export async function getResponsesForAnswer(
 ) {
 	const results = await ctx.db
 		.selectFrom('question_response')
-		.innerJoin('question_response_answer', 'question_response.id', 'question_response_answer.response_id')
+		.innerJoin(
+			'question_response_answer',
+			'question_response.id',
+			'question_response_answer.response_id'
+		)
 		.innerJoin('claim', 'question_response.claim_id', 'claim.id')
 		.leftJoin('users', 'users.id', 'question_response.created_by')
 		.select((eb) => [
@@ -97,7 +111,8 @@ export async function getResponsesForAnswer(
 		.where((eb) => {
 			const andClause = [eb('question_response_answer.answer_id', '=', answerId)];
 			if (filters.claimId) andClause.push(eb('question_response.claim_id', '=', filters.claimId));
-			if (filters.users?.length) andClause.push(eb('question_response.created_by', 'in', filters.users));
+			if (filters.users?.length)
+				andClause.push(eb('question_response.created_by', 'in', filters.users));
 			if (filters.range && filters.range.some((d) => !!d)) {
 				if (filters.range[0]) {
 					andClause.push(eb('question_response.created_at', '>=', filters.range[0]));
@@ -107,7 +122,11 @@ export async function getResponsesForAnswer(
 				}
 			} else {
 				andClause.push(
-					eb('question_response.created_at', '>=', sql`CURRENT_DATE - INTERVAL '30 days'`.$castTo<Date>())
+					eb(
+						'question_response.created_at',
+						'>=',
+						sql`CURRENT_DATE - INTERVAL '30 days'`.$castTo<Date>()
+					)
 				);
 			}
 			return eb.and(andClause);
@@ -138,7 +157,11 @@ export async function getResponsesForPageInstance(
 	const responses = await ctx.db
 		.selectFrom('question_response')
 		.innerJoin('page_instance', 'page_instance.id', 'question_response.instance_id')
-		.leftJoin('question_response_answer', 'question_response_answer.response_id', 'question_response.id')
+		.leftJoin(
+			'question_response_answer',
+			'question_response_answer.response_id',
+			'question_response.id'
+		)
 		.select((eb) => [
 			'question_response.id',
 			'question_response.checklist_id',
@@ -164,7 +187,9 @@ export async function getResponsesForPageInstance(
 		.orderBy('question_response.instance_id')
 		.execute();
 	// Build map keyed by question_id, excluding nulls
-	type ResponseWithNonNullQuestionId = Omit<(typeof responses)[0], 'question_id'> & { question_id: string };
+	type ResponseWithNonNullQuestionId = Omit<(typeof responses)[0], 'question_id'> & {
+		question_id: string;
+	};
 	const responseMap: Record<string, ResponseWithNonNullQuestionId> = {};
 	responses.forEach((r) => {
 		if (r.question_id !== null) {
@@ -176,7 +201,13 @@ export async function getResponsesForPageInstance(
 
 export async function getResponseAuditLogs(
 	ctx: ProtectedContext,
-	filters: { checklistId?: string; claimId?: string; emails?: string[]; range?: DateRange; searchTerm?: string },
+	filters: {
+		checklistId?: string;
+		claimId?: string;
+		emails?: string[];
+		range?: DateRange;
+		searchTerm?: string;
+	},
 	limit: number,
 	offset: number
 ) {
@@ -187,8 +218,10 @@ export async function getResponseAuditLogs(
 		.where('response_audit_logs.client_id', '=', ctx.session.user.client_id)
 		.where((eb) => {
 			const whereClause: ExpressionWrapper<DB, 'response_audit_logs' | 'users', SqlBool>[] = [];
-			if (filters.checklistId) whereClause.push(eb('response_audit_logs.checklist_id', '=', filters.checklistId));
-			if (filters.claimId) whereClause.push(eb('response_audit_logs.claim_id', '=', filters.claimId));
+			if (filters.checklistId)
+				whereClause.push(eb('response_audit_logs.checklist_id', '=', filters.checklistId));
+			if (filters.claimId)
+				whereClause.push(eb('response_audit_logs.claim_id', '=', filters.claimId));
 			if (filters.emails?.length) whereClause.push(eb('users.email', 'in', filters.emails));
 			if (filters.range && filters.range.some((d) => !!d)) {
 				if (filters.range[0]) {
@@ -198,7 +231,8 @@ export async function getResponseAuditLogs(
 					whereClause.push(eb('response_audit_logs.created_at', '<=', filters.range[1]));
 				}
 			}
-			if (filters.searchTerm) whereClause.push(eb('question_text', 'ilike', `%${filters.searchTerm}%`));
+			if (filters.searchTerm)
+				whereClause.push(eb('question_text', 'ilike', `%${filters.searchTerm}%`));
 			return eb.and(whereClause);
 		})
 		.selectAll('response_audit_logs')
@@ -222,7 +256,13 @@ export async function getResponseAuditLogs(
 
 export async function getResponseAuditLogStats(
 	ctx: ProtectedContext,
-	filters: { range: DateRangeStrict; checklistId?: string; claimId?: string; users?: string[]; searchTerm?: string }
+	filters: {
+		range: DateRangeStrict;
+		checklistId?: string;
+		claimId?: string;
+		users?: string[];
+		searchTerm?: string;
+	}
 ) {
 	// Format dates as YYYY-MM-DD strings to avoid timezone issues with generate_series
 	const startDate = filters.range[0].toISOString().split('T')[0];
@@ -258,7 +298,13 @@ export async function getResponseAuditLogStats(
  */
 export async function exportResponseAuditLogs(
 	ctx: ProtectedContext,
-	filters: { checklistId?: string; claimId?: string; emails?: string[]; range?: DateRange; searchTerm?: string }
+	filters: {
+		checklistId?: string;
+		claimId?: string;
+		emails?: string[];
+		range?: DateRange;
+		searchTerm?: string;
+	}
 ) {
 	const query = ctx.db
 		.selectFrom('response_audit_logs')
@@ -266,8 +312,10 @@ export async function exportResponseAuditLogs(
 		.where('response_audit_logs.client_id', '=', ctx.session.user.client_id)
 		.where((eb) => {
 			const whereClause: ExpressionWrapper<DB, 'response_audit_logs' | 'users', SqlBool>[] = [];
-			if (filters.checklistId) whereClause.push(eb('response_audit_logs.checklist_id', '=', filters.checklistId));
-			if (filters.claimId) whereClause.push(eb('response_audit_logs.claim_id', '=', filters.claimId));
+			if (filters.checklistId)
+				whereClause.push(eb('response_audit_logs.checklist_id', '=', filters.checklistId));
+			if (filters.claimId)
+				whereClause.push(eb('response_audit_logs.claim_id', '=', filters.claimId));
 			if (filters.emails?.length) whereClause.push(eb('users.email', 'in', filters.emails));
 			if (filters.range && filters.range.some((d) => !!d)) {
 				if (filters.range[0]) {
@@ -277,7 +325,8 @@ export async function exportResponseAuditLogs(
 					whereClause.push(eb('response_audit_logs.created_at', '<=', filters.range[1]));
 				}
 			}
-			if (filters.searchTerm) whereClause.push(eb('question_text', 'ilike', `%${filters.searchTerm}%`));
+			if (filters.searchTerm)
+				whereClause.push(eb('question_text', 'ilike', `%${filters.searchTerm}%`));
 			return eb.and(whereClause);
 		})
 		.selectAll('response_audit_logs')
@@ -295,7 +344,10 @@ export async function exportResponseAuditLogs(
  * @param responses - array of responses to upsert
  * @returns updated status for the associated page instance
  */
-export async function upsertQuestionResponses(ctx: ProtectedContext, responses: QuestionResponse[]) {
+export async function upsertQuestionResponses(
+	ctx: ProtectedContext,
+	responses: QuestionResponse[]
+) {
 	const sample = responses[0];
 	const clientId = ctx.session.user.client_id;
 	const userId = ctx.session.user.id;
@@ -362,7 +414,7 @@ export async function upsertQuestionResponses(ctx: ProtectedContext, responses: 
 
 	for (const response of responses) {
 		const oldRow = existingByQuestionId.get(response.question_id);
-		const oldAnswers = oldRow ? answersByResponseId.get(oldRow.id) ?? [] : [];
+		const oldAnswers = oldRow ? (answersByResponseId.get(oldRow.id) ?? []) : [];
 
 		const newText = response.response_text ?? null;
 		const oldText = oldRow?.response_text ?? null;
@@ -375,7 +427,10 @@ export async function upsertQuestionResponses(ctx: ProtectedContext, responses: 
 			oldText === newText &&
 			oldDocId === newDocId &&
 			isEqual(
-				oldAnswers.map((r) => ({ answer_id: r.answer_id, additional_info: r.additional_info ?? null })),
+				oldAnswers.map((r) => ({
+					answer_id: r.answer_id,
+					additional_info: r.additional_info ?? null,
+				})),
 				(response.selected_answers ?? []).map((r) => ({
 					answer_id: r.answer_id,
 					additional_info: r.additional_info ?? null,
@@ -467,11 +522,18 @@ export async function upsertQuestionResponses(ctx: ProtectedContext, responses: 
 	// 6. Batch delete old answers for upserted responses
 	const upsertResponseIds = savedResponses.map((s) => s.id);
 	if (upsertResponseIds.length > 0) {
-		await ctx.db.deleteFrom('question_response_answer').where('response_id', 'in', upsertResponseIds).execute();
+		await ctx.db
+			.deleteFrom('question_response_answer')
+			.where('response_id', 'in', upsertResponseIds)
+			.execute();
 	}
 
 	// 7. Batch insert new answers
-	const allNewAnswers: { response_id: string; answer_id: string; additional_info: string | null }[] = [];
+	const allNewAnswers: {
+		response_id: string;
+		answer_id: string;
+		additional_info: string | null;
+	}[] = [];
 	for (const u of toUpsert) {
 		const saved = savedByQuestionId.get(u.response.question_id);
 		if (saved && u.response.selected_answers?.length) {
@@ -521,7 +583,11 @@ export async function upsertQuestionResponses(ctx: ProtectedContext, responses: 
 			? await ctx.db
 					.selectFrom('question')
 					.innerJoin('page', 'page.id', 'question.page_id')
-					.select(['question.id as question_id', 'question.text as question_text', 'page.title as page_label'])
+					.select([
+						'question.id as question_id',
+						'question.text as question_text',
+						'page.title as page_label',
+					])
 					.where('question.id', 'in', allQuestionIds)
 					.execute()
 			: [];
@@ -614,16 +680,18 @@ export async function upsertQuestionResponses(ctx: ProtectedContext, responses: 
 		.selectFrom('question')
 		.innerJoin('page', 'page.id', 'question.page_id')
 		.innerJoin('page_instance', 'page.id', 'page_instance.page_id')
-		.leftJoin(
-			'question_response',
-			(join) =>
-				join
-					.onRef('question_response.question_id', '=', 'question.id')
-					.on('question_response.instance_id', '=', sample.instance_id)
-					.on('question_response.claim_id', '=', sample.claim_id)
-					.on('question_response.checklist_id', '=', sample.checklist_id)
+		.leftJoin('question_response', (join) =>
+			join
+				.onRef('question_response.question_id', '=', 'question.id')
+				.on('question_response.instance_id', '=', sample.instance_id)
+				.on('question_response.claim_id', '=', sample.claim_id)
+				.on('question_response.checklist_id', '=', sample.checklist_id)
 		)
-		.leftJoin('question_response_answer', 'question_response_answer.response_id', 'question_response.id')
+		.leftJoin(
+			'question_response_answer',
+			'question_response_answer.response_id',
+			'question_response.id'
+		)
 		.select((eb) => [
 			eb.fn.count('question.id').distinct().as('total_question_count'),
 			eb.fn
@@ -730,8 +798,11 @@ export async function insertResponseAuditLog(trx: any, audit: ResponseAuditInput
 			new_answers: newAnswersJson,
 			// AI training instrumentation (optional)
 			decision_confidence:
-				audit.decision_confidence !== undefined ? (audit.decision_confidence?.toString() ?? null) : undefined,
-			decision_rationale: audit.decision_rationale !== undefined ? audit.decision_rationale : undefined,
+				audit.decision_confidence !== undefined
+					? (audit.decision_confidence?.toString() ?? null)
+					: undefined,
+			decision_rationale:
+				audit.decision_rationale !== undefined ? audit.decision_rationale : undefined,
 			expert_flag: audit.expert_flag !== undefined ? audit.expert_flag : undefined,
 		})
 		.execute();

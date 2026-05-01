@@ -60,7 +60,9 @@ export const US_JURISDICTIONS = [
 
 export type USJurisdictionCode = (typeof US_JURISDICTIONS)[number]['code'];
 
-export const US_JURISDICTION_MAP = new Map<string, string>(US_JURISDICTIONS.map((j) => [j.code, j.name]));
+export const US_JURISDICTION_MAP = new Map<string, string>(
+	US_JURISDICTIONS.map((j) => [j.code, j.name])
+);
 
 /**
  * Get the full name for a jurisdiction code

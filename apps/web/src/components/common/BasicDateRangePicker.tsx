@@ -18,7 +18,10 @@ const shortcutItems: { label: string; getValue: () => DateRange<Dayjs> }[] = [
 		getValue: () => {
 			const currentQuarterStart = getCurrentFiscalQuarterStart();
 			const previousQuarterStart = currentQuarterStart.subtract(3, 'months');
-			return [previousQuarterStart.startOf('day'), currentQuarterStart.subtract(1, 'days').endOf('day')];
+			return [
+				previousQuarterStart.startOf('day'),
+				currentQuarterStart.subtract(1, 'days').endOf('day'),
+			];
 		},
 	},
 	{

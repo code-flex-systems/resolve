@@ -76,7 +76,10 @@ export default function ChecklistActionsCell(params: ChecklistActionsCellProps) 
 								{ id: params.row.id, params: { published: !published } },
 								{
 									onSuccess: () =>
-										showSuccess('update', published ? 'Checklist unpublished' : 'Checklist published'),
+										showSuccess(
+											'update',
+											published ? 'Checklist unpublished' : 'Checklist published'
+										),
 									onError: (error) =>
 										showError('update', error, 'Failed to update checklist visibility'),
 								}
@@ -94,7 +97,7 @@ export default function ChecklistActionsCell(params: ChecklistActionsCellProps) 
 					onClose={() => setUpdating(false)}
 					width={500}
 				>
-					<span style={{  fontStyle: 'italic' ,  fontWeight: 'bold'  }}>
+					<span style={{ fontStyle: 'italic', fontWeight: 'bold' }}>
 						Are you sure you want to {published ? 'unpublish' : 'publish'} this checklist?
 					</span>
 					<span style={{ paddingTop: '10px', fontStyle: 'italic' }}>

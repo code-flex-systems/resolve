@@ -7,7 +7,12 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { getTestDb, createTestContext } from '@/__tests__/integration/testDb';
-import { createTestClient, createTestUser, createTestClaim, createTestDeadline } from '@/__tests__/integration/fixtures';
+import {
+	createTestClient,
+	createTestUser,
+	createTestClaim,
+	createTestDeadline,
+} from '@/__tests__/integration/fixtures';
 import * as deadlineController from '../deadlineController';
 import { DeadlineStatus } from '@/config/enums';
 

@@ -262,11 +262,7 @@ export function useDeskTrpc() {
  * Export types for use in components
  * These are derived from the tRPC router output types
  */
-export type DeskLocationTypeWithLocations = NonNullable<
-	DeskOutput['getDeskLocationType']
->;
-export type DeskLocationWithType = NonNullable<
-	DeskOutput['getDeskLocation']
->;
+export type DeskLocationTypeWithLocations = NonNullable<DeskOutput['getDeskLocationType']>;
+export type DeskLocationWithType = NonNullable<DeskOutput['getDeskLocation']>;
 export type DeskLocationTypeList = DeskOutput['getDeskLocationTypes'];
 export type DeskLocationList = DeskOutput['getDeskLocations'];

@@ -24,7 +24,8 @@ export default function Home() {
 	}, []);
 
 	useEffect(() => {
-		if (session?.user?.name) setDynamicSegments([{ label: `Welcome, ${session.user.name.split(' ')[0]}!` }]);
+		if (session?.user?.name)
+			setDynamicSegments([{ label: `Welcome, ${session.user.name.split(' ')[0]}!` }]);
 	}, [session?.user]);
 
 	return (

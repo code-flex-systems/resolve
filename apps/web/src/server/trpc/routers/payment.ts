@@ -19,31 +19,23 @@ export const paymentRouter = router({
 	// CLAIM PAYMENT ENDPOINTS
 	// =====================================================================
 
-	createPayment: protectedProcedure
-		.input(createPaymentInput)
-		.mutation(async ({ input, ctx }) => {
-			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-			return createPayment(ctx, input);
-		}),
+	createPayment: protectedProcedure.input(createPaymentInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return createPayment(ctx, input);
+	}),
 
-	listPayments: protectedProcedure
-		.input(listPaymentsInput)
-		.query(async ({ input, ctx }) => {
-			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-			return listPayments(ctx, input);
-		}),
+	listPayments: protectedProcedure.input(listPaymentsInput).query(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return listPayments(ctx, input);
+	}),
 
-	updatePayment: protectedProcedure
-		.input(updatePaymentInput)
-		.mutation(async ({ input, ctx }) => {
-			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-			return updatePayment(ctx, input);
-		}),
+	updatePayment: protectedProcedure.input(updatePaymentInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return updatePayment(ctx, input);
+	}),
 
-	archivePayment: protectedProcedure
-		.input(archivePaymentInput)
-		.mutation(async ({ input, ctx }) => {
-			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-			return archivePayment(ctx, input);
-		}),
+	archivePayment: protectedProcedure.input(archivePaymentInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return archivePayment(ctx, input);
+	}),
 });

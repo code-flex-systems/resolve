@@ -1,7 +1,12 @@
 import type { ProtectedContext } from '@/server/trpc/trpc';
 import * as taskQueries from '@/api/queries/taskQueries';
 import { logAdminAction, AdminAction } from '@/api/utils/adminActionLogger';
-import { EntityName, LogAction, logAction, logUserWorkflowAction } from '@/api/utils/activityLogger';
+import {
+	EntityName,
+	LogAction,
+	logAction,
+	logUserWorkflowAction,
+} from '@/api/utils/activityLogger';
 import { TaskStatus, TaskType } from '@/config/enums';
 import { TRPCError } from '@trpc/server';
 import config from '@/config/config';
@@ -257,7 +262,10 @@ export async function updateTask(
  * Non-admins can only assign unassigned tasks (prevents stealing from another user).
  * Logs user workflow action to claim_activity_logs
  */
-export async function assignTask(ctx: ProtectedContext, { id, userId }: { id: string; userId: string }) {
+export async function assignTask(
+	ctx: ProtectedContext,
+	{ id, userId }: { id: string; userId: string }
+) {
 	await requireSameClientUser(ctx, userId);
 
 	// Check current task state to prevent non-admins from stealing assignments

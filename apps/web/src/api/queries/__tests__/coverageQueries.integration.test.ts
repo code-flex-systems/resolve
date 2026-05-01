@@ -51,7 +51,12 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			// Create multiple coverages with explicit created_at for deterministic ordering
 			await db
@@ -89,7 +94,12 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const coverages = await getCoverages(ctx, claim.id);
 			expect(coverages).toHaveLength(0);
@@ -101,7 +111,12 @@ describe('coverageQueries integration tests', () => {
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
 			const claimB = await createTestClaim(db, { client_id: clientB.id, created_by: userB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			// Create coverage for client B
 			await db
@@ -124,7 +139,12 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			// Create coverages with explicit created_at to guarantee deterministic ordering
 			// (UUIDs are random, so id-tiebreak alone is not deterministic)
@@ -164,7 +184,12 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const result = await createCoverage(ctx, {
 				claim_id: claim.id,
@@ -183,7 +208,11 @@ describe('coverageQueries integration tests', () => {
 			expect(result.totalIncurred).toBe(5000);
 
 			// Verify claim total_incurred was updated
-			const updatedClaim = await db.selectFrom('claim').selectAll().where('id', '=', claim.id).executeTakeFirstOrThrow();
+			const updatedClaim = await db
+				.selectFrom('claim')
+				.selectAll()
+				.where('id', '=', claim.id)
+				.executeTakeFirstOrThrow();
 			expect(updatedClaim.total_incurred).toBe('5000.00');
 		});
 
@@ -191,7 +220,12 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const result = await createCoverage(ctx, {
 				claim_id: claim.id,
@@ -208,7 +242,12 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await createCoverage(ctx, {
 				claim_id: claim.id,
@@ -233,7 +272,12 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const { coverage } = await createCoverage(ctx, {
 				claim_id: claim.id,
@@ -262,7 +306,12 @@ describe('coverageQueries integration tests', () => {
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
 			const claimB = await createTestClaim(db, { client_id: clientB.id, created_by: userB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			// Create coverage for client B
 			const covB = await db
@@ -301,7 +350,12 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const { coverage: cov1 } = await createCoverage(ctx, {
 				claim_id: claim.id,
@@ -331,9 +385,16 @@ describe('coverageQueries integration tests', () => {
 		it('should throw error when deleting non-existent coverage', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
-			await expect(deleteCoverage(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow('Coverage not found');
+			await expect(deleteCoverage(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow(
+				'Coverage not found'
+			);
 		});
 
 		it('should not delete coverage from different client (tenant isolation)', async () => {
@@ -342,7 +403,12 @@ describe('coverageQueries integration tests', () => {
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
 			const claimB = await createTestClaim(db, { client_id: clientB.id, created_by: userB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			// Create coverage for client B
 			const covB = await db
@@ -375,7 +441,12 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await db
 				.insertInto('claim_coverage')
@@ -405,7 +476,12 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const total = await getCoverageReservedTotal(ctx, claim.id);
 			expect(total).toBe(0);
@@ -415,7 +491,12 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await db
 				.insertInto('claim_coverage')
@@ -439,8 +520,18 @@ describe('coverageQueries integration tests', () => {
 			const userB = await createTestUser(db, { client_id: clientB.id });
 			const claimA = await createTestClaim(db, { client_id: clientA.id, created_by: userA.id });
 			const claimB = await createTestClaim(db, { client_id: clientB.id, created_by: userB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
-			const ctxB = createTestContext(db, { id: userB.id, client_id: clientB.id, email: userB.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
+			const ctxB = createTestContext(db, {
+				id: userB.id,
+				client_id: clientB.id,
+				email: userB.email,
+				role: 'user',
+			});
 
 			// Create coverage for client A
 			await db
@@ -479,7 +570,12 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			// Create active coverage
 			await createTestCoverage(db, {
@@ -509,7 +605,12 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			// Create active coverage
 			await createTestCoverage(db, {
@@ -541,14 +642,23 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const party = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
+			const party = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+			});
 			const claimParty = await createTestClaimParty(db, {
 				client_id: client.id,
 				claim_id: claim.id,
 				party_id: party.id,
 				created_by: user.id,
 			});
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			// Create coverages for this claim party
 			await createTestCoverage(db, {
@@ -603,7 +713,12 @@ describe('coverageQueries integration tests', () => {
 				party_id: party2.id,
 				created_by: user.id,
 			});
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			// Create coverage for party 1
 			await createTestCoverage(db, {
@@ -633,14 +748,23 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const party = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
+			const party = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+			});
 			const claimParty = await createTestClaimParty(db, {
 				client_id: client.id,
 				claim_id: claim.id,
 				party_id: party.id,
 				created_by: user.id,
 			});
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			// Create active coverage
 			await createTestCoverage(db, {
@@ -674,14 +798,23 @@ describe('coverageQueries integration tests', () => {
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
 			const claimA = await createTestClaim(db, { client_id: clientA.id, created_by: userA.id });
-			const partyA = await createTestParty(db, { client_id: clientA.id, created_by: userA.id, party_type: 'entity' });
+			const partyA = await createTestParty(db, {
+				client_id: clientA.id,
+				created_by: userA.id,
+				party_type: 'entity',
+			});
 			const claimPartyA = await createTestClaimParty(db, {
 				claim_id: claimA.id,
 				party_id: partyA.id,
 				client_id: clientA.id,
 				created_by: userA.id,
 			});
-			const ctxB = createTestContext(db, { id: userB.id, client_id: clientB.id, email: userB.email, role: 'user' });
+			const ctxB = createTestContext(db, {
+				id: userB.id,
+				client_id: clientB.id,
+				email: userB.email,
+				role: 'user',
+			});
 
 			// Create coverage for client A
 			await createTestCoverage(db, {
@@ -702,14 +835,23 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const party = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
+			const party = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+			});
 			const claimParty = await createTestClaimParty(db, {
 				client_id: client.id,
 				claim_id: claim.id,
 				party_id: party.id,
 				created_by: user.id,
 			});
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const result = await createCoverage(ctx, {
 				claim_id: claim.id,
@@ -729,7 +871,12 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const coverage = await createTestCoverage(db, {
 				client_id: client.id,
@@ -757,7 +904,12 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			// Create two coverages
 			const cov1 = await createTestCoverage(db, {
@@ -783,9 +935,16 @@ describe('coverageQueries integration tests', () => {
 		it('should throw error for non-existent coverage', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
-			await expect(archiveCoverage(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow('Coverage not found');
+			await expect(archiveCoverage(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow(
+				'Coverage not found'
+			);
 		});
 
 		it('should enforce tenant isolation', async () => {
@@ -794,7 +953,12 @@ describe('coverageQueries integration tests', () => {
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
 			const claimA = await createTestClaim(db, { client_id: clientA.id, created_by: userA.id });
-			const ctxB = createTestContext(db, { id: userB.id, client_id: clientB.id, email: userB.email, role: 'user' });
+			const ctxB = createTestContext(db, {
+				id: userB.id,
+				client_id: clientB.id,
+				email: userB.email,
+				role: 'user',
+			});
 
 			const coverage = await createTestCoverage(db, {
 				client_id: clientA.id,
@@ -812,14 +976,23 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const party = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
+			const party = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+			});
 			const claimParty = await createTestClaimParty(db, {
 				client_id: client.id,
 				claim_id: claim.id,
 				party_id: party.id,
 				created_by: user.id,
 			});
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			// Create coverages for this claim party
 			const cov1 = await createTestCoverage(db, {
@@ -883,7 +1056,12 @@ describe('coverageQueries integration tests', () => {
 				party_id: party2.id,
 				created_by: user.id,
 			});
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			// Create coverage for party 1
 			await createTestCoverage(db, {
@@ -917,9 +1095,21 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
-			const party2 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
-			const party3 = await createTestParty(db, { client_id: client.id, created_by: user.id, party_type: 'entity' });
+			const party1 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+			});
+			const party2 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+			});
+			const party3 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				party_type: 'entity',
+			});
 			const claimParty1 = await createTestClaimParty(db, {
 				client_id: client.id,
 				claim_id: claim.id,
@@ -938,7 +1128,12 @@ describe('coverageQueries integration tests', () => {
 				party_id: party3.id,
 				created_by: user.id,
 			});
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const party1Coverages = await Promise.all([
 				createTestCoverage(db, {
@@ -972,7 +1167,11 @@ describe('coverageQueries integration tests', () => {
 			const archivedCoverages = await db
 				.selectFrom('claim_coverage')
 				.selectAll()
-				.where('id', 'in', party1Coverages.map((coverage) => coverage.id))
+				.where(
+					'id',
+					'in',
+					party1Coverages.map((coverage) => coverage.id)
+				)
 				.execute();
 			archivedCoverages.forEach((coverage) => {
 				expect(coverage.deleted_at).not.toBeNull();
@@ -995,14 +1194,23 @@ describe('coverageQueries integration tests', () => {
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
 			const claimA = await createTestClaim(db, { client_id: clientA.id, created_by: userA.id });
-			const partyA = await createTestParty(db, { client_id: clientA.id, created_by: userA.id, party_type: 'entity' });
+			const partyA = await createTestParty(db, {
+				client_id: clientA.id,
+				created_by: userA.id,
+				party_type: 'entity',
+			});
 			const claimPartyA = await createTestClaimParty(db, {
 				claim_id: claimA.id,
 				party_id: partyA.id,
 				client_id: clientA.id,
 				created_by: userA.id,
 			});
-			const ctxB = createTestContext(db, { id: userB.id, client_id: clientB.id, email: userB.email, role: 'user' });
+			const ctxB = createTestContext(db, {
+				id: userB.id,
+				client_id: clientB.id,
+				email: userB.email,
+				role: 'user',
+			});
 
 			const coverage = await createTestCoverage(db, {
 				client_id: clientA.id,
@@ -1029,7 +1237,12 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const result = await createCoverage(ctx, {
 				claim_id: claim.id,
@@ -1056,7 +1269,12 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await expect(
 				createCoverage(ctx, {
@@ -1072,7 +1290,12 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const result = await createCoverage(ctx, {
 				claim_id: claim.id,
@@ -1090,7 +1313,12 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const result = await createCoverage(ctx, {
 				claim_id: claim.id,
@@ -1111,7 +1339,12 @@ describe('coverageQueries integration tests', () => {
 				created_by: user.id,
 				date_of_loss: dateOfLoss,
 			});
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const result = await createCoverage(ctx, {
 				claim_id: claim.id,
@@ -1132,7 +1365,12 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			// Create with APPLIES (included in total_incurred)
 			const { coverage } = await createCoverage(ctx, {
@@ -1168,7 +1406,12 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const result = await createCoverage(ctx, {
 				claim_id: claim.id,
@@ -1193,7 +1436,12 @@ describe('coverageQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const coverage = await createTestCoverage(db, {
 				client_id: client.id,
@@ -1227,7 +1475,12 @@ describe('coverageQueries integration tests', () => {
 		it('should handle different deductible statuses correctly', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			// Test NOT_CONFIRMED (should include)
 			const claim1 = await createTestClaim(db, { client_id: client.id, created_by: user.id });

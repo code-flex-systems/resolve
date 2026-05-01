@@ -66,7 +66,10 @@ export default function DateField({
 	if (maxDate) disabledMatcher.push({ after: maxDate.toDate() });
 
 	return (
-		<div ref={wrapperRef} style={{ position: 'relative', width: fullWidth ? '100%' : undefined, ...sx }}>
+		<div
+			ref={wrapperRef}
+			style={{ position: 'relative', width: fullWidth ? '100%' : undefined, ...sx }}
+		>
 			<Input
 				label={label}
 				value={displayValue}
@@ -77,7 +80,12 @@ export default function DateField({
 				disabled={disabled}
 				fullWidth={fullWidth}
 				required={required}
-				endAdornment={<IconCalendar size={16} style={{ color: 'var(--text-secondary)', cursor: disabled ? 'default' : 'pointer' }} />}
+				endAdornment={
+					<IconCalendar
+						size={16}
+						style={{ color: 'var(--text-secondary)', cursor: disabled ? 'default' : 'pointer' }}
+					/>
+				}
 				style={{ cursor: disabled ? 'default' : 'pointer' }}
 			/>
 			{open && (

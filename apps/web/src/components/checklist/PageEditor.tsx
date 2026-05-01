@@ -1,5 +1,9 @@
 'use client';
-import { useChecklistStore, getSelectedPageInfoOrDefault, findInstancesByTemplateId } from '@/stores/useChecklistStore';
+import {
+	useChecklistStore,
+	getSelectedPageInfoOrDefault,
+	findInstancesByTemplateId,
+} from '@/stores/useChecklistStore';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import FormQuestion from './FormQuestion';
@@ -33,7 +37,9 @@ export default function PageEditor() {
 	const selectedPageInfo = getSelectedPageInfoOrDefault();
 	const updateSelectedPage = useChecklistStore((state) => state.updateSelectedPage);
 	const updateSelectedPageInfo = useChecklistStore((state) => state.updateSelectedPageInfo);
-	const updateSelectedPageInfoSearch = useChecklistStore((state) => state.updateSelectedPageInfoSearch);
+	const updateSelectedPageInfoSearch = useChecklistStore(
+		(state) => state.updateSelectedPageInfoSearch
+	);
 	const updateSelectedPageTitle = useChecklistStore((state) => state.updateSelectedPageTitle);
 
 	const [pageTitle, setPageTitle] = useState('');
@@ -46,8 +52,14 @@ export default function PageEditor() {
 		{ pageId: selectedPageInfo.pageId },
 		{ enabled: !!selectedPageInfo.pageId }
 	);
-	const { createTemplate, copyTemplate, createInstance, removeInstance, updateTemplate, getInstanceTree } =
-		usePageTrpc();
+	const {
+		createTemplate,
+		copyTemplate,
+		createInstance,
+		removeInstance,
+		updateTemplate,
+		getInstanceTree,
+	} = usePageTrpc();
 	const { mutateAsync: addPage, isPending: adding } = createTemplate;
 	const { mutateAsync: copyPageTemplate, isPending: copyingTemplate } = copyTemplate;
 	const { mutateAsync: copyPageInstance, isPending: copyingInstance } = createInstance;
@@ -160,7 +172,10 @@ export default function PageEditor() {
 	const onModifyPage = async (newTitle?: string) => {
 		const titleToSave = newTitle ?? pageTitle;
 		try {
-			const modifiedPage = await modifyPage({ id: selectedPageInfo.pageId, params: { title: titleToSave } });
+			const modifiedPage = await modifyPage({
+				id: selectedPageInfo.pageId,
+				params: { title: titleToSave },
+			});
 			if (modifiedPage) {
 				const { data: freshData } = await refetchTree();
 				if (freshData) {
@@ -236,29 +251,20 @@ export default function PageEditor() {
 													/>
 												)}
 											</Button>
-											<Button
-												variant="icon"
-												size="sm"
-												onClick={onClearField}
-												disabled={!pageTitle}
-											>
+											<Button variant="icon" size="sm" onClick={onClearField} disabled={!pageTitle}>
 												<IconX size={20} style={{ color: 'var(--text-muted)', fontSize: 18 }} />
 											</Button>
 											<Button
 												variant="icon"
 												size="sm"
 												onClick={() => onModifyPage()}
-												disabled={
-													updating || !pageTitle || pageTitle === selectedPageInfo.title
-												}
+												disabled={updating || !pageTitle || pageTitle === selectedPageInfo.title}
 											>
 												<IconDeviceFloppy
 													size={20}
 													style={{
 														color:
-															!updating &&
-															pageTitle &&
-															pageTitle !== selectedPageInfo.title
+															!updating && pageTitle && pageTitle !== selectedPageInfo.title
 																? 'var(--text-accent)'
 																: 'var(--text-muted)',
 														fontSize: 18,
@@ -412,9 +418,7 @@ export default function PageEditor() {
 										<BasicButton
 											buttonProps={{
 												onClick: () =>
-													onAddPage(selectedPageInfo.instanceId).catch((e) =>
-														console.error(e)
-													),
+													onAddPage(selectedPageInfo.instanceId).catch((e) => console.error(e)),
 												disabled: inTransition,
 												variant: 'outlined',
 												size: 'small',
@@ -452,7 +456,9 @@ export default function PageEditor() {
 			{!!selectedAnswer && <FormAnswer />}
 			{!selectedPageInstance && (
 				<div className="flex-col-center" style={{ width: '100%', height: '100%' }}>
-					<div style={{ width: 200, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+					<div
+						style={{ width: 200, display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+					>
 						<IconFileDescription size={20} style={{ color: 'var(--text-muted)', fontSize: 25 }} />
 						<span style={{ color: 'var(--text-muted)', fontSize: 15, paddingLeft: '10px' }}>
 							No page selected

@@ -12,9 +12,7 @@ export interface SkeletonProps {
 
 const Skeleton = forwardRef<HTMLSpanElement, SkeletonProps>(
 	({ variant = 'text', width, height, className }, ref) => {
-		const classNames = [styles.skeleton, styles[variant], className]
-			.filter(Boolean)
-			.join(' ');
+		const classNames = [styles.skeleton, styles[variant], className].filter(Boolean).join(' ');
 
 		const style: React.CSSProperties = {};
 

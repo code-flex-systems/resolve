@@ -69,7 +69,7 @@ export default function PartyActionsCell(params: PartyActionsCellProps) {
 					onClose={() => setShowActionConfirm(false)}
 					width={500}
 				>
-					<span style={{  fontStyle: 'italic' ,  fontWeight: 'bold'  }}>
+					<span style={{ fontStyle: 'italic', fontWeight: 'bold' }}>
 						Are you sure you want to {isArchived ? 'restore' : 'archive'} this party?
 					</span>
 					<span style={{ paddingTop: '10px', fontStyle: 'italic' }}>
@@ -83,21 +83,32 @@ export default function PartyActionsCell(params: PartyActionsCellProps) {
 			<div style={styles.container}>
 				<div style={{ marginRight: isAdminContext ? '10px' : undefined }}>
 					<Tooltip content="isArchived ? 'Cannot edit archived party' : 'Make changes'">
-							<Button variant="icon" size="sm" color="neutral" onClick={() => setEditing(true)} disabled={isArchived}>
+						<Button
+							variant="icon"
+							size="sm"
+							color="neutral"
+							onClick={() => setEditing(true)}
+							disabled={isArchived}
+						>
 							<IconEdit size={15} />
 						</Button>
-						</Tooltip>
+					</Tooltip>
 				</div>
 				{isAdminContext && (
 					<Tooltip content="isArchived ? 'Restore party' : 'Archive party'">
-							<Button variant="icon" size="sm" color="neutral" onClick={() => setShowActionConfirm(true)} disabled={isPending}>
+						<Button
+							variant="icon"
+							size="sm"
+							color="neutral"
+							onClick={() => setShowActionConfirm(true)}
+							disabled={isPending}
+						>
 							isArchived ? (
-								<IconArchiveOff size={15} style={{ color: 'var(--status-success)' }} />
+							<IconArchiveOff size={15} style={{ color: 'var(--status-success)' }} />
 							) : (
-								<IconArchive size={15} style={{ color: 'var(--status-error)' }} />
-							)
+							<IconArchive size={15} style={{ color: 'var(--status-error)' }} />)
 						</Button>
-						</Tooltip>
+					</Tooltip>
 				)}
 			</div>
 		</>

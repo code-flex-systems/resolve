@@ -1,35 +1,29 @@
 {
-  "extends": "../../tsconfig.json",
-  "compilerOptions": {
-    "types": [
-      "node"
-    ],
-    "baseUrl": "src",
-    "paths": {
-      "@/*": [
-        "*"
-      ]
-    },
-    "incremental": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "skipLibCheck": true,
-    "skipDefaultLibCheck": true,
-    "disableSourceOfProjectReferenceRedirect": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ]
-  },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    "next-env.d.ts",
-    "src/types/images.d.ts",
-    ".next/types/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+	"extends": "../../tsconfig.json",
+	"compilerOptions": {
+		"types": ["node"],
+		"baseUrl": "src",
+		"paths": {
+			"@/*": ["*"]
+		},
+		"incremental": true,
+		"isolatedModules": true,
+		"jsx": "preserve",
+		"skipLibCheck": true,
+		"skipDefaultLibCheck": true,
+		"disableSourceOfProjectReferenceRedirect": true,
+		"plugins": [
+			{
+				"name": "next"
+			}
+		]
+	},
+	"include": [
+		"**/*.ts",
+		"**/*.tsx",
+		"next-env.d.ts",
+		"src/types/images.d.ts",
+		".next/types/**/*.ts"
+	],
+	"exclude": ["node_modules"]
 }

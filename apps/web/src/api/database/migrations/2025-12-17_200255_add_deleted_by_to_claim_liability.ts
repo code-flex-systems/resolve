@@ -10,11 +10,13 @@ export async function up(db: Kysely<any>): Promise<void> {
 
 	// Add foreign key constraint
 	await sql`ALTER TABLE claim_liability ADD CONSTRAINT claim_liability_deleted_by_fkey FOREIGN KEY (deleted_by) REFERENCES users(id)`.execute(
-		db,
+		db
 	);
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
-	await sql`ALTER TABLE claim_liability DROP CONSTRAINT IF EXISTS claim_liability_deleted_by_fkey`.execute(db);
+	await sql`ALTER TABLE claim_liability DROP CONSTRAINT IF EXISTS claim_liability_deleted_by_fkey`.execute(
+		db
+	);
 	await db.schema.alterTable('claim_liability').dropColumn('deleted_by').execute();
 }

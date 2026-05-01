@@ -120,19 +120,33 @@ export function CSVImportWizard({ onClose, fields, validateRow, onSubmit, submit
 			<div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
 				{steps.map((label, index) => (
 					<div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-						<div style={{
-							width: 24, height: 24, borderRadius: '50%',
-							display: 'flex', alignItems: 'center', justifyContent: 'center',
-							fontSize: 12, fontWeight: 600,
-							backgroundColor: index <= activeStep ? 'var(--text-accent)' : 'var(--bg-tertiary)',
-							color: index <= activeStep ? 'white' : 'var(--text-muted)',
-						}}>
+						<div
+							style={{
+								width: 24,
+								height: 24,
+								borderRadius: '50%',
+								display: 'flex',
+								alignItems: 'center',
+								justifyContent: 'center',
+								fontSize: 12,
+								fontWeight: 600,
+								backgroundColor: index <= activeStep ? 'var(--text-accent)' : 'var(--bg-tertiary)',
+								color: index <= activeStep ? 'white' : 'var(--text-muted)',
+							}}
+						>
 							{index + 1}
 						</div>
-						<span style={{ fontSize: 13, color: index <= activeStep ? 'var(--text-primary)' : 'var(--text-muted)' }}>
+						<span
+							style={{
+								fontSize: 13,
+								color: index <= activeStep ? 'var(--text-primary)' : 'var(--text-muted)',
+							}}
+						>
 							{label}
 						</span>
-						{index < steps.length - 1 && <div style={{ width: 24, height: 1, backgroundColor: 'var(--border)' }} />}
+						{index < steps.length - 1 && (
+							<div style={{ width: 24, height: 1, backgroundColor: 'var(--border)' }} />
+						)}
 					</div>
 				))}
 			</div>

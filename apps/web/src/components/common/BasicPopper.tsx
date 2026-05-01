@@ -5,7 +5,15 @@ export default function BasicPopper(
 	props: {
 		anchorEl: HTMLElement | null;
 		setAnchorEl: (newEl: HTMLElement | null) => void;
-		placement?: 'bottom' | 'bottom-start' | 'bottom-end' | 'top' | 'top-start' | 'top-end' | 'left' | 'right';
+		placement?:
+			| 'bottom'
+			| 'bottom-start'
+			| 'bottom-end'
+			| 'top'
+			| 'top-start'
+			| 'top-end'
+			| 'left'
+			| 'right';
 		className?: string;
 		zIndex?: number;
 	} & PropsWithChildren

@@ -44,7 +44,13 @@ const defaultData: Record<ClaimStatus, number> = {
 	[ClaimStatus.UNWORKED]: 0,
 };
 
-export default function ClaimsMetric({ checklistId, users }: { checklistId?: string | null; users?: string[] }) {
+export default function ClaimsMetric({
+	checklistId,
+	users,
+}: {
+	checklistId?: string | null;
+	users?: string[];
+}) {
 	const pathname = usePathname();
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
@@ -72,7 +78,8 @@ export default function ClaimsMetric({ checklistId, users }: { checklistId?: str
 		});
 	}, [data]);
 
-	const total = data[ClaimStatus.SUBMITTED] + data[ClaimStatus.IN_PROGRESS] + data[ClaimStatus.UNWORKED];
+	const total =
+		data[ClaimStatus.SUBMITTED] + data[ClaimStatus.IN_PROGRESS] + data[ClaimStatus.UNWORKED];
 	const pct = getProgressPercentage(data[ClaimStatus.SUBMITTED], total);
 
 	return (

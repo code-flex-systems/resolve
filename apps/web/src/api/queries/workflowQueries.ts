@@ -69,10 +69,7 @@ export async function validateWorkflowDefinitionBelongsToClient(
  * Get all workflow definitions with optional active filter.
  * Left joins desk_location to include location name for scoped workflows.
  */
-export async function getWorkflowDefinitions(
-	ctx: ProtectedContext,
-	isActive?: boolean
-) {
+export async function getWorkflowDefinitions(ctx: ProtectedContext, isActive?: boolean) {
 	let query = ctx.db
 		.selectFrom('workflow_definition')
 		.leftJoin('desk_location', 'desk_location.id', 'workflow_definition.desk_location_id')
@@ -256,7 +253,10 @@ export async function archiveWorkflowDefinition(ctx: ProtectedContext, id: strin
  * Cascade soft-delete all thresholds for a workflow definition.
  * Returns the IDs of archived thresholds for admin logging.
  */
-export async function archiveWorkflowThresholdsByDefinition(ctx: ProtectedContext, workflowDefinitionId: string) {
+export async function archiveWorkflowThresholdsByDefinition(
+	ctx: ProtectedContext,
+	workflowDefinitionId: string
+) {
 	const archived = await ctx.db
 		.updateTable('workflow_threshold')
 		.set({
@@ -275,7 +275,10 @@ export async function archiveWorkflowThresholdsByDefinition(ctx: ProtectedContex
  * Cascade soft-delete all rules for a workflow definition.
  * Returns the IDs of archived rules for admin logging.
  */
-export async function archiveWorkflowRulesByDefinition(ctx: ProtectedContext, workflowDefinitionId: string) {
+export async function archiveWorkflowRulesByDefinition(
+	ctx: ProtectedContext,
+	workflowDefinitionId: string
+) {
 	const archived = await ctx.db
 		.updateTable('workflow_rule')
 		.set({
@@ -636,7 +639,11 @@ export async function getApplicableRules(
 ) {
 	let query = ctx.db
 		.selectFrom('workflow_rule')
-		.innerJoin('workflow_definition', 'workflow_definition.id', 'workflow_rule.workflow_definition_id')
+		.innerJoin(
+			'workflow_definition',
+			'workflow_definition.id',
+			'workflow_rule.workflow_definition_id'
+		)
 		.select([
 			'workflow_rule.id',
 			'workflow_rule.name',
@@ -649,7 +656,9 @@ export async function getApplicableRules(
 		])
 		.where('workflow_rule.client_id', '=', ctx.session.user.client_id)
 		// Skip trigger_type filter when targeting a specific rule (manual execution)
-		.$if(params.ruleId == null, (qb) => qb.where('workflow_rule.trigger_type', '=', params.triggerType))
+		.$if(params.ruleId == null, (qb) =>
+			qb.where('workflow_rule.trigger_type', '=', params.triggerType)
+		)
 		.where('workflow_rule.is_active', '=', true)
 		.where('workflow_rule.deleted_at', 'is', null)
 		.where('workflow_definition.is_active', '=', true)
@@ -669,7 +678,10 @@ export async function getApplicableRules(
 		);
 	}
 
-	return await query.orderBy('workflow_rule.priority asc').orderBy('workflow_rule.name asc').execute();
+	return await query
+		.orderBy('workflow_rule.priority asc')
+		.orderBy('workflow_rule.name asc')
+		.execute();
 }
 
 /**
@@ -703,8 +715,7 @@ export async function createRuleExecution(
 			result_data: params.resultData ? JSON.stringify(params.resultData) : null,
 			error_message: params.errorMessage,
 			executed_at: params.status === RuleExecutionStatus.EXECUTED ? new Date() : null,
-			executed_by:
-				params.status === RuleExecutionStatus.EXECUTED ? ctx.session.user.id : null,
+			executed_by: params.status === RuleExecutionStatus.EXECUTED ? ctx.session.user.id : null,
 			created_by: ctx.session.user.id,
 		})
 		.returningAll()
@@ -840,8 +851,7 @@ export async function updateRuleExecution(
 			result_data: params.resultData ? JSON.stringify(params.resultData) : null,
 			error_message: params.errorMessage ?? null,
 			executed_at: params.status === RuleExecutionStatus.EXECUTED ? new Date() : null,
-			executed_by:
-				params.status === RuleExecutionStatus.EXECUTED ? ctx.session.user.id : null,
+			executed_by: params.status === RuleExecutionStatus.EXECUTED ? ctx.session.user.id : null,
 		})
 		.where('id', '=', id)
 		.where('client_id', '=', ctx.session.user.client_id)

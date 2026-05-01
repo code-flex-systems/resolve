@@ -57,22 +57,33 @@ export async function createFeed(
 ) {
 	// Create feed and log admin action within transaction
 	const created = await ctx.db.transaction().execute(async (trx) => {
-		const feed = await feedQueries.createFeed({ ...ctx, db: trx }, {
-			name,
-			schedule,
-			feed_type,
-			connection_options,
-			status,
-			last_synced_at,
-		});
+		const feed = await feedQueries.createFeed(
+			{ ...ctx, db: trx },
+			{
+				name,
+				schedule,
+				feed_type,
+				connection_options,
+				status,
+				last_synced_at,
+			}
+		);
 
 		// Log feed creation
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: feed.id,
-			entityName: EntityName.FEED,
-			action: AdminAction.CREATE,
-			value: { name: feed.name, feed_type: feed.feed_type, schedule: feed.schedule, status: feed.status },
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: feed.id,
+				entityName: EntityName.FEED,
+				action: AdminAction.CREATE,
+				value: {
+					name: feed.name,
+					feed_type: feed.feed_type,
+					schedule: feed.schedule,
+					status: feed.status,
+				},
+			}
+		);
 
 		return feed;
 	});
@@ -108,12 +119,15 @@ export async function updateFeed(
 		const feed = await feedQueries.updateFeed({ ...ctx, db: trx }, id, params);
 
 		// Log admin action for feed update
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: id,
-			entityName: EntityName.FEED,
-			action: AdminAction.UPDATE,
-			value: params,
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: id,
+				entityName: EntityName.FEED,
+				action: AdminAction.UPDATE,
+				value: params,
+			}
+		);
 
 		return feed;
 	});
@@ -134,11 +148,14 @@ export async function deleteFeed(ctx: ProtectedContext, { id }: { id: string }) 
 		const deleted = await feedQueries.deleteFeed({ ...ctx, db: trx }, id);
 
 		// Log admin action for feed deletion
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: id,
-			entityName: EntityName.FEED,
-			action: AdminAction.DELETE,
-			value: { name: deleted.name, feed_type: deleted.feed_type, status: deleted.status },
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: id,
+				entityName: EntityName.FEED,
+				action: AdminAction.DELETE,
+				value: { name: deleted.name, feed_type: deleted.feed_type, status: deleted.status },
+			}
+		);
 	});
 }

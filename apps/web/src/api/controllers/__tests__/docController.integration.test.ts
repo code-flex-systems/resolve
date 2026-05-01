@@ -244,9 +244,7 @@ describe('docController integration tests', () => {
 				const ctxB = createTestContext(db, { id: userB.id, client_id: clientB.id });
 
 				// User B trying to delete Client A's group
-				await expect(
-					docController.deleteDocGroup(ctxB, { groupId: groupA.id })
-				).rejects.toThrow();
+				await expect(docController.deleteDocGroup(ctxB, { groupId: groupA.id })).rejects.toThrow();
 
 				// Verify group still exists
 				const groupStillExists = await db

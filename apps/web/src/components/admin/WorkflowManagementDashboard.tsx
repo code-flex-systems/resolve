@@ -15,13 +15,14 @@ import { useWorkflowAnalyticsTrpc } from '@/hooks/trpc/useWorkflowAnalyticsTrpc'
  */
 export default function WorkflowManagementDashboard() {
 	// Fetch metrics data
-	const { data: workloadData, isLoading: isLoadingWorkload } = useWorkflowAnalyticsTrpc().getDeskWorkLoad({});
+	const { data: workloadData, isLoading: isLoadingWorkload } =
+		useWorkflowAnalyticsTrpc().getDeskWorkLoad({});
 
-	const { data: queueData, isLoading: isLoadingQueue } = useWorkflowAnalyticsTrpc().getDeskQueueDepth({});
+	const { data: queueData, isLoading: isLoadingQueue } =
+		useWorkflowAnalyticsTrpc().getDeskQueueDepth({});
 
-	const { data: throughputData, isLoading: isLoadingThroughput } = useWorkflowAnalyticsTrpc().getTaskThroughputToday(
-		{}
-	);
+	const { data: throughputData, isLoading: isLoadingThroughput } =
+		useWorkflowAnalyticsTrpc().getTaskThroughputToday({});
 
 	const {
 		data: suggestionsData,
@@ -71,8 +72,16 @@ export default function WorkflowManagementDashboard() {
 				>
 					Real-time metrics and operational insights across all workflow stages
 				</span>
-				<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '8px 0 0', lineHeight: 1.5 }}>
-					Monitor workflow health and take action on suggested changes. KPIs show real-time workload and capacity metrics.
+				<p
+					style={{
+						color: 'var(--text-secondary)',
+						fontSize: 13,
+						margin: '8px 0 0',
+						lineHeight: 1.5,
+					}}
+				>
+					Monitor workflow health and take action on suggested changes. KPIs show real-time workload
+					and capacity metrics.
 				</p>
 			</div>
 
@@ -119,7 +128,11 @@ export default function WorkflowManagementDashboard() {
 
 			{/* Suggestions panel */}
 			<div style={{ marginTop: 24 }}>
-				<SuggestionsPanel data={suggestionsData} isFetching={isFetchingSuggestions} refetch={refetchSuggestions} />
+				<SuggestionsPanel
+					data={suggestionsData}
+					isFetching={isFetchingSuggestions}
+					refetch={refetchSuggestions}
+				/>
 			</div>
 		</div>
 	);

@@ -67,11 +67,13 @@ export default function SuggestionDetailDialog({
 }: SuggestionDetailDialogProps) {
 	if (!resolution) return null;
 
-	const { breach, assignments, cascadedChanges, shortfall, skippedUsers, usersNeeded, status } = resolution;
+	const { breach, assignments, cascadedChanges, shortfall, skippedUsers, usersNeeded, status } =
+		resolution;
 	const isFullyResolved = shortfall === 0;
 	const isIgnored = status === SuggestionStatus.IGNORED;
 
-	const reductionPercent = usersNeeded > 0 ? Math.round((assignments.length / usersNeeded) * 100) : 0;
+	const reductionPercent =
+		usersNeeded > 0 ? Math.round((assignments.length / usersNeeded) * 100) : 0;
 	const benefitText = isFullyResolved
 		? 'Resolves bottleneck'
 		: `Reduces bottleneck by ${reductionPercent}% (${assignments.length}/${usersNeeded} assigned)`;
@@ -108,15 +110,32 @@ export default function SuggestionDetailDialog({
 			<div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
 				<IconUsers size={28} style={{ color: 'var(--text-accent)' }} />
 				<div>
-					<span style={{ fontSize: 18, fontWeight: 600, color: 'var(--text-primary)', display: 'block' }}>
+					<span
+						style={{
+							fontSize: 18,
+							fontWeight: 600,
+							color: 'var(--text-primary)',
+							display: 'block',
+						}}
+					>
 						Reassign {assignments.length} user{assignments.length !== 1 ? 's' : ''} to{' '}
 						{breach.deskLocationTypeName} - {breach.deskLocationName}
 					</span>
-					<span style={{ fontSize: 13, color: 'var(--text-secondary)', display: 'block', marginTop: 4 }}>
-						{breach.excessUnits} excess work units &bull; {usersNeeded} user{usersNeeded !== 1 ? 's' : ''}{' '}
-						needed
+					<span
+						style={{ fontSize: 13, color: 'var(--text-secondary)', display: 'block', marginTop: 4 }}
+					>
+						{breach.excessUnits} excess work units &bull; {usersNeeded} user
+						{usersNeeded !== 1 ? 's' : ''} needed
 					</span>
-					<span style={{ fontSize: 13, color: 'var(--status-success)', fontWeight: 500, display: 'block', marginTop: 4 }}>
+					<span
+						style={{
+							fontSize: 13,
+							color: 'var(--status-success)',
+							fontWeight: 500,
+							display: 'block',
+							marginTop: 4,
+						}}
+					>
 						{benefitText}
 					</span>
 				</div>
@@ -126,13 +145,19 @@ export default function SuggestionDetailDialog({
 
 			{/* Breach Details */}
 			<div style={{ marginBottom: 24 }}>
-				<span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', display: 'block', marginBottom: 12 }}>
+				<span
+					style={{
+						fontSize: 15,
+						fontWeight: 600,
+						color: 'var(--text-primary)',
+						display: 'block',
+						marginBottom: 12,
+					}}
+				>
 					Breach Details
 				</span>
 				<div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-					<Chip size="sm">
-						Desk Location Capacity: {breach.capacityThreshold} units
-					</Chip>
+					<Chip size="sm">Desk Location Capacity: {breach.capacityThreshold} units</Chip>
 					<Chip
 						size="sm"
 						style={{
@@ -157,7 +182,15 @@ export default function SuggestionDetailDialog({
 			{/* User Assignments */}
 			{assignments.length > 0 && (
 				<div style={{ marginBottom: 24 }}>
-					<span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', display: 'block', marginBottom: 12 }}>
+					<span
+						style={{
+							fontSize: 15,
+							fontWeight: 600,
+							color: 'var(--text-primary)',
+							display: 'block',
+							marginBottom: 12,
+						}}
+					>
 						Recommended Assignments ({assignments.length})
 					</span>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -189,7 +222,14 @@ export default function SuggestionDetailDialog({
 										Priority {assignment.newPriority}
 									</span>
 								</div>
-								<span style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4, display: 'block' }}>
+								<span
+									style={{
+										fontSize: 12,
+										color: 'var(--text-secondary)',
+										marginTop: 4,
+										display: 'block',
+									}}
+								>
 									{assignment.previousPriority !== null
 										? `Currently P${assignment.previousPriority} → Moving to P${assignment.newPriority}`
 										: `Currently unassigned → Assigning to P${assignment.newPriority}`}
@@ -203,7 +243,15 @@ export default function SuggestionDetailDialog({
 			{/* Cascaded Changes */}
 			{cascadedChanges.length > 0 && (
 				<div style={{ marginBottom: 24 }}>
-					<span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', display: 'block', marginBottom: 12 }}>
+					<span
+						style={{
+							fontSize: 15,
+							fontWeight: 600,
+							color: 'var(--text-primary)',
+							display: 'block',
+							marginBottom: 12,
+						}}
+					>
 						Cascaded Priority Changes ({cascadedChanges.length})
 					</span>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -217,7 +265,14 @@ export default function SuggestionDetailDialog({
 									border: '1px solid #fde68a',
 								}}
 							>
-								<span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', display: 'block' }}>
+								<span
+									style={{
+										fontSize: 14,
+										fontWeight: 500,
+										color: 'var(--text-primary)',
+										display: 'block',
+									}}
+								>
 									{change.userName} - {change.deskLocationName}
 								</span>
 								<span style={{ fontSize: 12, color: '#92400e', marginTop: 4, display: 'block' }}>
@@ -234,7 +289,15 @@ export default function SuggestionDetailDialog({
 			{/* Skipped Users */}
 			{skippedUsers.length > 0 && (
 				<div style={{ marginBottom: 24 }}>
-					<span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', display: 'block', marginBottom: 12 }}>
+					<span
+						style={{
+							fontSize: 15,
+							fontWeight: 600,
+							color: 'var(--text-primary)',
+							display: 'block',
+							marginBottom: 12,
+						}}
+					>
 						Skipped Users ({skippedUsers.length})
 					</span>
 					<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -248,7 +311,14 @@ export default function SuggestionDetailDialog({
 									border: '1px solid #fecaca',
 								}}
 							>
-								<span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)', display: 'block' }}>
+								<span
+									style={{
+										fontSize: 14,
+										fontWeight: 500,
+										color: 'var(--text-primary)',
+										display: 'block',
+									}}
+								>
 									{user.userName}
 								</span>
 								<span style={{ fontSize: 12, color: '#991b1b', marginTop: 4, display: 'block' }}>

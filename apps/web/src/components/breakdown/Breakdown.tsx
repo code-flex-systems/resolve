@@ -38,7 +38,10 @@ const COLUMNS: ColumnDef<any, any>[] = [
 ];
 
 export default function Breakdown() {
-	const [constraints, setContraints] = useState<{ page: number; pageSize: number }>({ page: 0, pageSize: 25 });
+	const [constraints, setContraints] = useState<{ page: number; pageSize: number }>({
+		page: 0,
+		pageSize: 25,
+	});
 	const selectedAnswerId = useBreakdownStore((state) => state.selectedAnswerId) ?? '';
 	const breakdownClaim = useBreakdownStore((state) => state.breakdownClaim);
 	const breakdownRange = useBreakdownStore((state) => state.breakdownRange);

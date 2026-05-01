@@ -42,12 +42,12 @@ export default function UserActionsCell(params: UserActionsCellProps) {
 					onClose={() => setOnOffboarding(false)}
 					width={500}
 				>
-					<span style={{  fontStyle: 'italic' ,  fontWeight: 'bold'  }}>
+					<span style={{ fontStyle: 'italic', fontWeight: 'bold' }}>
 						Are you sure you want to {row.disabled ? 'onboard' : 'offboard'} this user?
 					</span>
 					<span style={{ paddingTop: '10px', fontStyle: 'italic' }}>
-						The user will receive an email informing them that their access to the application has been{' '}
-						{row.disabled ? 'reinstated' : 'terminated'}.
+						The user will receive an email informing them that their access to the application has
+						been {row.disabled ? 'reinstated' : 'terminated'}.
 					</span>
 				</BasicDialog>
 			)}
@@ -55,16 +55,30 @@ export default function UserActionsCell(params: UserActionsCellProps) {
 
 			<div style={styles.container}>
 				<Tooltip content="Make changes">
-							<Button variant="icon" size="sm" color="neutral" onClick={() => setUpdating(true)} disabled={isPending}>
-							<IconEdit size={15} />
-						</Button>
-						</Tooltip>
+					<Button
+						variant="icon"
+						size="sm"
+						color="neutral"
+						onClick={() => setUpdating(true)}
+						disabled={isPending}
+					>
+						<IconEdit size={15} />
+					</Button>
+				</Tooltip>
 				{session?.user?.id !== row.id && (
 					<div style={{ marginLeft: '10px' }}>
 						<Tooltip content="row.disabled ? 'Onboard' : 'Offboard'">
-							<Button variant="icon" size="sm" color="neutral" onClick={() => setOnOffboarding(true)} disabled={isPending}>
-							<IconLogout style={{ fontSize: 15, transform: row.disabled ? 'scaleX(-1)' : undefined }} />
-						</Button>
+							<Button
+								variant="icon"
+								size="sm"
+								color="neutral"
+								onClick={() => setOnOffboarding(true)}
+								disabled={isPending}
+							>
+								<IconLogout
+									style={{ fontSize: 15, transform: row.disabled ? 'scaleX(-1)' : undefined }}
+								/>
+							</Button>
 						</Tooltip>
 					</div>
 				)}

@@ -34,7 +34,10 @@ describe('checklistController integration tests', () => {
 		async function setupTestFixtures() {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id });
 
 			return { client, user, checklist, ctx };
@@ -102,7 +105,10 @@ describe('checklistController integration tests', () => {
 		describe('checklistId filter', () => {
 			it('should filter stats by checklistId when provided', async () => {
 				const { client, user, checklist, ctx } = await setupTestFixtures();
-				const checklist2 = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+				const checklist2 = await createTestChecklist(db, {
+					client_id: client.id,
+					created_by: user.id,
+				});
 
 				const claim1 = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 				const claim2 = await createTestClaim(db, { client_id: client.id, created_by: user.id });
@@ -197,8 +203,14 @@ describe('checklistController integration tests', () => {
 				const clientB = await createTestClient(db, { name: 'Client B' });
 				const userA = await createTestUser(db, { client_id: clientA.id });
 				const userB = await createTestUser(db, { client_id: clientB.id });
-				const checklistA = await createTestChecklist(db, { client_id: clientA.id, created_by: userA.id });
-				const checklistB = await createTestChecklist(db, { client_id: clientB.id, created_by: userB.id });
+				const checklistA = await createTestChecklist(db, {
+					client_id: clientA.id,
+					created_by: userA.id,
+				});
+				const checklistB = await createTestChecklist(db, {
+					client_id: clientB.id,
+					created_by: userB.id,
+				});
 				const claimA = await createTestClaim(db, { client_id: clientA.id, created_by: userA.id });
 				const claimB = await createTestClaim(db, { client_id: clientB.id, created_by: userB.id });
 
@@ -242,7 +254,10 @@ describe('checklistController integration tests', () => {
 		async function setupTestFixtures() {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			await createTestChecklistClaim(db, {
 				client_id: client.id,
@@ -362,8 +377,14 @@ describe('checklistController integration tests', () => {
 				const clientB = await createTestClient(db, { name: 'Client B' });
 				const userA = await createTestUser(db, { client_id: clientA.id });
 				const userB = await createTestUser(db, { client_id: clientB.id });
-				const checklistA = await createTestChecklist(db, { client_id: clientA.id, created_by: userA.id });
-				const checklistB = await createTestChecklist(db, { client_id: clientB.id, created_by: userB.id });
+				const checklistA = await createTestChecklist(db, {
+					client_id: clientA.id,
+					created_by: userA.id,
+				});
+				const checklistB = await createTestChecklist(db, {
+					client_id: clientB.id,
+					created_by: userB.id,
+				});
 				const claimA = await createTestClaim(db, { client_id: clientA.id, created_by: userA.id });
 				const claimB = await createTestClaim(db, { client_id: clientB.id, created_by: userB.id });
 

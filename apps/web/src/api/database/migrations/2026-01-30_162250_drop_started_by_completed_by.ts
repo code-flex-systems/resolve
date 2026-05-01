@@ -14,15 +14,9 @@ export async function up(db: Kysely<any>): Promise<void> {
 	await sql`DROP INDEX IF EXISTS idx_task_started_by`.execute(db);
 
 	// Drop the columns
-	await db.schema
-		.alterTable('task')
-		.dropColumn('started_by')
-		.execute();
+	await db.schema.alterTable('task').dropColumn('started_by').execute();
 
-	await db.schema
-		.alterTable('task')
-		.dropColumn('completed_by')
-		.execute();
+	await db.schema.alterTable('task').dropColumn('completed_by').execute();
 }
 
 export async function down(db: Kysely<any>): Promise<void> {

@@ -120,7 +120,5 @@ export function useReferenceDataTrpc() {
  * These are derived from the tRPC router output types
  */
 export type ReferenceList = NonNullable<ReferenceDataOutput['getReferenceList']>;
-export type ReferenceOption = NonNullable<
-	ReferenceDataOutput['getReferenceOptions']
->[number];
+export type ReferenceOption = NonNullable<ReferenceDataOutput['getReferenceOptions']>[number];
 export type ReferenceOptionList = ReferenceDataOutput['getReferenceOptions'];

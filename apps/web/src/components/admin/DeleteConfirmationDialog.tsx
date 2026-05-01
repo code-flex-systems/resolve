@@ -63,12 +63,20 @@ export default function DeleteConfirmationDialog({
 				>
 					<IconAlertTriangle size={20} style={{ color: 'var(--status-warning)', marginTop: 4 }} />
 					<div>
-						<span style={{ fontSize: 13, fontWeight: 600, color: 'var(--status-warning)', display: 'block', marginBottom: 4 }}>
+						<span
+							style={{
+								fontSize: 13,
+								fontWeight: 600,
+								color: 'var(--status-warning)',
+								display: 'block',
+								marginBottom: 4,
+							}}
+						>
 							Warning: Non-empty folders
 						</span>
 						<span style={{ fontSize: 12, color: 'var(--status-warning)' }}>
-							You are about to delete {docsInFolders} document{docsInFolders !== 1 ? 's' : ''} contained
-							in the selected folder{folders.length !== 1 ? 's' : ''}.
+							You are about to delete {docsInFolders} document{docsInFolders !== 1 ? 's' : ''}{' '}
+							contained in the selected folder{folders.length !== 1 ? 's' : ''}.
 						</span>
 					</div>
 				</div>
@@ -112,7 +120,8 @@ export default function DeleteConfirmationDialog({
 
 			<span style={{ fontSize: 12, color: 'var(--status-error)', fontWeight: 600 }}>
 				This action cannot be undone.
-				{totalDocs > 0 && ` ${totalDocs} document${totalDocs !== 1 ? 's' : ''} will be permanently deleted.`}
+				{totalDocs > 0 &&
+					` ${totalDocs} document${totalDocs !== 1 ? 's' : ''} will be permanently deleted.`}
 			</span>
 		</BasicDialog>
 	);

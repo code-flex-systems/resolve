@@ -16,15 +16,9 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.execute();
 
 	// Add soft delete columns (align with claim_liability pattern)
-	await db.schema
-		.alterTable('claim_coverage')
-		.addColumn('deleted_at', 'timestamp')
-		.execute();
+	await db.schema.alterTable('claim_coverage').addColumn('deleted_at', 'timestamp').execute();
 
-	await db.schema
-		.alterTable('claim_coverage')
-		.addColumn('deleted_by', 'text')
-		.execute();
+	await db.schema.alterTable('claim_coverage').addColumn('deleted_by', 'text').execute();
 
 	// Index for FK queries (only active coverages)
 	await sql`CREATE INDEX idx_claim_coverage_claim_party_id ON claim_coverage(claim_party_id) WHERE deleted_at IS NULL`.execute(

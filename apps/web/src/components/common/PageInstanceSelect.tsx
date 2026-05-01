@@ -39,7 +39,8 @@ export default function PageInstanceSelect({
 	];
 
 	return (
-		<Dropdown inlineLabel
+		<Dropdown
+			inlineLabel
 			options={dropdownOptions}
 			value={instanceId ?? ''}
 			onChange={(val) => setInstanceId(val === '' ? null : String(val))}

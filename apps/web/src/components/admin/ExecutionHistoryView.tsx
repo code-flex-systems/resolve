@@ -9,7 +9,12 @@ export default function ExecutionHistoryView() {
 			<Card
 				variant="beveled"
 				padding="md"
-				style={{ display: 'flex', flexDirection: 'column', width: '100%', height: 'calc(100vh - 90px)' }}
+				style={{
+					display: 'flex',
+					flexDirection: 'column',
+					width: '100%',
+					height: 'calc(100vh - 90px)',
+				}}
 			>
 				<ExecutionHistoryTable />
 			</Card>

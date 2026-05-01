@@ -73,7 +73,9 @@ export default function CycleTimeChart({ data }: CycleTimeChartProps) {
 					/>
 				</AreaChart>
 			</ResponsiveContainer>
-			<div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginTop: 8, fontSize: 12 }}>
+			<div
+				style={{ display: 'flex', gap: 16, justifyContent: 'center', marginTop: 8, fontSize: 12 }}
+			>
 				<span>
 					<span
 						style={{

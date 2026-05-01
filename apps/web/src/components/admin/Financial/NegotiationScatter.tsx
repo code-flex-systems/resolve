@@ -1,6 +1,15 @@
 'use client';
 
-import { ScatterChart, Scatter, XAxis, YAxis, ZAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import {
+	ScatterChart,
+	Scatter,
+	XAxis,
+	YAxis,
+	ZAxis,
+	Tooltip,
+	ResponsiveContainer,
+	ReferenceLine,
+} from 'recharts';
 import Card from '@/components/ui/Card';
 import { formatCurrency } from '@/lib/utils/recoveryUtils';
 import type { NegotiationEfficiencyPoint } from '@/hooks/trpc/useFinancialReportingTrpc';
@@ -73,7 +82,9 @@ export default function NegotiationScatter({ data }: NegotiationScatterProps) {
 					<Scatter name="Cap Constrained" data={constrained} fill="#e57373" />
 				</ScatterChart>
 			</ResponsiveContainer>
-			<div style={{ display: 'flex', gap: 16, justifyContent: 'center', marginTop: 8, fontSize: 12 }}>
+			<div
+				style={{ display: 'flex', gap: 16, justifyContent: 'center', marginTop: 8, fontSize: 12 }}
+			>
 				<span>
 					<span
 						style={{

@@ -21,7 +21,20 @@ function toTitleCase(s: string | null): string {
 function formatDate(date: string | Date | null): string {
 	if (!date) return '--';
 	const d = new Date(date);
-	const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+	const months = [
+		'Jan',
+		'Feb',
+		'Mar',
+		'Apr',
+		'May',
+		'Jun',
+		'Jul',
+		'Aug',
+		'Sep',
+		'Oct',
+		'Nov',
+		'Dec',
+	];
 	return `${months[d.getMonth()]} ${String(d.getDate()).padStart(2, '0')}, ${d.getFullYear()}`;
 }
 
@@ -65,7 +78,8 @@ const columns: ColumnDef<StatuteDeadlineRisk, any>[] = [
 		size: 110,
 		cell: ({ getValue }) => {
 			const urgency = getValue() as string;
-			const color = urgency === 'critical' ? 'error' : urgency === 'warning' ? 'warning' : 'success';
+			const color =
+				urgency === 'critical' ? 'error' : urgency === 'warning' ? 'warning' : 'success';
 			return (
 				<Chip size="sm" color={color} variant="outlined">
 					{urgency.toUpperCase()}
@@ -90,7 +104,15 @@ const columns: ColumnDef<StatuteDeadlineRisk, any>[] = [
 export default function StatuteRiskTable({ data }: StatuteRiskTableProps) {
 	if (data.length === 0) {
 		return (
-			<div style={{ padding: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13, fontStyle: 'italic' }}>
+			<div
+				style={{
+					padding: 20,
+					textAlign: 'center',
+					color: 'var(--text-muted)',
+					fontSize: 13,
+					fontStyle: 'italic',
+				}}
+			>
 				No statute deadline risks found.
 			</div>
 		);

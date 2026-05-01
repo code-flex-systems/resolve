@@ -77,7 +77,11 @@ import { type Kysely, sql } from 'kysely';
 //   - Total rows scanned = open settlements for client. For most orgs this
 //     is hundreds to low thousands — fast regardless.
 
-export async function getRecoveryAgingBreakdown(db: Kysely<DB>, clientId: string, range: [Date, Date]) {
+export async function getRecoveryAgingBreakdown(
+	db: Kysely<DB>,
+	clientId: string,
+	range: [Date, Date]
+) {
 	return (
 		db
 			// Pre-aggregate recovery amounts per settlement
@@ -156,15 +160,16 @@ export async function getRecoveryAgingBreakdown(db: Kysely<DB>, clientId: string
 			.groupBy(['b.bucket', 'b.bucket_sort'])
 			.orderBy('b.bucket_sort')
 			.execute()
-	).then((rows) =>
-		rows.map((r) => ({
-			...r,
-			open_demand: Number(r.open_demand),
-			in_negotiation: Number(r.in_negotiation),
-			settled_outstanding: Number(r.settled_outstanding),
-			count: Number(r.count),
-			total_recovered: Number(r.total_recovered),
-		}))
+			.then((rows) =>
+				rows.map((r) => ({
+					...r,
+					open_demand: Number(r.open_demand),
+					in_negotiation: Number(r.in_negotiation),
+					settled_outstanding: Number(r.settled_outstanding),
+					count: Number(r.count),
+					total_recovered: Number(r.total_recovered),
+				}))
+			)
 	);
 }
 
@@ -199,7 +204,11 @@ export async function getRecoveryAgingBreakdown(db: Kysely<DB>, clientId: string
 //     but no settlement_date would produce null in the extract(), and
 //     avg() silently ignores nulls which skews the average downward.
 
-export async function getRecoveryRateByCarrier(db: Kysely<DB>, clientId: string, range: [Date, Date]) {
+export async function getRecoveryRateByCarrier(
+	db: Kysely<DB>,
+	clientId: string,
+	range: [Date, Date]
+) {
 	return db
 		.selectFrom('settlement as s')
 		.innerJoin('claim_party as cp', 'cp.id', 's.claim_party_id')
@@ -355,7 +364,11 @@ export async function getNetRecoveryByMonth(db: Kysely<DB>, clientId: string, ra
 //     Restructured to use CTEs that pre-aggregate per claim before joining,
 //     which eliminates the fan-out problem entirely.
 
-export async function getNetRecoveryByLineOfBusiness(db: Kysely<DB>, clientId: string, range: [Date, Date]) {
+export async function getNetRecoveryByLineOfBusiness(
+	db: Kysely<DB>,
+	clientId: string,
+	range: [Date, Date]
+) {
 	return db
 		.with('claim_payments_agg', (qb) =>
 			qb
@@ -453,7 +466,11 @@ export async function getNetRecoveryByLineOfBusiness(db: Kysely<DB>, clientId: s
 //     AND a recovery. This is correct — we can't compute cycle time without
 //     both endpoints.
 
-export async function getPaymentToRecoveryTimeline(db: Kysely<DB>, clientId: string, range: [Date, Date]) {
+export async function getPaymentToRecoveryTimeline(
+	db: Kysely<DB>,
+	clientId: string,
+	range: [Date, Date]
+) {
 	return db
 		.with('first_payment', (qb) =>
 			qb
@@ -515,7 +532,11 @@ export async function getPaymentToRecoveryTimeline(db: Kysely<DB>, clientId: str
 //     the GROUP BY — Postgres would reject this. Fixed to order by
 //     bucket_sort which IS in the GROUP BY.
 
-export async function getRecoveryTimeDistribution(db: Kysely<DB>, clientId: string, range: [Date, Date]) {
+export async function getRecoveryTimeDistribution(
+	db: Kysely<DB>,
+	clientId: string,
+	range: [Date, Date]
+) {
 	return db
 		.with('first_payment', (qb) =>
 			qb
@@ -613,7 +634,11 @@ export async function getRecoveryTimeDistribution(db: Kysely<DB>, clientId: stri
 //     are non-null, which is a subset of total settlements.
 //   - No issues found in review.
 
-export async function getCoverageCapUtilization(db: Kysely<DB>, clientId: string, range: [Date, Date]) {
+export async function getCoverageCapUtilization(
+	db: Kysely<DB>,
+	clientId: string,
+	range: [Date, Date]
+) {
 	return db
 		.selectFrom('settlement as s')
 		.innerJoin('claim_party as cp', 'cp.id', 's.claim_party_id')
@@ -665,7 +690,11 @@ export async function getCoverageCapUtilization(db: Kysely<DB>, clientId: string
 // REACT QUERY: Same as summary — staleTime: 15 min.
 // PERF NOTES: No issues. HAVING >= 2 filters small carriers.
 
-export async function getCoverageCapByCarrier(db: Kysely<DB>, clientId: string, range: [Date, Date]) {
+export async function getCoverageCapByCarrier(
+	db: Kysely<DB>,
+	clientId: string,
+	range: [Date, Date]
+) {
 	return db
 		.selectFrom('settlement as s')
 		.innerJoin('claim_party as cp', 'cp.id', 's.claim_party_id')
@@ -750,7 +779,11 @@ export async function getCoverageCapByCarrier(db: Kysely<DB>, clientId: string, 
 //   - The final SELECT aggregates all settlement_detail rows into a
 //     single row, so the outer query is trivially fast.
 
-export async function getVarianceDecomposition(db: Kysely<DB>, clientId: string, range: [Date, Date]) {
+export async function getVarianceDecomposition(
+	db: Kysely<DB>,
+	clientId: string,
+	range: [Date, Date]
+) {
 	// Both expected and actual use claim-level cached fields, scoped to claims
 	// created in the date range. No recovery_event joins needed.
 	// This answers "for claims created in this period, how is recovery progressing?"
@@ -906,7 +939,11 @@ export async function getSettlementFunnel(db: Kysely<DB>, clientId: string, rang
 //   - LIMIT 500 is essential for scatter plot render performance.
 //     If you need more, paginate or downsample server-side.
 
-export async function getNegotiationEfficiencyScatter(db: Kysely<DB>, clientId: string, range: [Date, Date]) {
+export async function getNegotiationEfficiencyScatter(
+	db: Kysely<DB>,
+	clientId: string,
+	range: [Date, Date]
+) {
 	return db
 		.selectFrom('settlement as s')
 		.innerJoin('claim_party as cp', 'cp.id', 's.claim_party_id')
@@ -983,7 +1020,11 @@ export async function getNegotiationEfficiencyScatter(db: Kysely<DB>, clientId: 
 //     (same reasoning as scatter query above).
 //   - Small result set (only open claims with statute dates). Fast query.
 
-export async function getStatuteDeadlineRisk(db: Kysely<DB>, clientId: string, range: [Date, Date]) {
+export async function getStatuteDeadlineRisk(
+	db: Kysely<DB>,
+	clientId: string,
+	range: [Date, Date]
+) {
 	return db
 		.selectFrom('claim_coverage as cc')
 		.innerJoin('claim as c', 'c.id', 'cc.claim_id')

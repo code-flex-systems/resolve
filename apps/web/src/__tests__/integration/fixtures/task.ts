@@ -34,9 +34,5 @@ export async function createTestTask(
 		completed_at: overrides.completed_at ?? null,
 	};
 
-	return db
-		.insertInto('task')
-		.values(data)
-		.returningAll()
-		.executeTakeFirstOrThrow();
+	return db.insertInto('task').values(data).returningAll().executeTakeFirstOrThrow();
 }

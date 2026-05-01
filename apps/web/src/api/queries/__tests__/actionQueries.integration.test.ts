@@ -65,7 +65,12 @@ describe('actionQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const action = await upsertAction(ctx, answer.id, ActionType.TASK, {
 				title: 'Follow up task',
@@ -108,7 +113,12 @@ describe('actionQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			// Create initial action
 			await upsertAction(ctx, answer.id, ActionType.TASK, { title: 'Original' });
@@ -123,7 +133,11 @@ describe('actionQueries integration tests', () => {
 			expect(definition.title).toBe('Updated');
 
 			// Verify only one action exists
-			const all = await db.selectFrom('action').selectAll().where('answer_id', '=', answer.id).execute();
+			const all = await db
+				.selectFrom('action')
+				.selectAll()
+				.where('answer_id', '=', answer.id)
+				.execute();
 			expect(all).toHaveLength(1);
 		});
 	});
@@ -156,13 +170,22 @@ describe('actionQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const action = await upsertAction(ctx, answer.id, ActionType.TASK, { title: 'To delete' });
 
 			await deleteAction(ctx, action.id);
 
-			const remaining = await db.selectFrom('action').selectAll().where('id', '=', action.id).executeTakeFirst();
+			const remaining = await db
+				.selectFrom('action')
+				.selectAll()
+				.where('id', '=', action.id)
+				.executeTakeFirst();
 			expect(remaining).toBeUndefined();
 		});
 
@@ -195,7 +218,12 @@ describe('actionQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			// Create action for client B
 			const actionB = await db
@@ -214,7 +242,11 @@ describe('actionQueries integration tests', () => {
 			await deleteAction(ctxA, actionB.id);
 
 			// Should still exist
-			const stillExists = await db.selectFrom('action').selectAll().where('id', '=', actionB.id).executeTakeFirst();
+			const stillExists = await db
+				.selectFrom('action')
+				.selectAll()
+				.where('id', '=', actionB.id)
+				.executeTakeFirst();
 			expect(stillExists).toBeTruthy();
 		});
 	});
@@ -258,7 +290,12 @@ describe('actionQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await upsertAction(ctx, answer1.id, ActionType.TASK, { title: 'Task 1' });
 			await upsertAction(ctx, answer2.id, ActionType.EMAIL, { title: 'Deadline 1' });
@@ -295,7 +332,12 @@ describe('actionQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const actions = await getActions(ctx, [answer.id]);
 			expect(actions).toHaveLength(0);
@@ -330,7 +372,12 @@ describe('actionQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			// Create action for client B
 			await db
@@ -378,7 +425,12 @@ describe('actionQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await upsertAction(ctx, answer.id, ActionType.TASK, { title: 'Test' });
 
@@ -415,7 +467,12 @@ describe('actionQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await expect(getAction(ctx, answer.id)).rejects.toThrow();
 		});
@@ -449,7 +506,12 @@ describe('actionQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			// Create action for client B
 			await db
@@ -496,7 +558,12 @@ describe('actionQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const action = await upsertAction(ctx, answer.id, ActionType.TASK, { title: 'Test' });
 
@@ -541,7 +608,12 @@ describe('actionQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const action = await upsertAction(ctx, answer.id, ActionType.TASK, { title: 'Test' });
 
@@ -587,7 +659,12 @@ describe('actionQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const action = await upsertAction(ctx, answer.id, ActionType.TASK, { title: 'Test' });
 
@@ -629,7 +706,12 @@ describe('actionQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const action = await upsertAction(ctx, answer.id, ActionType.TASK, { title: 'Test' });
 
@@ -676,13 +758,22 @@ describe('actionQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const action = await upsertAction(ctx, answer.id, ActionType.TASK, { title: 'Test' });
 
 			await updateAction(ctx, action.id, { type: ActionType.EMAIL });
 
-			const updated = await db.selectFrom('action').selectAll().where('id', '=', action.id).executeTakeFirstOrThrow();
+			const updated = await db
+				.selectFrom('action')
+				.selectAll()
+				.where('id', '=', action.id)
+				.executeTakeFirstOrThrow();
 			expect(updated.type).toBe(ActionType.EMAIL);
 		});
 
@@ -713,13 +804,24 @@ describe('actionQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const action = await upsertAction(ctx, answer.id, ActionType.TASK, { title: 'Original' });
 
-			await updateAction(ctx, action.id, { definition: { title: 'Updated', message: 'New message' } });
+			await updateAction(ctx, action.id, {
+				definition: { title: 'Updated', message: 'New message' },
+			});
 
-			const updated = await db.selectFrom('action').selectAll().where('id', '=', action.id).executeTakeFirstOrThrow();
+			const updated = await db
+				.selectFrom('action')
+				.selectAll()
+				.where('id', '=', action.id)
+				.executeTakeFirstOrThrow();
 			const definition = updated.definition as Record<string, unknown>;
 			expect(definition.title).toBe('Updated');
 			expect(definition.message).toBe('New message');
@@ -752,7 +854,12 @@ describe('actionQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const action = await upsertAction(ctx, answer.id, ActionType.TASK, { title: 'Test' });
 
@@ -788,7 +895,12 @@ describe('actionQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			// Create action for client B
 			const actionB = await db
@@ -807,7 +919,11 @@ describe('actionQueries integration tests', () => {
 			await updateAction(ctxA, actionB.id, { type: ActionType.EMAIL });
 
 			// Verify unchanged
-			const unchanged = await db.selectFrom('action').selectAll().where('id', '=', actionB.id).executeTakeFirstOrThrow();
+			const unchanged = await db
+				.selectFrom('action')
+				.selectAll()
+				.where('id', '=', actionB.id)
+				.executeTakeFirstOrThrow();
 			expect(unchanged.type).toBe(ActionType.TASK);
 		});
 	});
@@ -816,7 +932,12 @@ describe('actionQueries integration tests', () => {
 		it('should return empty array when no action logs exist', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const stats = await getActionStats(ctx);
 			expect(stats).toEqual([]);
@@ -849,7 +970,12 @@ describe('actionQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const action = await upsertAction(ctx, answer.id, ActionType.TASK, { title: 'Stats Task' });
 			await logAction(ctx, action.id, ActionLogStatus.SUCCESS);
@@ -892,10 +1018,22 @@ describe('actionQueries integration tests', () => {
 				})
 				.returning('id')
 				.executeTakeFirstOrThrow();
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
-			const ctxB = createTestContext(db, { id: userB.id, client_id: clientB.id, email: userB.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
+			const ctxB = createTestContext(db, {
+				id: userB.id,
+				client_id: clientB.id,
+				email: userB.email,
+				role: 'user',
+			});
 
-			const actionB = await upsertAction(ctxB, answerB.id, ActionType.TASK, { title: 'Client B Task' });
+			const actionB = await upsertAction(ctxB, answerB.id, ActionType.TASK, {
+				title: 'Client B Task',
+			});
 			await logAction(ctxB, actionB.id, ActionLogStatus.SUCCESS);
 
 			// Client A should not see client B's stats
@@ -908,7 +1046,12 @@ describe('actionQueries integration tests', () => {
 		it('should return empty array when no matching action logs exist', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const stats = await getActionStatsDetail(ctx, {});
 			expect(stats).toEqual([]);
@@ -919,7 +1062,12 @@ describe('actionQueries integration tests', () => {
 			const clientB = await createTestClient(db);
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			// Even if client B has action logs, client A should get empty results
 			const stats = await getActionStatsDetail(ctxA, {});

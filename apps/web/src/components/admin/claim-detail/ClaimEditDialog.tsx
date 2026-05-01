@@ -11,7 +11,10 @@ import AddressFields from '@/components/common/AddressFields';
 import { useClaimTrpc } from '@/hooks/trpc/useClaimTrpc';
 import { RecoveryStatus } from '@/config/enums';
 import { formatRecoveryStatus, RECOVERY_STATUS_ICONS } from '@/lib/utils/recoveryUtils';
-import { ClaimSubstatusSelect, LineOfBusinessSelect } from '@/components/common/ReferenceDataSelect';
+import {
+	ClaimSubstatusSelect,
+	LineOfBusinessSelect,
+} from '@/components/common/ReferenceDataSelect';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import type { CountryCode } from '@/config/addressConstants';
@@ -42,7 +45,10 @@ export default function ClaimEditDialog({ claimId, onClose }: ClaimEditDialogPro
 	const isSuperAdmin = useIsSuperAdmin();
 	const canEditRestrictedFields = isAdmin || isSuperAdmin;
 
-	const { data: existingClaim, isLoading } = useClaimTrpc().get({ claimId }, { enabled: !!claimId });
+	const { data: existingClaim, isLoading } = useClaimTrpc().get(
+		{ claimId },
+		{ enabled: !!claimId }
+	);
 
 	const { mutateAsync: updateClaim, isPending: isUpdating } = useClaimTrpc().update;
 
@@ -89,7 +95,8 @@ export default function ClaimEditDialog({ claimId, onClose }: ClaimEditDialogPro
 				loss_state: existingClaim.loss_state || '',
 				loss_postal_code: existingClaim.loss_postal_code || '',
 				loss_country: existingClaim.loss_country || '',
-				recovery_status: (existingClaim.recovery_status as RecoveryStatus) || RecoveryStatus.PENDING,
+				recovery_status:
+					(existingClaim.recovery_status as RecoveryStatus) || RecoveryStatus.PENDING,
 				substatus: existingClaim.substatus || null,
 				line_of_business: existingClaim.line_of_business || null,
 			});

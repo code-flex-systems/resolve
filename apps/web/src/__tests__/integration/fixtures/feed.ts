@@ -27,12 +27,10 @@ export async function createTestFeed(
 		feed_type: overrides.feed_type || 'sftp',
 		schedule: overrides.schedule ?? 0,
 		status: overrides.status || 'Inactive',
-		connection_options: JSON.stringify(overrides.connection_options || { host: 'test.example.com' }),
+		connection_options: JSON.stringify(
+			overrides.connection_options || { host: 'test.example.com' }
+		),
 	};
 
-	return db
-		.insertInto('feeds')
-		.values(data)
-		.returningAll()
-		.executeTakeFirstOrThrow();
+	return db.insertInto('feeds').values(data).returningAll().executeTakeFirstOrThrow();
 }

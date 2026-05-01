@@ -131,7 +131,10 @@ export function formatDateToISO(date: Date | null | undefined): string | null {
 	return date.toISOString().split('T')[0];
 }
 
-export function formatUser<T extends { email: string; first: string; last: string } | undefined>(user: T, me?: string) {
+export function formatUser<T extends { email: string; first: string; last: string } | undefined>(
+	user: T,
+	me?: string
+) {
 	if (!user) return '';
 	return user.email === me ? 'You' : `${user.first} ${user.last}`;
 }
@@ -307,7 +310,12 @@ export const dateSortComparator = (v1: unknown, v2: unknown): number => {
 function getInstances(tree: TreeNode[], currentInstanceId: string, instances: InstanceListItem[]) {
 	tree.forEach((node) => {
 		if (node.instanceId !== currentInstanceId) {
-			instances.push({ title: node.title, instanceId: node.instanceId, pageId: node.pageId, position: node.position });
+			instances.push({
+				title: node.title,
+				instanceId: node.instanceId,
+				pageId: node.pageId,
+				position: node.position,
+			});
 		}
 
 		if (node.children) {

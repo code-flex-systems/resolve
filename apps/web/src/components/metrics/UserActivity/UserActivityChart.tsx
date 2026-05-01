@@ -30,10 +30,8 @@ export default function UserActivityChart({
 	);
 
 	const enabled = range.every((r) => !!r);
-	const { data: checklistData = [], isFetching: fetchingChecklist } = useResponseTrpc().checklistActivity(
-		checklistFilters,
-		{ enabled }
-	);
+	const { data: checklistData = [], isFetching: fetchingChecklist } =
+		useResponseTrpc().checklistActivity(checklistFilters, { enabled });
 	const { data: stats = { avg: 0, total: 0, maxRow: null }, isFetching: fetchingStats } =
 		useResponseTrpc().listLogStats(checklistFilters, { enabled });
 
@@ -49,9 +47,7 @@ export default function UserActivityChart({
 	return (
 		<Card variant="beveled" padding="lg" style={{ width: '100%' }}>
 			<div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-				<span style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>
-					Checklist Activity
-				</span>
+				<span style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>Checklist Activity</span>
 
 				{isLoading ? (
 					<div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: 16 }}>
@@ -72,7 +68,10 @@ export default function UserActivityChart({
 						/>
 						<div style={{ width: '100%', height: 350, padding: '10px 0' }}>
 							<ResponsiveContainer width="100%" height="100%">
-								<BarChart data={checklistChartData} margin={{ left: 0, right: 30, top: 10, bottom: 10 }}>
+								<BarChart
+									data={checklistChartData}
+									margin={{ left: 0, right: 30, top: 10, bottom: 10 }}
+								>
 									<XAxis
 										dataKey="name"
 										tickFormatter={(v) => formatMD(v)}

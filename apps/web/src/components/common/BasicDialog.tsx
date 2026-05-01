@@ -66,11 +66,7 @@ export default function BasicDialog(
 	);
 
 	return (
-		<dialog
-			ref={dialogRef}
-			className={css.dialog}
-			onClick={handleClick}
-		>
+		<dialog ref={dialogRef} className={css.dialog} onClick={handleClick}>
 			<div
 				className={css.inner}
 				style={{
@@ -105,7 +101,11 @@ export default function BasicDialog(
 				)}
 				<div className={css.divider} />
 
-				<div className={[css.content, showOverflow ? css.contentOverflow : ''].filter(Boolean).join(' ')}>
+				<div
+					className={[css.content, showOverflow ? css.contentOverflow : '']
+						.filter(Boolean)
+						.join(' ')}
+				>
 					{props.children}
 				</div>
 

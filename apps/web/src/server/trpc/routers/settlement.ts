@@ -29,19 +29,15 @@ export const settlementRouter = router({
 			return createSettlement(ctx, input);
 		}),
 
-	getSettlement: protectedProcedure
-		.input(getSettlementInput)
-		.query(async ({ input, ctx }) => {
-			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-			return getSettlement(ctx, input);
-		}),
+	getSettlement: protectedProcedure.input(getSettlementInput).query(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return getSettlement(ctx, input);
+	}),
 
-	listSettlements: protectedProcedure
-		.input(listSettlementsInput)
-		.query(async ({ input, ctx }) => {
-			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-			return listSettlements(ctx, input);
-		}),
+	listSettlements: protectedProcedure.input(listSettlementsInput).query(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return listSettlements(ctx, input);
+	}),
 
 	getSettlementsForDropdown: protectedProcedure
 		.input(listSettlementsInput)

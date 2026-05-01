@@ -18,7 +18,10 @@ export default function useCursorPagination<TCursor>(
 	filtersKey: string,
 	initialPageSize = 25
 ): CursorPaginationResult<TCursor> {
-	const [paginationModel, setPaginationModelInternal] = useState({ page: 0, pageSize: initialPageSize });
+	const [paginationModel, setPaginationModelInternal] = useState({
+		page: 0,
+		pageSize: initialPageSize,
+	});
 	const cursorByPageRef = useRef<Map<number, TCursor | null>>(new Map([[0, null]]));
 
 	// Track which page the current query is for. Updated synchronously when cursor changes.

@@ -32,14 +32,20 @@ const COLUMNS: ColumnDef<any, any>[] = [
 	{
 		accessorKey: 'claim_number',
 		header: (params) => (
-			<IconHeaderCell {...params} icon={<IconFileSearch style={{ color: 'var(--text-muted)' }} />} />
+			<IconHeaderCell
+				{...params}
+				icon={<IconFileSearch style={{ color: 'var(--text-muted)' }} />}
+			/>
 		),
 		size: 150,
 	},
 	{
 		accessorKey: 'client',
 		header: (params) => (
-			<IconHeaderCell {...params} icon={<IconUserSearch style={{ color: 'var(--text-muted)' }} />} />
+			<IconHeaderCell
+				{...params}
+				icon={<IconUserSearch style={{ color: 'var(--text-muted)' }} />}
+			/>
 		),
 		size: 150,
 	},
@@ -158,7 +164,14 @@ export default function Claims() {
 			insured: appliedInsured,
 			client: appliedClient,
 		}),
-		[appliedManualOnly, appliedLob, appliedRecoveryStatus, appliedSubstatus, appliedInsured, appliedClient]
+		[
+			appliedManualOnly,
+			appliedLob,
+			appliedRecoveryStatus,
+			appliedSubstatus,
+			appliedInsured,
+			appliedClient,
+		]
 	);
 
 	// RHF manages the in-popper draft state; URL is the source of truth for what's applied
@@ -183,7 +196,9 @@ export default function Claims() {
 
 	const { data = { rows: [], count: undefined }, isFetching } = trpcUtils.list({
 		feedId: appliedManualOnly ? null : undefined,
-		searchTerm: appliedClaimNumber ? { value: appliedClaimNumber, type: ClaimSearch.CLAIM_NUMBER } : undefined,
+		searchTerm: appliedClaimNumber
+			? { value: appliedClaimNumber, type: ClaimSearch.CLAIM_NUMBER }
+			: undefined,
 		line_of_business: appliedLob ?? undefined,
 		recovery_status: (appliedRecoveryStatus as RecoveryStatus) ?? undefined,
 		substatus: (appliedSubstatus as ClaimSubstatus) ?? undefined,
@@ -219,9 +234,18 @@ export default function Claims() {
 			.slice(0, 20);
 	}, [uniqueClients, debouncedClientSearch]);
 
-	const debouncedClaimSearch = useDebounce((search: string) => setParam('claim_number', search), 500);
-	const debouncedInsuredSearchCallback = useDebounce((search: string) => setDebouncedInsuredSearch(search), 500);
-	const debouncedClientSearchCallback = useDebounce((search: string) => setDebouncedClientSearch(search), 500);
+	const debouncedClaimSearch = useDebounce(
+		(search: string) => setParam('claim_number', search),
+		500
+	);
+	const debouncedInsuredSearchCallback = useDebounce(
+		(search: string) => setDebouncedInsuredSearch(search),
+		500
+	);
+	const debouncedClientSearchCallback = useDebounce(
+		(search: string) => setDebouncedClientSearch(search),
+		500
+	);
 
 	useEffect(() => {
 		setClaimNumberSearch(appliedClaimNumber);
@@ -302,15 +326,29 @@ export default function Claims() {
 	].filter(Boolean);
 	const hasActiveFilters = activeFilters.length > 0;
 
-	const insuredComboboxOptions: ComboboxOption[] = insuredOptions.map((s) => ({ value: s, label: s }));
-	const clientComboboxOptions: ComboboxOption[] = clientOptions.map((s) => ({ value: s, label: s }));
+	const insuredComboboxOptions: ComboboxOption[] = insuredOptions.map((s) => ({
+		value: s,
+		label: s,
+	}));
+	const clientComboboxOptions: ComboboxOption[] = clientOptions.map((s) => ({
+		value: s,
+		label: s,
+	}));
 
 	return (
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading claims...">
 			<div style={styles.container} className="flex-col-start">
 				<Card variant="beveled" padding="md" style={styles.paper}>
-					<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
-						View and manage all claims across the organization. Click a claim to see its full details.
+					<p
+						style={{
+							color: 'var(--text-secondary)',
+							fontSize: 13,
+							margin: '0 0 12px',
+							lineHeight: 1.5,
+						}}
+					>
+						View and manage all claims across the organization. Click a claim to see its full
+						details.
 					</p>
 
 					<Toolbar
@@ -524,7 +562,11 @@ export default function Claims() {
 						/>
 					</div>
 				</Card>
-				<ClaimDetailPanel claimId={selectedClaimId} open={!!selectedClaimId} onClose={handleClosePanel} />
+				<ClaimDetailPanel
+					claimId={selectedClaimId}
+					open={!!selectedClaimId}
+					onClose={handleClosePanel}
+				/>
 			</div>
 		</PageTransitionWrapper>
 	);

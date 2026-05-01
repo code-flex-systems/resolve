@@ -60,7 +60,10 @@ function validateActionDefinition(type: ActionType, definition: ActionDefinition
 	}
 }
 
-export async function executeActions(ctx: ProtectedContext, { answerIds }: { answerIds: string[] }) {
+export async function executeActions(
+	ctx: ProtectedContext,
+	{ answerIds }: { answerIds: string[] }
+) {
 	const actions = await actionQueries.getActions(ctx, answerIds);
 
 	// Collect logs from all action executions
@@ -125,7 +128,15 @@ export async function getActionStatsDetail(
 	ctx: ProtectedContext,
 	{
 		filters,
-	}: { filters: { checklistId?: string; claimId?: string; users?: string[]; range?: DateRange; searchTerm?: string } }
+	}: {
+		filters: {
+			checklistId?: string;
+			claimId?: string;
+			users?: string[];
+			range?: DateRange;
+			searchTerm?: string;
+		};
+	}
 ) {
 	const results = await actionQueries.getActionStatsDetail(ctx, filters);
 	return results;
@@ -133,22 +144,34 @@ export async function getActionStatsDetail(
 
 export async function upsertAction(
 	ctx: ProtectedContext,
-	{ answerId, type, definition }: { answerId: string; type: ActionType; definition: ActionDefinition }
+	{
+		answerId,
+		type,
+		definition,
+	}: { answerId: string; type: ActionType; definition: ActionDefinition }
 ) {
 	// Validate action definition before database write
 	validateActionDefinition(type, definition);
 
 	// Upsert action and log admin action within transaction
 	const result = await ctx.db.transaction().execute(async (trx) => {
-		const action = await actionQueries.upsertAction({ ...ctx, db: trx }, answerId, type, definition);
+		const action = await actionQueries.upsertAction(
+			{ ...ctx, db: trx },
+			answerId,
+			type,
+			definition
+		);
 
 		// Log admin action for action upsert (always treat as UPDATE since it uses onConflict)
-		await logAdminAction({ ...ctx, db: trx }, {
-			entityId: action.id,
-			entityName: EntityName.ACTION,
-			action: AdminAction.UPDATE,
-			value: { answerId, type, definition },
-		});
+		await logAdminAction(
+			{ ...ctx, db: trx },
+			{
+				entityId: action.id,
+				entityName: EntityName.ACTION,
+				action: AdminAction.UPDATE,
+				value: { answerId, type, definition },
+			}
+		);
 
 		return action;
 	});

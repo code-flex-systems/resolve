@@ -22,13 +22,28 @@ export default function ProfileAvatar() {
 	return (
 		<>
 			<div
-id="avatar"
+				id="avatar"
 				onClick={(e) => {
 					setAnchorEl(e.currentTarget);
 					e.preventDefault();
 					e.stopPropagation();
-				}}>
-				<div style={{ width: 35, height: 35, borderRadius: '50%', backgroundColor: 'var(--bg-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 600, color: 'var(--text-secondary)', cursor: 'pointer' }}>
+				}}
+			>
+				<div
+					style={{
+						width: 35,
+						height: 35,
+						borderRadius: '50%',
+						backgroundColor: 'var(--bg-tertiary)',
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						fontSize: 15,
+						fontWeight: 600,
+						color: 'var(--text-secondary)',
+						cursor: 'pointer',
+					}}
+				>
 					{getInitials(session?.user?.name)}
 				</div>
 			</div>
@@ -36,13 +51,24 @@ id="avatar"
 				<BasicPopper anchorEl={anchorEl} setAnchorEl={setAnchorEl} placement="bottom-end">
 					<div style={styles.paper}>
 						<div
-style={{
+							style={{
 								...styles.row,
 								justifyContent: 'space-between',
 								overflow: 'hidden' as const,
 								margin: '5px 0px 10px',
-							}}>
-							<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden' as const, textOverflow: 'ellipsis' }, fontSize: 17, fontWeight: 'bold' }}>
+							}}
+						>
+							<span
+								style={{
+									...{
+										whiteSpace: 'nowrap',
+										overflow: 'hidden' as const,
+										textOverflow: 'ellipsis',
+									},
+									fontSize: 17,
+									fontWeight: 'bold',
+								}}
+							>
 								{session?.user?.name ?? ''}
 							</span>
 							{!!session?.user && <RoleValue role={session.user.role as Role} />}
@@ -52,29 +78,49 @@ style={{
 						</div>
 						<div style={{ ...styles.row, overflow: 'hidden' as const, marginTop: 5 }}>
 							<IconMail style={styles.icon} />
-							<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden' as const, textOverflow: 'ellipsis' }, fontSize: 15, color: 'var(--text-muted)' }}>
+							<span
+								style={{
+									...{
+										whiteSpace: 'nowrap',
+										overflow: 'hidden' as const,
+										textOverflow: 'ellipsis',
+									},
+									fontSize: 15,
+									color: 'var(--text-muted)',
+								}}
+							>
 								{session?.user?.email ?? ''}
 							</span>
 						</div>
 						<div style={{ ...styles.row, overflow: 'hidden' as const, marginTop: 5 }}>
 							<IconPhone style={styles.icon} />
-							<span style={{ ...{ whiteSpace: 'nowrap', overflow: 'hidden' as const, textOverflow: 'ellipsis' }, fontSize: 15, color: 'var(--text-muted)' }}>
+							<span
+								style={{
+									...{
+										whiteSpace: 'nowrap',
+										overflow: 'hidden' as const,
+										textOverflow: 'ellipsis',
+									},
+									fontSize: 15,
+									color: 'var(--text-muted)',
+								}}
+							>
 								{parsePhoneNumberFromString(session?.user?.phone ?? '')?.formatNational()}
 							</span>
 						</div>
 						<div style={{ ...styles.row, justifyContent: 'flex-end', marginTop: 5 }}>
 							<div style={{ marginRight: '10px' }}>
 								<Tooltip content="Update my info">
-							<Button variant="icon" size="sm" color="neutral">
-							<IconEdit size={16} />
-						</Button>
-						</Tooltip>
+									<Button variant="icon" size="sm" color="neutral">
+										<IconEdit size={16} />
+									</Button>
+								</Tooltip>
 							</div>
 							<Tooltip content="Sign out">
-							<Button variant="icon" size="sm" color="neutral">
-							<IconLogout size={16} />
-						</Button>
-						</Tooltip>
+								<Button variant="icon" size="sm" color="neutral">
+									<IconLogout size={16} />
+								</Button>
+							</Tooltip>
 						</div>
 					</div>
 				</BasicPopper>

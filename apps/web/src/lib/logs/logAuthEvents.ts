@@ -7,7 +7,11 @@ export interface AuthEventMetadata {
 	details?: Record<string, unknown>; // optional structured context
 }
 
-export async function logAuthEvent(userId: string | null, eventType: AuthEventType, metadata: AuthEventMetadata = {}) {
+export async function logAuthEvent(
+	userId: string | null,
+	eventType: AuthEventType,
+	metadata: AuthEventMetadata = {}
+) {
 	const { ip, userAgent, details } = metadata;
 
 	await db

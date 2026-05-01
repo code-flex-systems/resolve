@@ -159,9 +159,7 @@ export async function getWorkflowSuggestions(ctx: ProtectedContext) {
 		const STALE_TIME_HOURS = 24;
 		const expiresAt = new Date(Date.now() + STALE_TIME_HOURS * 60 * 60 * 1000);
 
-		const currentBreachDeskLocationIds = suggestion.resolutions.map(
-			(r) => r.breach.deskLocationId
-		);
+		const currentBreachDeskLocationIds = suggestion.resolutions.map((r) => r.breach.deskLocationId);
 
 		const suggestionIds = await Promise.all(
 			suggestion.resolutions.map(async (resolution) => {
@@ -237,10 +235,7 @@ export async function getWorkflowSuggestions(ctx: ProtectedContext) {
  * Execute a workflow suggestion.
  * Applies the suggested priority changes to user_desk_location table.
  */
-export async function executeSuggestion(
-	ctx: ProtectedContext,
-	input: { suggestionId: string }
-) {
+export async function executeSuggestion(ctx: ProtectedContext, input: { suggestionId: string }) {
 	const clientId = ctx.session.user.client_id!;
 
 	return await ctx.db.transaction().execute(async (trx) => {
@@ -255,7 +250,11 @@ export async function executeSuggestion(
 
 		const data = suggestion.suggestion_data as {
 			assignments: Array<{ userId: string; deskLocationId: string; newPriority: number }>;
-			cascadedChanges: Array<{ userId: string; deskLocationId: string; newPriority: number | null }>;
+			cascadedChanges: Array<{
+				userId: string;
+				deskLocationId: string;
+				newPriority: number | null;
+			}>;
 		};
 
 		// 2. Apply priority assignments and cascaded changes
@@ -324,7 +323,11 @@ export async function executeAllSuggestions(ctx: ProtectedContext) {
 		for (const suggestion of pendingSuggestions) {
 			const data = suggestion.suggestion_data as {
 				assignments: Array<{ userId: string; deskLocationId: string; newPriority: number }>;
-				cascadedChanges: Array<{ userId: string; deskLocationId: string; newPriority: number | null }>;
+				cascadedChanges: Array<{
+					userId: string;
+					deskLocationId: string;
+					newPriority: number | null;
+				}>;
 			};
 
 			const allChanges = [
@@ -410,7 +413,12 @@ export async function updateSuggestion(
  */
 export async function getWorkflowStageMetrics(
 	ctx: ProtectedContext,
-	input: { startDate: string; endDate: string; deskLocationTypeId?: string; deskLocationId?: string }
+	input: {
+		startDate: string;
+		endDate: string;
+		deskLocationTypeId?: string;
+		deskLocationId?: string;
+	}
 ) {
 	return await workflowAnalyticsQueries.getWorkflowStageMetrics(ctx, {
 		startDate: input.startDate,

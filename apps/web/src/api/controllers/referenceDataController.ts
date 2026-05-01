@@ -18,10 +18,7 @@ export async function getReferenceLists(ctx: ProtectedContext) {
 /**
  * Get single reference list by entity name
  */
-export async function getReferenceList(
-	ctx: ProtectedContext,
-	{ entity }: { entity: string }
-) {
+export async function getReferenceList(ctx: ProtectedContext, { entity }: { entity: string }) {
 	return await referenceDataQueries.getReferenceList(ctx, entity);
 }
 
@@ -35,7 +32,11 @@ export async function getReferenceList(
  */
 export async function getReferenceOptions(
 	ctx: ProtectedContext,
-	{ entity, showInactive, showDeleted }: { entity: string; showInactive?: boolean; showDeleted?: boolean }
+	{
+		entity,
+		showInactive,
+		showDeleted,
+	}: { entity: string; showInactive?: boolean; showDeleted?: boolean }
 ) {
 	return await referenceDataQueries.getReferenceOptions(ctx, entity, { showInactive, showDeleted });
 }
@@ -46,7 +47,11 @@ export async function getReferenceOptions(
  */
 export async function getReferenceOption(
 	ctx: ProtectedContext,
-	{ entity, value, includeDeactivated }: { entity: string; value: string; includeDeactivated?: boolean }
+	{
+		entity,
+		value,
+		includeDeactivated,
+	}: { entity: string; value: string; includeDeactivated?: boolean }
 ) {
 	return await referenceDataQueries.getReferenceOption(ctx, entity, value, { includeDeactivated });
 }
@@ -66,10 +71,7 @@ export async function createReferenceOption(
 	}
 ) {
 	const created = await ctx.db.transaction().execute(async (trx) => {
-		const option = await referenceDataQueries.createReferenceOption(
-			{ ...ctx, db: trx },
-			input
-		);
+		const option = await referenceDataQueries.createReferenceOption({ ...ctx, db: trx }, input);
 
 		await logAdminAction(
 			{ ...ctx, db: trx },
@@ -144,15 +146,9 @@ export async function updateReferenceOption(
  * Delete reference option with admin logging (soft delete)
  * Prevents deletion of system default options
  */
-export async function deleteReferenceOption(
-	ctx: ProtectedContext,
-	{ id }: { id: number }
-) {
+export async function deleteReferenceOption(ctx: ProtectedContext, { id }: { id: number }) {
 	const deleted = await ctx.db.transaction().execute(async (trx) => {
-		const option = await referenceDataQueries.deleteReferenceOption(
-			{ ...ctx, db: trx },
-			id
-		);
+		const option = await referenceDataQueries.deleteReferenceOption({ ...ctx, db: trx }, id);
 
 		await logAdminAction(
 			{ ...ctx, db: trx },
@@ -176,15 +172,9 @@ export async function deleteReferenceOption(
 /**
  * Restore deleted reference option with admin logging
  */
-export async function restoreReferenceOption(
-	ctx: ProtectedContext,
-	{ id }: { id: number }
-) {
+export async function restoreReferenceOption(ctx: ProtectedContext, { id }: { id: number }) {
 	const restored = await ctx.db.transaction().execute(async (trx) => {
-		const option = await referenceDataQueries.restoreReferenceOption(
-			{ ...ctx, db: trx },
-			id
-		);
+		const option = await referenceDataQueries.restoreReferenceOption({ ...ctx, db: trx }, id);
 
 		await logAdminAction(
 			{ ...ctx, db: trx },

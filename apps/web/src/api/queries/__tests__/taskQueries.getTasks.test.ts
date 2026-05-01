@@ -356,8 +356,14 @@ describe('getTasks', () => {
 		it('should include cancelled tasks when showCancelled is true', async () => {
 			// Mock rows include total_count for window function pattern
 			const mockTasks = [
-				{ ...createMockTask({ status: TaskStatus.CANCELLED, derived_status: 'cancelled' }), total_count: '2' },
-				{ ...createMockTask({ id: 2, status: TaskStatus.PENDING, derived_status: 'available' }), total_count: '2' },
+				{
+					...createMockTask({ status: TaskStatus.CANCELLED, derived_status: 'cancelled' }),
+					total_count: '2',
+				},
+				{
+					...createMockTask({ id: 2, status: TaskStatus.PENDING, derived_status: 'available' }),
+					total_count: '2',
+				},
 			];
 
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {

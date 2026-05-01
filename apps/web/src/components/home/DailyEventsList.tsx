@@ -14,7 +14,11 @@ interface DailyEventsListProps {
 /**
  * Displays a scrollable list of deadlines for the selected day
  */
-export default function DailyEventsList({ deadlines, selectedDate, flexGrow }: DailyEventsListProps) {
+export default function DailyEventsList({
+	deadlines,
+	selectedDate,
+	flexGrow,
+}: DailyEventsListProps) {
 	const router = useRouter();
 
 	const handleClaimClick = (claimId: string) => {
@@ -28,25 +32,25 @@ export default function DailyEventsList({ deadlines, selectedDate, flexGrow }: D
 			</span>
 
 			<div style={{ ...styles.scrollContainer, ...(flexGrow && styles.flexScrollContainer) }}>
-					{deadlines.length === 0 ? (
-						<div style={styles.emptyState}>
-							<span style={{ color: 'text.secondary', textAlign: 'center' as const }}>
-								No deadlines for this day
-							</span>
-						</div>
-					) : (
-						<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
-							{deadlines.map((deadline) => (
-								<DeadlineListItem
-									key={deadline.id}
-									deadline={deadline}
-									onClaimClick={handleClaimClick}
-									showTime={true}
-								/>
-							))}
-						</div>
-					)}
-				</div>
+				{deadlines.length === 0 ? (
+					<div style={styles.emptyState}>
+						<span style={{ color: 'text.secondary', textAlign: 'center' as const }}>
+							No deadlines for this day
+						</span>
+					</div>
+				) : (
+					<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
+						{deadlines.map((deadline) => (
+							<DeadlineListItem
+								key={deadline.id}
+								deadline={deadline}
+								onClaimClick={handleClaimClick}
+								showTime={true}
+							/>
+						))}
+					</div>
+				)}
+			</div>
 		</div>
 	);
 }

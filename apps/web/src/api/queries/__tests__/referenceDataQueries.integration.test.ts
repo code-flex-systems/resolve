@@ -92,10 +92,21 @@ describe('referenceDataQueries integration tests', () => {
 		it('should return all reference lists for client', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
-			await createTestReferenceList(client.id, { entity: `list_a_${Date.now()}`, display_name: 'List A' });
-			await createTestReferenceList(client.id, { entity: `list_b_${Date.now()}`, display_name: 'List B' });
+			await createTestReferenceList(client.id, {
+				entity: `list_a_${Date.now()}`,
+				display_name: 'List A',
+			});
+			await createTestReferenceList(client.id, {
+				entity: `list_b_${Date.now()}`,
+				display_name: 'List B',
+			});
 
 			const lists = await getReferenceLists(ctx);
 
@@ -105,9 +116,16 @@ describe('referenceDataQueries integration tests', () => {
 		it('should not return deleted lists', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
-			const list = await createTestReferenceList(client.id, { entity: `deleted_list_${Date.now()}` });
+			const list = await createTestReferenceList(client.id, {
+				entity: `deleted_list_${Date.now()}`,
+			});
 			await db
 				.updateTable('reference_list')
 				.set({ deleted_at: new Date() })
@@ -124,9 +142,16 @@ describe('referenceDataQueries integration tests', () => {
 			const clientA = await createTestClient(db);
 			const clientB = await createTestClient(db);
 			const userA = await createTestUser(db, { client_id: clientA.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
-			const listB = await createTestReferenceList(clientB.id, { entity: `client_b_list_${Date.now()}` });
+			const listB = await createTestReferenceList(clientB.id, {
+				entity: `client_b_list_${Date.now()}`,
+			});
 
 			const lists = await getReferenceLists(ctxA);
 			const found = lists.find((l) => l.id === listB.id);
@@ -137,11 +162,22 @@ describe('referenceDataQueries integration tests', () => {
 		it('should order by display_name ascending', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const suffix = Date.now();
-			await createTestReferenceList(client.id, { entity: `z_entity_${suffix}`, display_name: 'Zebra' });
-			await createTestReferenceList(client.id, { entity: `a_entity_${suffix}`, display_name: 'Apple' });
+			await createTestReferenceList(client.id, {
+				entity: `z_entity_${suffix}`,
+				display_name: 'Zebra',
+			});
+			await createTestReferenceList(client.id, {
+				entity: `a_entity_${suffix}`,
+				display_name: 'Apple',
+			});
 
 			const lists = await getReferenceLists(ctx);
 			const zebraIdx = lists.findIndex((l) => l.display_name === 'Zebra');
@@ -155,7 +191,12 @@ describe('referenceDataQueries integration tests', () => {
 		it('should return reference list by entity', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const entity = `entity_${Date.now()}`;
 			const list = await createTestReferenceList(client.id, { entity });
@@ -170,7 +211,12 @@ describe('referenceDataQueries integration tests', () => {
 		it('should return undefined for non-existent entity', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const result = await getReferenceList(ctx, 'nonexistent_entity');
 
@@ -180,7 +226,12 @@ describe('referenceDataQueries integration tests', () => {
 		it('should not return deleted list', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const entity = `deleted_${Date.now()}`;
 			const list = await createTestReferenceList(client.id, { entity });
@@ -199,7 +250,12 @@ describe('referenceDataQueries integration tests', () => {
 			const clientA = await createTestClient(db);
 			const clientB = await createTestClient(db);
 			const userA = await createTestUser(db, { client_id: clientA.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			const entity = `client_b_${Date.now()}`;
 			await createTestReferenceList(clientB.id, { entity });
@@ -214,7 +270,12 @@ describe('referenceDataQueries integration tests', () => {
 		it('should return options for entity', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const entity = `options_entity_${Date.now()}`;
 			const list = await createTestReferenceList(client.id, { entity });
@@ -229,7 +290,12 @@ describe('referenceDataQueries integration tests', () => {
 		it('should return empty array if list does not exist', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const options = await getReferenceOptions(ctx, 'nonexistent');
 
@@ -239,7 +305,12 @@ describe('referenceDataQueries integration tests', () => {
 		it('should not return deleted options by default', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const entity = `deleted_opt_${Date.now()}`;
 			const list = await createTestReferenceList(client.id, { entity });
@@ -258,7 +329,12 @@ describe('referenceDataQueries integration tests', () => {
 		it('should return deleted options when showDeleted is true', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const entity = `show_deleted_${Date.now()}`;
 			const list = await createTestReferenceList(client.id, { entity });
@@ -277,11 +353,18 @@ describe('referenceDataQueries integration tests', () => {
 		it('should not return inactive options by default', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const entity = `inactive_opt_${Date.now()}`;
 			const list = await createTestReferenceList(client.id, { entity });
-			const opt = await createTestReferenceOption(client.id, list.id, user.id, { is_active: false });
+			const opt = await createTestReferenceOption(client.id, list.id, user.id, {
+				is_active: false,
+			});
 
 			const options = await getReferenceOptions(ctx, entity);
 
@@ -291,11 +374,18 @@ describe('referenceDataQueries integration tests', () => {
 		it('should return inactive options when showInactive is true', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const entity = `show_inactive_${Date.now()}`;
 			const list = await createTestReferenceList(client.id, { entity });
-			const opt = await createTestReferenceOption(client.id, list.id, user.id, { is_active: false });
+			const opt = await createTestReferenceOption(client.id, list.id, user.id, {
+				is_active: false,
+			});
 
 			const options = await getReferenceOptions(ctx, entity, { showInactive: true });
 
@@ -307,7 +397,12 @@ describe('referenceDataQueries integration tests', () => {
 			const clientB = await createTestClient(db);
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			// Use different entity names per client to avoid cross-contamination
 			const entityA = `isolation_a_${Date.now()}`;
@@ -328,11 +423,18 @@ describe('referenceDataQueries integration tests', () => {
 		it('should return option by entity and value', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const entity = `get_opt_${Date.now()}`;
 			const list = await createTestReferenceList(client.id, { entity });
-			const opt = await createTestReferenceOption(client.id, list.id, user.id, { value: 'myvalue' });
+			const opt = await createTestReferenceOption(client.id, list.id, user.id, {
+				value: 'myvalue',
+			});
 
 			const result = await getReferenceOption(ctx, entity, 'myvalue');
 
@@ -343,7 +445,12 @@ describe('referenceDataQueries integration tests', () => {
 		it('should return null if list does not exist', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const result = await getReferenceOption(ctx, 'nonexistent', 'value');
 
@@ -353,11 +460,18 @@ describe('referenceDataQueries integration tests', () => {
 		it('should not return deleted option by default', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const entity = `deleted_single_${Date.now()}`;
 			const list = await createTestReferenceList(client.id, { entity });
-			const opt = await createTestReferenceOption(client.id, list.id, user.id, { value: 'deleted_val' });
+			const opt = await createTestReferenceOption(client.id, list.id, user.id, {
+				value: 'deleted_val',
+			});
 			await db
 				.updateTable('reference_option')
 				.set({ deleted_at: new Date() })
@@ -372,18 +486,27 @@ describe('referenceDataQueries integration tests', () => {
 		it('should return deleted option when includeDeactivated is true', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const entity = `include_deleted_${Date.now()}`;
 			const list = await createTestReferenceList(client.id, { entity });
-			const opt = await createTestReferenceOption(client.id, list.id, user.id, { value: 'deleted_inc' });
+			const opt = await createTestReferenceOption(client.id, list.id, user.id, {
+				value: 'deleted_inc',
+			});
 			await db
 				.updateTable('reference_option')
 				.set({ deleted_at: new Date() })
 				.where('id', '=', opt.id)
 				.execute();
 
-			const result = await getReferenceOption(ctx, entity, 'deleted_inc', { includeDeactivated: true });
+			const result = await getReferenceOption(ctx, entity, 'deleted_inc', {
+				includeDeactivated: true,
+			});
 
 			expect(result).toBeDefined();
 			expect(result!.id).toBe(opt.id);
@@ -394,7 +517,12 @@ describe('referenceDataQueries integration tests', () => {
 		it('should return option by ID with entity name', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const entity = `by_id_${Date.now()}`;
 			const list = await createTestReferenceList(client.id, { entity });
@@ -410,7 +538,12 @@ describe('referenceDataQueries integration tests', () => {
 		it('should return undefined for non-existent ID', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const result = await getReferenceOptionById(ctx, 999999);
 
@@ -422,9 +555,16 @@ describe('referenceDataQueries integration tests', () => {
 			const clientB = await createTestClient(db);
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
-			const listB = await createTestReferenceList(clientB.id, { entity: `client_b_id_${Date.now()}` });
+			const listB = await createTestReferenceList(clientB.id, {
+				entity: `client_b_id_${Date.now()}`,
+			});
 			const optB = await createTestReferenceOption(clientB.id, listB.id, userB.id);
 
 			const result = await getReferenceOptionById(ctxA, optB.id);
@@ -437,7 +577,12 @@ describe('referenceDataQueries integration tests', () => {
 		it('should create new option', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const entity = `create_opt_${Date.now()}`;
 			await createTestReferenceList(client.id, { entity });
@@ -459,7 +604,12 @@ describe('referenceDataQueries integration tests', () => {
 		it('should throw when list does not exist', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await expect(
 				createReferenceOption(ctx, {
@@ -473,7 +623,12 @@ describe('referenceDataQueries integration tests', () => {
 		it('should throw when duplicate value exists', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const entity = `dup_val_${Date.now()}`;
 			const list = await createTestReferenceList(client.id, { entity });
@@ -485,7 +640,7 @@ describe('referenceDataQueries integration tests', () => {
 					value: 'existing',
 					display_label: 'Label',
 				})
-			).rejects.toThrow("already exists");
+			).rejects.toThrow('already exists');
 		});
 	});
 
@@ -493,10 +648,17 @@ describe('referenceDataQueries integration tests', () => {
 		it('should update option', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const list = await createTestReferenceList(client.id, { entity: `update_${Date.now()}` });
-			const opt = await createTestReferenceOption(client.id, list.id, user.id, { display_label: 'Original' });
+			const opt = await createTestReferenceOption(client.id, list.id, user.id, {
+				display_label: 'Original',
+			});
 
 			const result = await updateReferenceOption(ctx, opt.id, { display_label: 'Updated' });
 
@@ -507,9 +669,16 @@ describe('referenceDataQueries integration tests', () => {
 		it('should throw when option not found', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
-			await expect(updateReferenceOption(ctx, 999999, { display_label: 'X' })).rejects.toThrow('not found');
+			await expect(updateReferenceOption(ctx, 999999, { display_label: 'X' })).rejects.toThrow(
+				'not found'
+			);
 		});
 
 		it('should not update option from different client (tenant isolation)', async () => {
@@ -517,12 +686,21 @@ describe('referenceDataQueries integration tests', () => {
 			const clientB = await createTestClient(db);
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
-			const listB = await createTestReferenceList(clientB.id, { entity: `update_iso_${Date.now()}` });
+			const listB = await createTestReferenceList(clientB.id, {
+				entity: `update_iso_${Date.now()}`,
+			});
 			const optB = await createTestReferenceOption(clientB.id, listB.id, userB.id);
 
-			await expect(updateReferenceOption(ctxA, optB.id, { display_label: 'Hacked' })).rejects.toThrow('not found');
+			await expect(
+				updateReferenceOption(ctxA, optB.id, { display_label: 'Hacked' })
+			).rejects.toThrow('not found');
 		});
 	});
 
@@ -530,7 +708,12 @@ describe('referenceDataQueries integration tests', () => {
 		it('should soft delete option', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const list = await createTestReferenceList(client.id, { entity: `delete_${Date.now()}` });
 			const opt = await createTestReferenceOption(client.id, list.id, user.id);
@@ -543,7 +726,12 @@ describe('referenceDataQueries integration tests', () => {
 		it('should throw when option not found', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			await expect(deleteReferenceOption(ctx, 999999)).rejects.toThrow('not found');
 		});
@@ -551,12 +739,23 @@ describe('referenceDataQueries integration tests', () => {
 		it('should throw when deleting system default', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
-			const list = await createTestReferenceList(client.id, { entity: `sys_default_${Date.now()}` });
-			const opt = await createTestReferenceOption(client.id, list.id, user.id, { is_system_default: true });
+			const list = await createTestReferenceList(client.id, {
+				entity: `sys_default_${Date.now()}`,
+			});
+			const opt = await createTestReferenceOption(client.id, list.id, user.id, {
+				is_system_default: true,
+			});
 
-			await expect(deleteReferenceOption(ctx, opt.id)).rejects.toThrow('Cannot delete system default');
+			await expect(deleteReferenceOption(ctx, opt.id)).rejects.toThrow(
+				'Cannot delete system default'
+			);
 		});
 
 		it('should not delete option from different client (tenant isolation)', async () => {
@@ -564,7 +763,12 @@ describe('referenceDataQueries integration tests', () => {
 			const clientB = await createTestClient(db);
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			const listB = await createTestReferenceList(clientB.id, { entity: `del_iso_${Date.now()}` });
 			const optB = await createTestReferenceOption(clientB.id, listB.id, userB.id);
@@ -577,7 +781,12 @@ describe('referenceDataQueries integration tests', () => {
 		it('should restore deleted option', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const list = await createTestReferenceList(client.id, { entity: `restore_${Date.now()}` });
 			const opt = await createTestReferenceOption(client.id, list.id, user.id);
@@ -597,9 +806,16 @@ describe('referenceDataQueries integration tests', () => {
 			const clientB = await createTestClient(db);
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
-			const listB = await createTestReferenceList(clientB.id, { entity: `restore_iso_${Date.now()}` });
+			const listB = await createTestReferenceList(clientB.id, {
+				entity: `restore_iso_${Date.now()}`,
+			});
 			const optB = await createTestReferenceOption(clientB.id, listB.id, userB.id);
 			await db
 				.updateTable('reference_option')
@@ -615,11 +831,19 @@ describe('referenceDataQueries integration tests', () => {
 		it('should return true for valid active value', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const entity = `validate_${Date.now()}`;
 			const list = await createTestReferenceList(client.id, { entity });
-			await createTestReferenceOption(client.id, list.id, user.id, { value: 'valid_val', is_active: true });
+			await createTestReferenceOption(client.id, list.id, user.id, {
+				value: 'valid_val',
+				is_active: true,
+			});
 
 			const result = await validateReferenceValue(ctx, entity, 'valid_val');
 
@@ -629,11 +853,19 @@ describe('referenceDataQueries integration tests', () => {
 		it('should return false for inactive value', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const entity = `validate_inactive_${Date.now()}`;
 			const list = await createTestReferenceList(client.id, { entity });
-			await createTestReferenceOption(client.id, list.id, user.id, { value: 'inactive_val', is_active: false });
+			await createTestReferenceOption(client.id, list.id, user.id, {
+				value: 'inactive_val',
+				is_active: false,
+			});
 
 			const result = await validateReferenceValue(ctx, entity, 'inactive_val');
 
@@ -643,7 +875,12 @@ describe('referenceDataQueries integration tests', () => {
 		it('should return false for non-existent value', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const entity = `validate_none_${Date.now()}`;
 			await createTestReferenceList(client.id, { entity });
@@ -658,7 +895,12 @@ describe('referenceDataQueries integration tests', () => {
 		it('should return array of valid values', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const entity = `valid_vals_${Date.now()}`;
 			const list = await createTestReferenceList(client.id, { entity });
@@ -674,7 +916,12 @@ describe('referenceDataQueries integration tests', () => {
 		it('should return empty array for non-existent entity', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			const values = await getValidReferenceValues(ctx, 'nonexistent');
 

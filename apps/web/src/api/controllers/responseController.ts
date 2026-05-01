@@ -64,7 +64,13 @@ export async function getResponsesForAnswer(
 		offset: number;
 	}
 ) {
-	const results = await responseQueries.getResponsesForAnswer(ctx, answerId, filters, limit, offset);
+	const results = await responseQueries.getResponsesForAnswer(
+		ctx,
+		answerId,
+		filters,
+		limit,
+		offset
+	);
 	return results;
 }
 
@@ -86,7 +92,12 @@ export async function getResponsesForPageInstance(
 		instanceId: string;
 	}
 ) {
-	const results = await responseQueries.getResponsesForPageInstance(ctx, checklistId, claimId, instanceId);
+	const results = await responseQueries.getResponsesForPageInstance(
+		ctx,
+		checklistId,
+		claimId,
+		instanceId
+	);
 	return results;
 }
 
@@ -97,7 +108,13 @@ export async function getResponseAuditLogs(
 		limit,
 		offset,
 	}: {
-		filters: { checklistId?: string; claimId?: string; emails?: string[]; range?: DateRange; searchTerm?: string };
+		filters: {
+			checklistId?: string;
+			claimId?: string;
+			emails?: string[];
+			range?: DateRange;
+			searchTerm?: string;
+		};
 		limit: number;
 		offset: number;
 	}
@@ -146,7 +163,17 @@ export async function getResponseAuditLogStats(
  */
 export async function exportResponseAuditLogs(
 	ctx: ProtectedContext,
-	{ filters }: { filters: { checklistId?: string; claimId?: string; emails?: string[]; range?: DateRange; searchTerm?: string } }
+	{
+		filters,
+	}: {
+		filters: {
+			checklistId?: string;
+			claimId?: string;
+			emails?: string[];
+			range?: DateRange;
+			searchTerm?: string;
+		};
+	}
 ) {
 	return await responseQueries.exportResponseAuditLogs(ctx, filters);
 }

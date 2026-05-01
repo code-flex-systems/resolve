@@ -51,7 +51,15 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 
 	return (
 		<div style={{ padding: 24 }}>
-			<div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 1000, margin: '0 auto' }}>
+			<div
+				style={{
+					display: 'flex',
+					flexDirection: 'column',
+					gap: 24,
+					maxWidth: 1000,
+					margin: '0 auto',
+				}}
+			>
 				{/* Contextual Summary */}
 				<Card variant="float" padding="lg">
 					<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
@@ -89,7 +97,10 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 								{(claimDetail.loss_city || claimDetail.loss_state) && (
 									<>
 										{' '}
-										in <Highlight>{formatCityState(claimDetail.loss_city, claimDetail.loss_state)}</Highlight>
+										in{' '}
+										<Highlight>
+											{formatCityState(claimDetail.loss_city, claimDetail.loss_state)}
+										</Highlight>
 									</>
 								)}
 							</span>
@@ -159,7 +170,7 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 							<span style={{ fontSize: 13 }}>
 								{claimDetail.client_adjuster_first && claimDetail.client_adjuster_last
 									? `${claimDetail.client_adjuster_first} ${claimDetail.client_adjuster_last}`
-									: claimDetail.client_adjuster ?? 'N/A'}
+									: (claimDetail.client_adjuster ?? 'N/A')}
 							</span>
 						</div>
 						<Divider />
@@ -213,7 +224,9 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 											Feed Source:
 										</Highlight>
 									</span>
-									<Chip  size="sm" variant="outlined">{claimDetail.feed_name}</Chip>
+									<Chip size="sm" variant="outlined">
+										{claimDetail.feed_name}
+									</Chip>
 								</div>
 							</>
 						)}
@@ -247,13 +260,24 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 									{currentAssignment.assignee_first_name} {currentAssignment.assignee_last_name}
 								</span>
 							</div>
-							<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+							<div
+								style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+							>
 								<span style={{ fontSize: 13 }}>
 									<Highlight color="secondary.main" bold={false}>
 										Status:
 									</Highlight>
 								</span>
-								<div style={{ display: 'flex', alignItems: 'center', padding: '2px 8px', border: '1px solid #85D2FF', backgroundColor: 'white', borderRadius: 12 }}>
+								<div
+									style={{
+										display: 'flex',
+										alignItems: 'center',
+										padding: '2px 8px',
+										border: '1px solid #85D2FF',
+										backgroundColor: 'white',
+										borderRadius: 12,
+									}}
+								>
 									<ClaimStatusIcon status={currentAssignment.status as ClaimStatus} fontSize={17} />
 									<span style={{ fontSize: 14, color: 'var(--text-accent)', marginLeft: '5px' }}>
 										{currentAssignment.status}

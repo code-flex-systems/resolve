@@ -13,7 +13,10 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.addColumn('client_id', 'uuid', (col) => col.notNull().references('client.id'))
 		.addColumn('desk_location_id', 'integer', (col) => col.notNull().references('desk_location.id'))
 		.addColumn('status', 'text', (col) =>
-			col.notNull().defaultTo('pending').check(sql`status IN ('pending', 'executed', 'ignored', 'hidden')`)
+			col
+				.notNull()
+				.defaultTo('pending')
+				.check(sql`status IN ('pending', 'executed', 'ignored', 'hidden')`)
 		)
 		.addColumn('suggestion_data', 'jsonb', (col) => col.notNull())
 		.addColumn('generated_at', 'timestamptz', (col) => col.notNull().defaultTo(sql`NOW()`))
@@ -48,7 +51,9 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.execute();
 
 	// Partial unique index for upsert: only one pending suggestion per client+desk_location
-	await sql`CREATE UNIQUE INDEX workflow_suggestion_pending_unique_idx ON workflow_suggestion (client_id, desk_location_id) WHERE status = 'pending'`.execute(db);
+	await sql`CREATE UNIQUE INDEX workflow_suggestion_pending_unique_idx ON workflow_suggestion (client_id, desk_location_id) WHERE status = 'pending'`.execute(
+		db
+	);
 }
 
 export async function down(db: Kysely<any>): Promise<void> {

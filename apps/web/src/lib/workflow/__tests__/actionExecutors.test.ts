@@ -22,9 +22,7 @@ import * as taskQueries from '@/api/queries/taskQueries';
 // =============================================================================
 
 function createMockCtx(overrides: Record<string, unknown> = {}) {
-	const mockExecuteTakeFirst = vi
-		.fn()
-		.mockResolvedValue({ claim_number: 'CLM-001', priority: 3 });
+	const mockExecuteTakeFirst = vi.fn().mockResolvedValue({ claim_number: 'CLM-001', priority: 3 });
 	const mockExecute = vi.fn().mockResolvedValue([]);
 	const mockChain = {
 		selectFrom: vi.fn().mockReturnThis(),

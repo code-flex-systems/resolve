@@ -232,7 +232,11 @@ describe('getChecklistSummaryDetail()', () => {
 				'question_response_answer.response_id',
 				'question_response.id'
 			);
-			expect(mockLeftJoin).toHaveBeenCalledWith('answer', 'answer.id', 'question_response_answer.answer_id');
+			expect(mockLeftJoin).toHaveBeenCalledWith(
+				'answer',
+				'answer.id',
+				'question_response_answer.answer_id'
+			);
 		});
 
 		it('should NOT join answer tables for UNANSWERED segment', async () => {
@@ -250,7 +254,11 @@ describe('getChecklistSummaryDetail()', () => {
 				'question_response_answer.response_id',
 				'question_response.id'
 			);
-			expect(mockLeftJoin).not.toHaveBeenCalledWith('answer', 'answer.id', 'question_response_answer.answer_id');
+			expect(mockLeftJoin).not.toHaveBeenCalledWith(
+				'answer',
+				'answer.id',
+				'question_response_answer.answer_id'
+			);
 		});
 
 		it('should join answer and action tables for ACTION_REQUIRED segment', async () => {
@@ -268,7 +276,11 @@ describe('getChecklistSummaryDetail()', () => {
 				'question_response_answer.response_id',
 				'question_response.id'
 			);
-			expect(mockLeftJoin).toHaveBeenCalledWith('answer', 'answer.id', 'question_response_answer.answer_id');
+			expect(mockLeftJoin).toHaveBeenCalledWith(
+				'answer',
+				'answer.id',
+				'question_response_answer.answer_id'
+			);
 			expect(mockLeftJoin).toHaveBeenCalledWith('action', expect.any(Function));
 		});
 
@@ -287,7 +299,11 @@ describe('getChecklistSummaryDetail()', () => {
 				'question_response_answer.response_id',
 				'question_response.id'
 			);
-			expect(mockLeftJoin).toHaveBeenCalledWith('answer', 'answer.id', 'question_response_answer.answer_id');
+			expect(mockLeftJoin).toHaveBeenCalledWith(
+				'answer',
+				'answer.id',
+				'question_response_answer.answer_id'
+			);
 			expect(mockLeftJoin).toHaveBeenCalledWith('action', expect.any(Function));
 		});
 
@@ -306,7 +322,11 @@ describe('getChecklistSummaryDetail()', () => {
 				'question_response_answer.response_id',
 				'question_response.id'
 			);
-			expect(mockLeftJoin).toHaveBeenCalledWith('answer', 'answer.id', 'question_response_answer.answer_id');
+			expect(mockLeftJoin).toHaveBeenCalledWith(
+				'answer',
+				'answer.id',
+				'question_response_answer.answer_id'
+			);
 			expect(mockLeftJoin).toHaveBeenCalledWith('action', expect.any(Function));
 		});
 	});

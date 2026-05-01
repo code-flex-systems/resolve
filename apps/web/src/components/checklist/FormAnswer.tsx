@@ -6,7 +6,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useAnswerTrpc } from '@/hooks/trpc/useAnswerTrpc';
 import { Answer } from '@/types/types';
 import { useQuestionTrpc } from '@/hooks/trpc/useQuestionTrpc';
-import { buildAnswerCallGraph, getPageInstancesFromTree, wouldCreateCycle } from '@/lib/utils/utils';
+import {
+	buildAnswerCallGraph,
+	getPageInstancesFromTree,
+	wouldCreateCycle,
+} from '@/lib/utils/utils';
 import { usePageTrpc } from '@/hooks/trpc/usePageTrpc';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { useSelectedQuestionData } from '@/hooks/useSelectedQuestionData';
@@ -23,7 +27,15 @@ import ImageTooltip from '../common/ImageTooltip';
 import { getAllowedExtensions } from '@/config/allowedFileTypes';
 import DocumentIconWithPreview from '../common/DocumentIconWithPreview';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
-import { IconCheck, IconCircleCheck, IconCopy, IconPaperclip, IconShare, IconTrash, IconX } from '@tabler/icons-react';
+import {
+	IconCheck,
+	IconCircleCheck,
+	IconCopy,
+	IconPaperclip,
+	IconShare,
+	IconTrash,
+	IconX,
+} from '@tabler/icons-react';
 import Collapse from '@/components/ui/Collapse';
 import Input from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Input';
@@ -35,7 +47,8 @@ function formatActionText(action: any | undefined) {
 		case ActionType.EMAIL:
 			return (
 				<span style={{ fontSize: 15, marginLeft: 5 }}>
-					This answer currently sends an email to ({action.definition?.recipients?.length}) recipients.
+					This answer currently sends an email to ({action.definition?.recipients?.length})
+					recipients.
 				</span>
 			);
 		case ActionType.EVENT:
@@ -110,7 +123,10 @@ export default function FormAnswer() {
 	const answerText = watch('text');
 	const hasAdditionalInfo = watch('has_additional_info');
 	const requiresUpload = watch('requires_upload');
-	const allPageInstanceOptions = getPageInstancesFromTree(navigation.tree, selectedPageInfo.instanceId);
+	const allPageInstanceOptions = getPageInstancesFromTree(
+		navigation.tree,
+		selectedPageInfo.instanceId
+	);
 
 	// Build the answer call graph and filter out instances that would create cycles
 	const answerCallGraph = useMemo(() => {
@@ -129,7 +145,12 @@ export default function FormAnswer() {
 			if (selectedAnswerData.calls_instance_id === option.instanceId) return true;
 			return !wouldCreateCycle(selectedPageInfo.instanceId, option.instanceId, answerCallGraph);
 		});
-	}, [allPageInstanceOptions, selectedPageInfo.instanceId, answerCallGraph, selectedAnswerData.calls_instance_id]);
+	}, [
+		allPageInstanceOptions,
+		selectedPageInfo.instanceId,
+		answerCallGraph,
+		selectedAnswerData.calls_instance_id,
+	]);
 
 	const isPlaceholder = !selectedAnswerData.id;
 	const isFreeform = selectedQuestionData.type === QuestionType.FREEFORM;
@@ -168,7 +189,11 @@ export default function FormAnswer() {
 			};
 			const newAnswer = !selectedAnswerData.id
 				? await addAnswer({ questionId: selectedQuestion, pageId: selectedPageInfo.pageId, params })
-				: await updateAnswer({ pageId: selectedPageInfo.pageId, answerId: selectedAnswerData.id, params });
+				: await updateAnswer({
+						pageId: selectedPageInfo.pageId,
+						answerId: selectedAnswerData.id,
+						params,
+					});
 			if (newAnswer) updateSelectedAnswer(newAnswer.question_id, newAnswer.id);
 			setShowUpdateMsg(true);
 			setTimeout(() => setShowUpdateMsg(false), 1000);
@@ -267,7 +292,10 @@ export default function FormAnswer() {
 			>
 				{showUpdateMsg && (
 					<span style={{ marginRight: 'auto' }} className="flex-row-left">
-						<IconCircleCheck size={20} style={{ color: 'var(--status-success)', marginRight: '5px' }} />
+						<IconCircleCheck
+							size={20}
+							style={{ color: 'var(--status-success)', marginRight: '5px' }}
+						/>
 						<span style={{ color: 'var(--status-success)' }}>Saved!</span>
 					</span>
 				)}
@@ -357,15 +385,9 @@ export default function FormAnswer() {
 															onClick={() => onCopyText(field.name, field.value)}
 														>
 															{copiedField === field.name ? (
-																<IconCheck
-																	size={20}
-																	style={{ color: 'var(--status-success)' }}
-																/>
+																<IconCheck size={20} style={{ color: 'var(--status-success)' }} />
 															) : (
-																<IconCopy
-																	size={20}
-																	style={{ color: 'var(--text-muted)' }}
-																/>
+																<IconCopy size={20} style={{ color: 'var(--text-muted)' }} />
 															)}
 														</Button>
 														<Button
@@ -404,15 +426,9 @@ export default function FormAnswer() {
 															onClick={() => onCopyText(field.name, field.value ?? '')}
 														>
 															{copiedField === field.name ? (
-																<IconCheck
-																	size={20}
-																	style={{ color: 'var(--status-success)' }}
-																/>
+																<IconCheck size={20} style={{ color: 'var(--status-success)' }} />
 															) : (
-																<IconCopy
-																	size={20}
-																	style={{ color: 'var(--text-muted)' }}
-																/>
+																<IconCopy size={20} style={{ color: 'var(--text-muted)' }} />
 															)}
 														</Button>
 														<Button
@@ -653,9 +669,7 @@ export default function FormAnswer() {
 																		onChange={(e) => {
 																			const newExts = e.target.checked
 																				? [...selectedExtensions, ext]
-																				: selectedExtensions.filter(
-																						(x: string) => x !== ext
-																					);
+																				: selectedExtensions.filter((x: string) => x !== ext);
 																			field.onChange(newExts.join(','));
 																		}}
 																	/>
@@ -692,9 +706,7 @@ export default function FormAnswer() {
 																	variant="icon"
 																	size="sm"
 																	color="neutral"
-																	onClick={() =>
-																		onCopyText(field.name, field.value ?? '')
-																	}
+																	onClick={() => onCopyText(field.name, field.value ?? '')}
 																>
 																	{copiedField === field.name ? (
 																		<IconCheck
@@ -702,10 +714,7 @@ export default function FormAnswer() {
 																			style={{ color: 'var(--status-success)' }}
 																		/>
 																	) : (
-																		<IconCopy
-																			size={12}
-																			style={{ color: 'var(--text-muted)' }}
-																		/>
+																		<IconCopy size={12} style={{ color: 'var(--text-muted)' }} />
 																	)}
 																</Button>
 																<Button
@@ -715,10 +724,7 @@ export default function FormAnswer() {
 																	onClick={() => field.onChange('')}
 																	disabled={!field.value}
 																>
-																	<IconX
-																		size={12}
-																		style={{ color: 'var(--text-muted)' }}
-																	/>
+																	<IconX size={12} style={{ color: 'var(--text-muted)' }} />
 																</Button>
 															</>
 														}

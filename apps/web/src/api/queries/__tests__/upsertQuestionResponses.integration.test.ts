@@ -55,13 +55,23 @@ describe('upsertQuestionResponses integration tests', () => {
 			page_id: page.id,
 			created_by: user.id,
 		});
-		const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+		const ctx = createTestContext(db, {
+			id: user.id,
+			client_id: client.id,
+			email: user.email,
+			role: 'user',
+		});
 
 		return { client, user, claim, checklist, page, instance, question, ctx };
 	}
 
 	// Helper to get response from DB
-	async function getResponse(checklistId: string, instanceId: string, claimId: string, questionId: string) {
+	async function getResponse(
+		checklistId: string,
+		instanceId: string,
+		claimId: string,
+		questionId: string
+	) {
 		return db
 			.selectFrom('question_response')
 			.selectAll()
@@ -114,9 +124,20 @@ describe('upsertQuestionResponses integration tests', () => {
 		});
 
 		it('should create a response with selected answers', async () => {
-			const { client, user, claim, checklist, page, instance, question, ctx } = await setupTestFixtures();
-			const answer1 = await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id, text: 'Option A' });
-			const answer2 = await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id, text: 'Option B' });
+			const { client, user, claim, checklist, page, instance, question, ctx } =
+				await setupTestFixtures();
+			const answer1 = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question.id,
+				created_by: user.id,
+				text: 'Option A',
+			});
+			const answer2 = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question.id,
+				created_by: user.id,
+				text: 'Option B',
+			});
 
 			const response: QuestionResponse = {
 				checklist_id: checklist.id,
@@ -137,7 +158,9 @@ describe('upsertQuestionResponses integration tests', () => {
 			const answers = await getResponseAnswers(saved!.id);
 			expect(answers.length).toBe(2);
 			expect(answers.some((a) => a.answer_id === answer1.id)).toBe(true);
-			expect(answers.some((a) => a.answer_id === answer2.id && a.additional_info === 'Extra details')).toBe(true);
+			expect(
+				answers.some((a) => a.answer_id === answer2.id && a.additional_info === 'Extra details')
+			).toBe(true);
 		});
 
 		it('should create a response with document', async () => {
@@ -160,7 +183,11 @@ describe('upsertQuestionResponses integration tests', () => {
 			expect(saved!.response_doc_id).toBe(doc.id);
 
 			// Verify doc was linked
-			const updatedDoc = await db.selectFrom('doc').selectAll().where('id', '=', doc.id).executeTakeFirst();
+			const updatedDoc = await db
+				.selectFrom('doc')
+				.selectAll()
+				.where('id', '=', doc.id)
+				.executeTakeFirst();
 			expect(updatedDoc!.response_doc_id).toBe(saved!.id);
 		});
 
@@ -218,9 +245,24 @@ describe('upsertQuestionResponses integration tests', () => {
 
 		it('should update selected answers', async () => {
 			const { client, user, claim, checklist, instance, question, ctx } = await setupTestFixtures();
-			const answer1 = await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id, text: 'A' });
-			const answer2 = await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id, text: 'B' });
-			const answer3 = await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id, text: 'C' });
+			const answer1 = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question.id,
+				created_by: user.id,
+				text: 'A',
+			});
+			const answer2 = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question.id,
+				created_by: user.id,
+				text: 'B',
+			});
+			const answer3 = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question.id,
+				created_by: user.id,
+				text: 'C',
+			});
 
 			// Create with answer1 and answer2
 			const initial: QuestionResponse = {
@@ -254,24 +296,28 @@ describe('upsertQuestionResponses integration tests', () => {
 			const { client, claim, checklist, instance, question, ctx } = await setupTestFixtures();
 
 			// Create initial
-			await upsertQuestionResponses(ctx, [{
-				checklist_id: checklist.id,
-				instance_id: instance.id,
-				claim_id: claim.id,
-				question_id: question.id,
-				response_text: 'Before',
-				selected_answers: [],
-			}]);
+			await upsertQuestionResponses(ctx, [
+				{
+					checklist_id: checklist.id,
+					instance_id: instance.id,
+					claim_id: claim.id,
+					question_id: question.id,
+					response_text: 'Before',
+					selected_answers: [],
+				},
+			]);
 
 			// Update
-			await upsertQuestionResponses(ctx, [{
-				checklist_id: checklist.id,
-				instance_id: instance.id,
-				claim_id: claim.id,
-				question_id: question.id,
-				response_text: 'After',
-				selected_answers: [],
-			}]);
+			await upsertQuestionResponses(ctx, [
+				{
+					checklist_id: checklist.id,
+					instance_id: instance.id,
+					claim_id: claim.id,
+					question_id: question.id,
+					response_text: 'After',
+					selected_answers: [],
+				},
+			]);
 
 			const logs = await getAuditLogs(client.id, question.id);
 			expect(logs.length).toBe(2);
@@ -286,25 +332,29 @@ describe('upsertQuestionResponses integration tests', () => {
 			const { client, claim, checklist, instance, question, ctx } = await setupTestFixtures();
 
 			// Create initial response
-			await upsertQuestionResponses(ctx, [{
-				checklist_id: checklist.id,
-				instance_id: instance.id,
-				claim_id: claim.id,
-				question_id: question.id,
-				response_text: 'To be deleted',
-				selected_answers: [],
-			}]);
+			await upsertQuestionResponses(ctx, [
+				{
+					checklist_id: checklist.id,
+					instance_id: instance.id,
+					claim_id: claim.id,
+					question_id: question.id,
+					response_text: 'To be deleted',
+					selected_answers: [],
+				},
+			]);
 
 			// Clear the response
-			await upsertQuestionResponses(ctx, [{
-				checklist_id: checklist.id,
-				instance_id: instance.id,
-				claim_id: claim.id,
-				question_id: question.id,
-				response_text: null,
-				response_doc_id: null,
-				selected_answers: [],
-			}]);
+			await upsertQuestionResponses(ctx, [
+				{
+					checklist_id: checklist.id,
+					instance_id: instance.id,
+					claim_id: claim.id,
+					question_id: question.id,
+					response_text: null,
+					response_doc_id: null,
+					selected_answers: [],
+				},
+			]);
 
 			const saved = await getResponse(checklist.id, instance.id, claim.id, question.id);
 			expect(saved).toBeUndefined();
@@ -314,24 +364,28 @@ describe('upsertQuestionResponses integration tests', () => {
 			const { client, claim, checklist, instance, question, ctx } = await setupTestFixtures();
 
 			// Create initial
-			await upsertQuestionResponses(ctx, [{
-				checklist_id: checklist.id,
-				instance_id: instance.id,
-				claim_id: claim.id,
-				question_id: question.id,
-				response_text: 'Will delete',
-				selected_answers: [],
-			}]);
+			await upsertQuestionResponses(ctx, [
+				{
+					checklist_id: checklist.id,
+					instance_id: instance.id,
+					claim_id: claim.id,
+					question_id: question.id,
+					response_text: 'Will delete',
+					selected_answers: [],
+				},
+			]);
 
 			// Delete
-			await upsertQuestionResponses(ctx, [{
-				checklist_id: checklist.id,
-				instance_id: instance.id,
-				claim_id: claim.id,
-				question_id: question.id,
-				response_text: null,
-				selected_answers: [],
-			}]);
+			await upsertQuestionResponses(ctx, [
+				{
+					checklist_id: checklist.id,
+					instance_id: instance.id,
+					claim_id: claim.id,
+					question_id: question.id,
+					response_text: null,
+					selected_answers: [],
+				},
+			]);
 
 			const logs = await getAuditLogs(client.id, question.id);
 			expect(logs.length).toBe(2);
@@ -346,24 +400,28 @@ describe('upsertQuestionResponses integration tests', () => {
 			const { client, claim, checklist, instance, question, ctx } = await setupTestFixtures();
 
 			// Create initial
-			await upsertQuestionResponses(ctx, [{
-				checklist_id: checklist.id,
-				instance_id: instance.id,
-				claim_id: claim.id,
-				question_id: question.id,
-				response_text: 'Same text',
-				selected_answers: [],
-			}]);
+			await upsertQuestionResponses(ctx, [
+				{
+					checklist_id: checklist.id,
+					instance_id: instance.id,
+					claim_id: claim.id,
+					question_id: question.id,
+					response_text: 'Same text',
+					selected_answers: [],
+				},
+			]);
 
 			// "Update" with same data
-			await upsertQuestionResponses(ctx, [{
-				checklist_id: checklist.id,
-				instance_id: instance.id,
-				claim_id: claim.id,
-				question_id: question.id,
-				response_text: 'Same text',
-				selected_answers: [],
-			}]);
+			await upsertQuestionResponses(ctx, [
+				{
+					checklist_id: checklist.id,
+					instance_id: instance.id,
+					claim_id: claim.id,
+					question_id: question.id,
+					response_text: 'Same text',
+					selected_answers: [],
+				},
+			]);
 
 			// Should only have 1 audit log (insert), not 2
 			const logs = await getAuditLogs(client.id, question.id);
@@ -373,25 +431,33 @@ describe('upsertQuestionResponses integration tests', () => {
 
 		it('should skip when answers unchanged', async () => {
 			const { client, user, claim, checklist, instance, question, ctx } = await setupTestFixtures();
-			const answer = await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id });
+			const answer = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question.id,
+				created_by: user.id,
+			});
 
 			// Create initial
-			await upsertQuestionResponses(ctx, [{
-				checklist_id: checklist.id,
-				instance_id: instance.id,
-				claim_id: claim.id,
-				question_id: question.id,
-				selected_answers: [{ answer_id: answer.id, additional_info: 'Info' }],
-			}]);
+			await upsertQuestionResponses(ctx, [
+				{
+					checklist_id: checklist.id,
+					instance_id: instance.id,
+					claim_id: claim.id,
+					question_id: question.id,
+					selected_answers: [{ answer_id: answer.id, additional_info: 'Info' }],
+				},
+			]);
 
 			// "Update" with same answers
-			await upsertQuestionResponses(ctx, [{
-				checklist_id: checklist.id,
-				instance_id: instance.id,
-				claim_id: claim.id,
-				question_id: question.id,
-				selected_answers: [{ answer_id: answer.id, additional_info: 'Info' }],
-			}]);
+			await upsertQuestionResponses(ctx, [
+				{
+					checklist_id: checklist.id,
+					instance_id: instance.id,
+					claim_id: claim.id,
+					question_id: question.id,
+					selected_answers: [{ answer_id: answer.id, additional_info: 'Info' }],
+				},
+			]);
 
 			const logs = await getAuditLogs(client.id, question.id);
 			expect(logs.length).toBe(1);
@@ -403,16 +469,22 @@ describe('upsertQuestionResponses integration tests', () => {
 			const { client, user, claim, checklist, instance, question, ctx } = await setupTestFixtures();
 			const doc = await createTestDoc(db, { client_id: client.id, created_by: user.id });
 
-			await upsertQuestionResponses(ctx, [{
-				checklist_id: checklist.id,
-				instance_id: instance.id,
-				claim_id: claim.id,
-				question_id: question.id,
-				response_doc_id: doc.id,
-				selected_answers: [],
-			}]);
+			await upsertQuestionResponses(ctx, [
+				{
+					checklist_id: checklist.id,
+					instance_id: instance.id,
+					claim_id: claim.id,
+					question_id: question.id,
+					response_doc_id: doc.id,
+					selected_answers: [],
+				},
+			]);
 
-			const updatedDoc = await db.selectFrom('doc').selectAll().where('id', '=', doc.id).executeTakeFirst();
+			const updatedDoc = await db
+				.selectFrom('doc')
+				.selectAll()
+				.where('id', '=', doc.id)
+				.executeTakeFirst();
 			const saved = await getResponse(checklist.id, instance.id, claim.id, question.id);
 			expect(updatedDoc!.response_doc_id).toBe(saved!.id);
 		});
@@ -423,27 +495,39 @@ describe('upsertQuestionResponses integration tests', () => {
 			const doc2 = await createTestDoc(db, { client_id: client.id, created_by: user.id });
 
 			// Link doc1
-			await upsertQuestionResponses(ctx, [{
-				checklist_id: checklist.id,
-				instance_id: instance.id,
-				claim_id: claim.id,
-				question_id: question.id,
-				response_doc_id: doc1.id,
-				selected_answers: [],
-			}]);
+			await upsertQuestionResponses(ctx, [
+				{
+					checklist_id: checklist.id,
+					instance_id: instance.id,
+					claim_id: claim.id,
+					question_id: question.id,
+					response_doc_id: doc1.id,
+					selected_answers: [],
+				},
+			]);
 
 			// Change to doc2
-			await upsertQuestionResponses(ctx, [{
-				checklist_id: checklist.id,
-				instance_id: instance.id,
-				claim_id: claim.id,
-				question_id: question.id,
-				response_doc_id: doc2.id,
-				selected_answers: [],
-			}]);
+			await upsertQuestionResponses(ctx, [
+				{
+					checklist_id: checklist.id,
+					instance_id: instance.id,
+					claim_id: claim.id,
+					question_id: question.id,
+					response_doc_id: doc2.id,
+					selected_answers: [],
+				},
+			]);
 
-			const updatedDoc1 = await db.selectFrom('doc').selectAll().where('id', '=', doc1.id).executeTakeFirst();
-			const updatedDoc2 = await db.selectFrom('doc').selectAll().where('id', '=', doc2.id).executeTakeFirst();
+			const updatedDoc1 = await db
+				.selectFrom('doc')
+				.selectAll()
+				.where('id', '=', doc1.id)
+				.executeTakeFirst();
+			const updatedDoc2 = await db
+				.selectFrom('doc')
+				.selectAll()
+				.where('id', '=', doc2.id)
+				.executeTakeFirst();
 			const saved = await getResponse(checklist.id, instance.id, claim.id, question.id);
 
 			expect(updatedDoc1!.response_doc_id).toBeNull(); // Unlinked
@@ -455,27 +539,35 @@ describe('upsertQuestionResponses integration tests', () => {
 			const doc = await createTestDoc(db, { client_id: client.id, created_by: user.id });
 
 			// Link doc
-			await upsertQuestionResponses(ctx, [{
-				checklist_id: checklist.id,
-				instance_id: instance.id,
-				claim_id: claim.id,
-				question_id: question.id,
-				response_doc_id: doc.id,
-				selected_answers: [],
-			}]);
+			await upsertQuestionResponses(ctx, [
+				{
+					checklist_id: checklist.id,
+					instance_id: instance.id,
+					claim_id: claim.id,
+					question_id: question.id,
+					response_doc_id: doc.id,
+					selected_answers: [],
+				},
+			]);
 
 			// Remove doc, add text instead
-			await upsertQuestionResponses(ctx, [{
-				checklist_id: checklist.id,
-				instance_id: instance.id,
-				claim_id: claim.id,
-				question_id: question.id,
-				response_doc_id: null,
-				response_text: 'Text instead',
-				selected_answers: [],
-			}]);
+			await upsertQuestionResponses(ctx, [
+				{
+					checklist_id: checklist.id,
+					instance_id: instance.id,
+					claim_id: claim.id,
+					question_id: question.id,
+					response_doc_id: null,
+					response_text: 'Text instead',
+					selected_answers: [],
+				},
+			]);
 
-			const updatedDoc = await db.selectFrom('doc').selectAll().where('id', '=', doc.id).executeTakeFirst();
+			const updatedDoc = await db
+				.selectFrom('doc')
+				.selectAll()
+				.where('id', '=', doc.id)
+				.executeTakeFirst();
 			expect(updatedDoc!.response_doc_id).toBeNull();
 		});
 	});
@@ -486,7 +578,10 @@ describe('upsertQuestionResponses integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -494,34 +589,53 @@ describe('upsertQuestionResponses integration tests', () => {
 				checklist_id: checklist.id,
 				page_id: page.id,
 			});
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			// Create exactly 2 questions
-			const q1 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Q1' });
-			const q2 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Q2' });
+			const q1 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Q1',
+			});
+			const q2 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Q2',
+			});
 
 			// Answer just q1
-			const status = await upsertQuestionResponses(ctx, [{
-				checklist_id: checklist.id,
-				instance_id: instance.id,
-				claim_id: claim.id,
-				question_id: q1.id,
-				response_text: 'Answer 1',
-				selected_answers: [],
-			}]);
+			const status = await upsertQuestionResponses(ctx, [
+				{
+					checklist_id: checklist.id,
+					instance_id: instance.id,
+					claim_id: claim.id,
+					question_id: q1.id,
+					response_text: 'Answer 1',
+					selected_answers: [],
+				},
+			]);
 
 			// With 2 questions, 1 answered => in-progress
 			expect(status).toBe('in-progress');
 
 			// Answer q2 as well
-			const status2 = await upsertQuestionResponses(ctx, [{
-				checklist_id: checklist.id,
-				instance_id: instance.id,
-				claim_id: claim.id,
-				question_id: q2.id,
-				response_text: 'Answer 2',
-				selected_answers: [],
-			}]);
+			const status2 = await upsertQuestionResponses(ctx, [
+				{
+					checklist_id: checklist.id,
+					instance_id: instance.id,
+					claim_id: claim.id,
+					question_id: q2.id,
+					response_text: 'Answer 2',
+					selected_answers: [],
+				},
+			]);
 
 			// With 2 questions, 2 answered => complete
 			expect(status2).toBe('complete');
@@ -531,7 +645,10 @@ describe('upsertQuestionResponses integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -539,10 +656,19 @@ describe('upsertQuestionResponses integration tests', () => {
 				checklist_id: checklist.id,
 				page_id: page.id,
 			});
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			// Create 1 question with an answer that requires upload
-			const question = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+			const question = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+			});
 			const answerRequiringUpload = await createTestAnswer(db, {
 				client_id: client.id,
 				question_id: question.id,
@@ -551,13 +677,15 @@ describe('upsertQuestionResponses integration tests', () => {
 			});
 
 			// Select the answer but don't provide a document
-			const status = await upsertQuestionResponses(ctx, [{
-				checklist_id: checklist.id,
-				instance_id: instance.id,
-				claim_id: claim.id,
-				question_id: question.id,
-				selected_answers: [{ answer_id: answerRequiringUpload.id }],
-			}]);
+			const status = await upsertQuestionResponses(ctx, [
+				{
+					checklist_id: checklist.id,
+					instance_id: instance.id,
+					claim_id: claim.id,
+					question_id: question.id,
+					selected_answers: [{ answer_id: answerRequiringUpload.id }],
+				},
+			]);
 
 			// Should NOT be complete because requires_upload answer has no doc
 			expect(status).toBe('unstarted');
@@ -567,7 +695,10 @@ describe('upsertQuestionResponses integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -576,10 +707,19 @@ describe('upsertQuestionResponses integration tests', () => {
 				page_id: page.id,
 			});
 			const doc = await createTestDoc(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'user',
+			});
 
 			// Create 1 question with an answer that requires upload
-			const question = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+			const question = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+			});
 			const answerRequiringUpload = await createTestAnswer(db, {
 				client_id: client.id,
 				question_id: question.id,
@@ -588,14 +728,16 @@ describe('upsertQuestionResponses integration tests', () => {
 			});
 
 			// Select the answer AND provide a document
-			const status = await upsertQuestionResponses(ctx, [{
-				checklist_id: checklist.id,
-				instance_id: instance.id,
-				claim_id: claim.id,
-				question_id: question.id,
-				response_doc_id: doc.id,
-				selected_answers: [{ answer_id: answerRequiringUpload.id }],
-			}]);
+			const status = await upsertQuestionResponses(ctx, [
+				{
+					checklist_id: checklist.id,
+					instance_id: instance.id,
+					claim_id: claim.id,
+					question_id: question.id,
+					response_doc_id: doc.id,
+					selected_answers: [{ answer_id: answerRequiringUpload.id }],
+				},
+			]);
 
 			// Should be complete because doc is provided
 			expect(status).toBe('complete');
@@ -605,8 +747,18 @@ describe('upsertQuestionResponses integration tests', () => {
 	describe('multiple responses in single call', () => {
 		it('should handle multiple responses at once', async () => {
 			const { client, user, claim, checklist, page, instance, ctx } = await setupTestFixtures();
-			const q1 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Q1' });
-			const q2 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id, text: 'Q2' });
+			const q1 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Q1',
+			});
+			const q2 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+				text: 'Q2',
+			});
 
 			await upsertQuestionResponses(ctx, [
 				{
@@ -649,7 +801,10 @@ describe('upsertQuestionResponses integration tests', () => {
 
 			// Each client has their own claim, checklist, page, etc
 			const claimA = await createTestClaim(db, { client_id: clientA.id, created_by: userA.id });
-			const checklistA = await createTestChecklist(db, { client_id: clientA.id, created_by: userA.id });
+			const checklistA = await createTestChecklist(db, {
+				client_id: clientA.id,
+				created_by: userA.id,
+			});
 			const pageA = await createTestPage(db, { client_id: clientA.id, created_by: userA.id });
 			const instanceA = await createTestPageInstance(db, {
 				client_id: clientA.id,
@@ -657,10 +812,17 @@ describe('upsertQuestionResponses integration tests', () => {
 				checklist_id: checklistA.id,
 				page_id: pageA.id,
 			});
-			const questionA = await createTestQuestion(db, { client_id: clientA.id, page_id: pageA.id, created_by: userA.id });
+			const questionA = await createTestQuestion(db, {
+				client_id: clientA.id,
+				page_id: pageA.id,
+				created_by: userA.id,
+			});
 
 			const claimB = await createTestClaim(db, { client_id: clientB.id, created_by: userB.id });
-			const checklistB = await createTestChecklist(db, { client_id: clientB.id, created_by: userB.id });
+			const checklistB = await createTestChecklist(db, {
+				client_id: clientB.id,
+				created_by: userB.id,
+			});
 			const pageB = await createTestPage(db, { client_id: clientB.id, created_by: userB.id });
 			const instanceB = await createTestPageInstance(db, {
 				client_id: clientB.id,
@@ -668,30 +830,48 @@ describe('upsertQuestionResponses integration tests', () => {
 				checklist_id: checklistB.id,
 				page_id: pageB.id,
 			});
-			const questionB = await createTestQuestion(db, { client_id: clientB.id, page_id: pageB.id, created_by: userB.id });
+			const questionB = await createTestQuestion(db, {
+				client_id: clientB.id,
+				page_id: pageB.id,
+				created_by: userB.id,
+			});
 
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
-			const ctxB = createTestContext(db, { id: userB.id, client_id: clientB.id, email: userB.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
+			const ctxB = createTestContext(db, {
+				id: userB.id,
+				client_id: clientB.id,
+				email: userB.email,
+				role: 'user',
+			});
 
 			// Client A creates response
-			await upsertQuestionResponses(ctxA, [{
-				checklist_id: checklistA.id,
-				instance_id: instanceA.id,
-				claim_id: claimA.id,
-				question_id: questionA.id,
-				response_text: 'Client A answer',
-				selected_answers: [],
-			}]);
+			await upsertQuestionResponses(ctxA, [
+				{
+					checklist_id: checklistA.id,
+					instance_id: instanceA.id,
+					claim_id: claimA.id,
+					question_id: questionA.id,
+					response_text: 'Client A answer',
+					selected_answers: [],
+				},
+			]);
 
 			// Client B creates their own response
-			await upsertQuestionResponses(ctxB, [{
-				checklist_id: checklistB.id,
-				instance_id: instanceB.id,
-				claim_id: claimB.id,
-				question_id: questionB.id,
-				response_text: 'Client B answer',
-				selected_answers: [],
-			}]);
+			await upsertQuestionResponses(ctxB, [
+				{
+					checklist_id: checklistB.id,
+					instance_id: instanceB.id,
+					claim_id: claimB.id,
+					question_id: questionB.id,
+					response_text: 'Client B answer',
+					selected_answers: [],
+				},
+			]);
 
 			// Verify each client has their own response
 			const responseA = await db
@@ -724,7 +904,10 @@ describe('upsertQuestionResponses integration tests', () => {
 
 			// Client A's setup
 			const claimA = await createTestClaim(db, { client_id: clientA.id, created_by: userA.id });
-			const checklistA = await createTestChecklist(db, { client_id: clientA.id, created_by: userA.id });
+			const checklistA = await createTestChecklist(db, {
+				client_id: clientA.id,
+				created_by: userA.id,
+			});
 			const pageA = await createTestPage(db, { client_id: clientA.id, created_by: userA.id });
 			const instanceA = await createTestPageInstance(db, {
 				client_id: clientA.id,
@@ -732,28 +915,41 @@ describe('upsertQuestionResponses integration tests', () => {
 				checklist_id: checklistA.id,
 				page_id: pageA.id,
 			});
-			const questionA = await createTestQuestion(db, { client_id: clientA.id, page_id: pageA.id, created_by: userA.id });
+			const questionA = await createTestQuestion(db, {
+				client_id: clientA.id,
+				page_id: pageA.id,
+				created_by: userA.id,
+			});
 
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'user' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'user',
+			});
 
 			// Client A creates and then updates a response
-			await upsertQuestionResponses(ctxA, [{
-				checklist_id: checklistA.id,
-				instance_id: instanceA.id,
-				claim_id: claimA.id,
-				question_id: questionA.id,
-				response_text: 'Initial',
-				selected_answers: [],
-			}]);
+			await upsertQuestionResponses(ctxA, [
+				{
+					checklist_id: checklistA.id,
+					instance_id: instanceA.id,
+					claim_id: claimA.id,
+					question_id: questionA.id,
+					response_text: 'Initial',
+					selected_answers: [],
+				},
+			]);
 
-			await upsertQuestionResponses(ctxA, [{
-				checklist_id: checklistA.id,
-				instance_id: instanceA.id,
-				claim_id: claimA.id,
-				question_id: questionA.id,
-				response_text: 'Updated by A',
-				selected_answers: [],
-			}]);
+			await upsertQuestionResponses(ctxA, [
+				{
+					checklist_id: checklistA.id,
+					instance_id: instanceA.id,
+					claim_id: claimA.id,
+					question_id: questionA.id,
+					response_text: 'Updated by A',
+					selected_answers: [],
+				},
+			]);
 
 			// Verify only client A's response exists and is updated
 			const responseA = await db
@@ -787,21 +983,24 @@ describe('upsertQuestionResponses integration tests', () => {
 				text: 'Specific Label Text',
 			});
 
-			await upsertQuestionResponses(ctx, [{
-				checklist_id: checklist.id,
-				instance_id: instance.id,
-				claim_id: claim.id,
-				question_id: question.id,
-				selected_answers: [{ answer_id: answer.id, additional_info: 'Extra info' }],
-			}]);
+			await upsertQuestionResponses(ctx, [
+				{
+					checklist_id: checklist.id,
+					instance_id: instance.id,
+					claim_id: claim.id,
+					question_id: question.id,
+					selected_answers: [{ answer_id: answer.id, additional_info: 'Extra info' }],
+				},
+			]);
 
 			const logs = await getAuditLogs(client.id, question.id);
 			expect(logs.length).toBe(1);
 
 			// new_answers may be stored as JSON string or already parsed object
-			const newAnswers = typeof logs[0].new_answers === 'string'
-				? JSON.parse(logs[0].new_answers)
-				: logs[0].new_answers;
+			const newAnswers =
+				typeof logs[0].new_answers === 'string'
+					? JSON.parse(logs[0].new_answers)
+					: logs[0].new_answers;
 			expect(newAnswers.length).toBe(1);
 			expect(newAnswers[0].label).toBe('Specific Label Text');
 			expect(newAnswers[0].additional_info).toBe('Extra info');
@@ -817,14 +1016,16 @@ describe('upsertQuestionResponses integration tests', () => {
 				text: 'Very Specific Question Text',
 			});
 
-			await upsertQuestionResponses(ctx, [{
-				checklist_id: checklist.id,
-				instance_id: instance.id,
-				claim_id: claim.id,
-				question_id: question.id,
-				response_text: 'Some answer',
-				selected_answers: [],
-			}]);
+			await upsertQuestionResponses(ctx, [
+				{
+					checklist_id: checklist.id,
+					instance_id: instance.id,
+					claim_id: claim.id,
+					question_id: question.id,
+					response_text: 'Some answer',
+					selected_answers: [],
+				},
+			]);
 
 			const logs = await getAuditLogs(client.id, question.id);
 			expect(logs[0].question_text).toBe('Very Specific Question Text');

@@ -329,15 +329,16 @@ export async function listClaimActivityLogs(
 	const hasNextPage = rows.length > limit;
 	const trimmedRows = hasNextPage ? rows.slice(0, limit) : rows;
 	const lastRow = trimmedRows[trimmedRows.length - 1];
-	const nextCursor = hasNextPage && lastRow
-		? {
-				createdAt:
-					lastRow.created_at instanceof Date
-						? lastRow.created_at.toISOString()
-						: new Date(lastRow.created_at).toISOString(),
-				id: lastRow.id,
-			}
-		: null;
+	const nextCursor =
+		hasNextPage && lastRow
+			? {
+					createdAt:
+						lastRow.created_at instanceof Date
+							? lastRow.created_at.toISOString()
+							: new Date(lastRow.created_at).toISOString(),
+					id: lastRow.id,
+				}
+			: null;
 
 	return {
 		rows: trimmedRows,

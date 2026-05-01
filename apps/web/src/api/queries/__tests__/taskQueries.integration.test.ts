@@ -283,7 +283,10 @@ describe('taskQueries integration', () => {
 			// Act
 			const pendingTasks = await getTasks(ctx, { status: TaskStatus.PENDING });
 			const inProgressTasks = await getTasks(ctx, { status: TaskStatus.IN_PROGRESS });
-			const completedTasks = await getTasks(ctx, { status: TaskStatus.COMPLETED, showCancelled: true });
+			const completedTasks = await getTasks(ctx, {
+				status: TaskStatus.COMPLETED,
+				showCancelled: true,
+			});
 
 			// Assert
 			expect(pendingTasks.rows).toHaveLength(1);
@@ -1253,7 +1256,11 @@ describe('taskQueries integration', () => {
 				started_at: new Date(), // Already started
 			});
 
-			const ctx = createTestContext(db, { id: user2.id, client_id: client.id, role: 'Contributor' });
+			const ctx = createTestContext(db, {
+				id: user2.id,
+				client_id: client.id,
+				role: 'Contributor',
+			});
 
 			// Act & Assert - Should fail because task is already started
 			await expect(startTask(ctx, task.id)).rejects.toThrow();
@@ -1409,7 +1416,9 @@ describe('taskQueries integration', () => {
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
-			const newDueDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+			const newDueDate = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+				.toISOString()
+				.split('T')[0];
 
 			// Act
 			await updateTask(ctx, task.id, { dueDate: newDueDate });
@@ -2041,7 +2050,11 @@ describe('taskQueries integration', () => {
 			// Act - Query for yesterday (should be empty)
 			const yesterday = new Date();
 			yesterday.setDate(yesterday.getDate() - 1);
-			const yesterdayResult = await getDeskCapacity(ctx, desk.id, yesterday.toISOString().split('T')[0]);
+			const yesterdayResult = await getDeskCapacity(
+				ctx,
+				desk.id,
+				yesterday.toISOString().split('T')[0]
+			);
 
 			// Assert
 			expect(todayResult.usedWorkUnits).toBe(3);

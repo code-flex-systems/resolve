@@ -13,21 +13,36 @@ import { DialogAction } from '@/types/types';
 import useIsAssigned from '@/hooks/useIsAssigned';
 import ChecklistProgress from './ChecklistProgress';
 import { useCrudAlerts } from '@/hooks/useCrudAlerts';
-import { IconAlertTriangle, IconHandStop, IconPlayerPlay, IconPlayerStop } from '@tabler/icons-react';
+import {
+	IconAlertTriangle,
+	IconHandStop,
+	IconPlayerPlay,
+	IconPlayerStop,
+} from '@tabler/icons-react';
 
 export default function ChecklistProgressDialog() {
 	const [confirmingStatus, setConfirmingStatus] = useState<ClaimStatus | null>(null);
 	const isAssigned = useIsAssigned();
-	const toggleChecklistHandoffDialog = useChecklistStore((state) => state.toggleChecklistHandoffDialog);
-	const toggleChecklistProgressDialog = useChecklistStore((state) => state.toggleChecklistProgressDialog);
+	const toggleChecklistHandoffDialog = useChecklistStore(
+		(state) => state.toggleChecklistHandoffDialog
+	);
+	const toggleChecklistProgressDialog = useChecklistStore(
+		(state) => state.toggleChecklistProgressDialog
+	);
 	const { checklistId = '', claimId = '' } = useChecklistParams();
 	const { showSuccess, showError } = useCrudAlerts('checklist status');
-	const { data: progress = { answerCount: 0, totalQuestionCount: 0 }, isFetching: isFetchingProgress } =
-		useChecklistTrpc().progress({ checklistId, claimId }, { enabled: !!checklistId && !!claimId });
-	const { data: checklistClaim, isFetching: isFetchingChecklistClaim } = useChecklistTrpc().getForClaim(
+	const {
+		data: progress = { answerCount: 0, totalQuestionCount: 0 },
+		isFetching: isFetchingProgress,
+	} = useChecklistTrpc().progress(
 		{ checklistId, claimId },
 		{ enabled: !!checklistId && !!claimId }
 	);
+	const { data: checklistClaim, isFetching: isFetchingChecklistClaim } =
+		useChecklistTrpc().getForClaim(
+			{ checklistId, claimId },
+			{ enabled: !!checklistId && !!claimId }
+		);
 	const { mutateAsync: updateChecklistClaim, isPending } = useChecklistTrpc().updateForClaim;
 
 	const primaryAction: DialogAction | undefined = useMemo(() => {
@@ -153,7 +168,9 @@ export default function ChecklistProgressDialog() {
 			width={500}
 			height={275}
 		>
-			<div style={{ display: 'flex', justifyContent: 'center', alignContent: 'center', height: 120 }}>
+			<div
+				style={{ display: 'flex', justifyContent: 'center', alignContent: 'center', height: 120 }}
+			>
 				<Card
 					variant="float"
 					padding="md"

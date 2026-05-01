@@ -35,7 +35,9 @@ function CustomTooltip({ active, payload }: any) {
 			<p style={{ margin: '4px 0 0' }}>Count: {row.count}</p>
 			<p style={{ margin: '4px 0 0' }}>Total Demanded: {formatCurrency(row.total_demanded)}</p>
 			<p style={{ margin: '4px 0 0' }}>Total Settled: {formatCurrency(row.total_settled)}</p>
-			<p style={{ margin: '4px 0 0' }}>Demand Exceeding Cap: {formatCurrency(row.demand_exceeding_cap)}</p>
+			<p style={{ margin: '4px 0 0' }}>
+				Demand Exceeding Cap: {formatCurrency(row.demand_exceeding_cap)}
+			</p>
 		</div>
 	);
 }

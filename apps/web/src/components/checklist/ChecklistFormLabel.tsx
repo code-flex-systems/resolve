@@ -23,11 +23,21 @@ export default function ChecklistFormLabel(props: {
 	const mode = useChecklistStore((state) => state.mode);
 	const selectedPageInfo = getSelectedPageInfoOrDefault();
 	const highlightedQuestion = useChecklistStore((state) => state.highlightedQuestion);
-	const toggleQuestionCommentDialog = useChecklistStore((state) => state.toggleQuestionCommentDialog);
+	const toggleQuestionCommentDialog = useChecklistStore(
+		(state) => state.toggleQuestionCommentDialog
+	);
 	const isAssigned = useIsAssigned();
 	const isEmpty = Array.isArray(value) ? !value.length : !value;
 	return (
-		<label style={{ marginLeft: 0, paddingLeft: 0, display: 'flex', alignItems: 'center', margin: '20px 0px' }}>
+		<label
+			style={{
+				marginLeft: 0,
+				paddingLeft: 0,
+				display: 'flex',
+				alignItems: 'center',
+				margin: '20px 0px',
+			}}
+		>
 			{isAssigned && (
 				<Tooltip content="Reset question">
 					<span>
@@ -59,7 +69,10 @@ export default function ChecklistFormLabel(props: {
 							disabled={disabled}
 							style={{ marginRight: '10px' }}
 						>
-							<IconMessage size={17} style={{ color: comment ? 'var(--text-accent)' : undefined }} />
+							<IconMessage
+								size={17}
+								style={{ color: comment ? 'var(--text-accent)' : undefined }}
+							/>
 						</Button>
 					</span>
 				</Tooltip>

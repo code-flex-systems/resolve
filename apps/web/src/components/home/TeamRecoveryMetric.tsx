@@ -10,7 +10,19 @@ export default function TeamRecoveryMetric() {
 
 	return (
 		<Card variant="beveled" padding="none" style={{ ...styles.container, overflow: 'hidden' }}>
-			<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', backgroundColor: 'var(--bg-secondary)', borderBottom: '1px solid var(--border)' }}>
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'space-between',
+					padding: '12px 16px',
+					fontSize: 13,
+					fontWeight: 600,
+					color: 'var(--text-primary)',
+					backgroundColor: 'var(--bg-secondary)',
+					borderBottom: '1px solid var(--border)',
+				}}
+			>
 				Team Recovery
 				<span style={{ marginLeft: 8, color: 'primary.main', fontWeight: 600 }}>
 					Q{quarters.currentQuarter}

@@ -34,7 +34,11 @@ interface ClaimStatusChipProps {
  * - recovered: success (green)
  * - closed_no_recovery: default (grey)
  */
-export default function ClaimStatusChip({ recoveryStatus, substatus, size = 'small' }: ClaimStatusChipProps) {
+export default function ClaimStatusChip({
+	recoveryStatus,
+	substatus,
+	size = 'small',
+}: ClaimStatusChipProps) {
 	const label = formatClaimStatus(recoveryStatus, substatus);
 	const color = getChipColor(recoveryStatus);
 

@@ -70,7 +70,8 @@ export default function WorkflowThresholdDialog({
 		}
 	};
 
-	const isFormValid = formData.thresholdType && formData.thresholdValue && parseInt(formData.thresholdValue, 10) > 0;
+	const isFormValid =
+		formData.thresholdType && formData.thresholdValue && parseInt(formData.thresholdValue, 10) > 0;
 
 	return (
 		<BasicDialog

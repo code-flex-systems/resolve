@@ -13,9 +13,7 @@ export const getDeskLocationTypesInput = z.object({
 	offset: z.number().int().nonnegative().optional(),
 	showDeleted: z.boolean().optional(),
 });
-export type GetDeskLocationTypesInput = z.infer<
-	typeof getDeskLocationTypesInput
->;
+export type GetDeskLocationTypesInput = z.infer<typeof getDeskLocationTypesInput>;
 
 /**
  * Get single desk location type by ID
@@ -32,9 +30,7 @@ export const createDeskLocationTypeInput = z.object({
 	name: z.string().min(1).max(255),
 	createDefaultLocations: z.boolean().optional().default(false),
 });
-export type CreateDeskLocationTypeInput = z.infer<
-	typeof createDeskLocationTypeInput
->;
+export type CreateDeskLocationTypeInput = z.infer<typeof createDeskLocationTypeInput>;
 
 /**
  * Update desk location type input
@@ -45,9 +41,7 @@ export const updateDeskLocationTypeInput = z.object({
 		name: z.string().min(1).max(255).optional(),
 	}),
 });
-export type UpdateDeskLocationTypeInput = z.infer<
-	typeof updateDeskLocationTypeInput
->;
+export type UpdateDeskLocationTypeInput = z.infer<typeof updateDeskLocationTypeInput>;
 
 /**
  * Delete desk location type input (soft delete)
@@ -55,9 +49,7 @@ export type UpdateDeskLocationTypeInput = z.infer<
 export const deleteDeskLocationTypeInput = z.object({
 	id: z.string().uuid(),
 });
-export type DeleteDeskLocationTypeInput = z.infer<
-	typeof deleteDeskLocationTypeInput
->;
+export type DeleteDeskLocationTypeInput = z.infer<typeof deleteDeskLocationTypeInput>;
 
 // ============================================================================
 // DESK LOCATION SCHEMAS
@@ -184,7 +176,9 @@ export const updateUserDeskLocationPriorityInput = z.object({
 	id: z.string().uuid(),
 	priority: z.number().int().min(1).max(5),
 });
-export type UpdateUserDeskLocationPriorityInput = z.infer<typeof updateUserDeskLocationPriorityInput>;
+export type UpdateUserDeskLocationPriorityInput = z.infer<
+	typeof updateUserDeskLocationPriorityInput
+>;
 
 /**
  * Remove user from desk location (soft delete)
@@ -205,24 +199,31 @@ export const updateUserDeskLocationPrioritiesInput = z.object({
 		})
 	),
 });
-export type UpdateUserDeskLocationPrioritiesInput = z.infer<typeof updateUserDeskLocationPrioritiesInput>;
+export type UpdateUserDeskLocationPrioritiesInput = z.infer<
+	typeof updateUserDeskLocationPrioritiesInput
+>;
 
 /**
  * Update user desk assignments (unified endpoint for individual and bulk updates)
  * Accepts an array of users with their complete desired desk assignment state
  */
 export const updateUsersDeskAssignmentsInput = z.object({
-	updates: z.array(
-		z.object({
-			userId: z.string().uuid(),
-			assignments: z.array(
-				z.object({
-					deskLocationId: z.string().uuid(),
-					priority: z.number().int().min(1).max(5),
-				})
-			).max(5), // Max 5 assignments per user
-		})
-	).min(1).max(50), // Support 1-50 users per bulk update
+	updates: z
+		.array(
+			z.object({
+				userId: z.string().uuid(),
+				assignments: z
+					.array(
+						z.object({
+							deskLocationId: z.string().uuid(),
+							priority: z.number().int().min(1).max(5),
+						})
+					)
+					.max(5), // Max 5 assignments per user
+			})
+		)
+		.min(1)
+		.max(50), // Support 1-50 users per bulk update
 });
 export type UpdateUsersDeskAssignmentsInput = z.infer<typeof updateUsersDeskAssignmentsInput>;
 

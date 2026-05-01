@@ -45,7 +45,10 @@ export default function ReferenceDataSelect({
 		...options.map((opt) => ({
 			value: opt.value,
 			label: opt.display_label,
-			icon: showIcon && opt.icon_emoji ? <span style={{ fontSize: 14 }}>{opt.icon_emoji}</span> : undefined,
+			icon:
+				showIcon && opt.icon_emoji ? (
+					<span style={{ fontSize: 14 }}>{opt.icon_emoji}</span>
+				) : undefined,
 		})),
 	];
 
@@ -59,12 +62,16 @@ export default function ReferenceDataSelect({
 			label={label}
 			inlineLabel={isFilter}
 			fullWidth={fullWidth}
-			renderValue={value ? (val, opt) => (
-				<span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-					{opt?.icon}
-					<span>{opt?.label}</span>
-				</span>
-			) : undefined}
+			renderValue={
+				value
+					? (val, opt) => (
+							<span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+								{opt?.icon}
+								<span>{opt?.label}</span>
+							</span>
+						)
+					: undefined
+			}
 		/>
 	);
 }
@@ -81,24 +88,122 @@ interface CommonSelectProps {
 	label?: string;
 }
 
-export function LossTypeSelect({ lossType, setLossType, clearable = true, text = 'Filter by loss type', disabled = false, isFilter = true, label }: CommonSelectProps & { lossType: string | null; setLossType: (v: string | null) => void }) {
-	return <ReferenceDataSelect entity="loss_type" value={lossType} onChange={setLossType} clearable={clearable} placeholder={text} disabled={disabled} isFilter={isFilter} label={label} />;
+export function LossTypeSelect({
+	lossType,
+	setLossType,
+	clearable = true,
+	text = 'Filter by loss type',
+	disabled = false,
+	isFilter = true,
+	label,
+}: CommonSelectProps & { lossType: string | null; setLossType: (v: string | null) => void }) {
+	return (
+		<ReferenceDataSelect
+			entity="loss_type"
+			value={lossType}
+			onChange={setLossType}
+			clearable={clearable}
+			placeholder={text}
+			disabled={disabled}
+			isFilter={isFilter}
+			label={label}
+		/>
+	);
 }
 
-export function LineOfBusinessSelect({ lineOfBusiness, setLineOfBusiness, clearable = true, text = 'Filter by line of business', disabled = false, isFilter = true, label }: CommonSelectProps & { lineOfBusiness: string | null; setLineOfBusiness: (v: string | null) => void }) {
-	return <ReferenceDataSelect entity="line_of_business" value={lineOfBusiness} onChange={setLineOfBusiness} clearable={clearable} placeholder={text} disabled={disabled} isFilter={isFilter} label={label} />;
+export function LineOfBusinessSelect({
+	lineOfBusiness,
+	setLineOfBusiness,
+	clearable = true,
+	text = 'Filter by line of business',
+	disabled = false,
+	isFilter = true,
+	label,
+}: CommonSelectProps & {
+	lineOfBusiness: string | null;
+	setLineOfBusiness: (v: string | null) => void;
+}) {
+	return (
+		<ReferenceDataSelect
+			entity="line_of_business"
+			value={lineOfBusiness}
+			onChange={setLineOfBusiness}
+			clearable={clearable}
+			placeholder={text}
+			disabled={disabled}
+			isFilter={isFilter}
+			label={label}
+		/>
+	);
 }
 
-export function ClaimSubstatusSelect({ substatus, setSubstatus, clearable = true, text = 'Filter by substatus', disabled = false, isFilter = true, label }: CommonSelectProps & { substatus: string | null; setSubstatus: (v: string | null) => void }) {
-	return <ReferenceDataSelect entity="claim_substatus" value={substatus} onChange={setSubstatus} clearable={clearable} placeholder={text} disabled={disabled} isFilter={isFilter} label={label} />;
+export function ClaimSubstatusSelect({
+	substatus,
+	setSubstatus,
+	clearable = true,
+	text = 'Filter by substatus',
+	disabled = false,
+	isFilter = true,
+	label,
+}: CommonSelectProps & { substatus: string | null; setSubstatus: (v: string | null) => void }) {
+	return (
+		<ReferenceDataSelect
+			entity="claim_substatus"
+			value={substatus}
+			onChange={setSubstatus}
+			clearable={clearable}
+			placeholder={text}
+			disabled={disabled}
+			isFilter={isFilter}
+			label={label}
+		/>
+	);
 }
 
-export function ClaimantPartyRoleSelect({ role, setRole, clearable = true, text = 'Select role', disabled = false, isFilter = true, label }: CommonSelectProps & { role: string | null; setRole: (v: string | null) => void }) {
-	return <ReferenceDataSelect entity="claimant_party_role" value={role} onChange={setRole} clearable={clearable} placeholder={text} disabled={disabled} isFilter={isFilter} label={label} />;
+export function ClaimantPartyRoleSelect({
+	role,
+	setRole,
+	clearable = true,
+	text = 'Select role',
+	disabled = false,
+	isFilter = true,
+	label,
+}: CommonSelectProps & { role: string | null; setRole: (v: string | null) => void }) {
+	return (
+		<ReferenceDataSelect
+			entity="claimant_party_role"
+			value={role}
+			onChange={setRole}
+			clearable={clearable}
+			placeholder={text}
+			disabled={disabled}
+			isFilter={isFilter}
+			label={label}
+		/>
+	);
 }
 
-export function AdversePartyRoleSelect({ role, setRole, clearable = true, text = 'Select role', disabled = false, isFilter = true, label }: CommonSelectProps & { role: string | null; setRole: (v: string | null) => void }) {
-	return <ReferenceDataSelect entity="adverse_party_role" value={role} onChange={setRole} clearable={clearable} placeholder={text} disabled={disabled} isFilter={isFilter} label={label} />;
+export function AdversePartyRoleSelect({
+	role,
+	setRole,
+	clearable = true,
+	text = 'Select role',
+	disabled = false,
+	isFilter = true,
+	label,
+}: CommonSelectProps & { role: string | null; setRole: (v: string | null) => void }) {
+	return (
+		<ReferenceDataSelect
+			entity="adverse_party_role"
+			value={role}
+			onChange={setRole}
+			clearable={clearable}
+			placeholder={text}
+			disabled={disabled}
+			isFilter={isFilter}
+			label={label}
+		/>
+	);
 }
 
 // ============================================================================
@@ -113,7 +218,13 @@ interface ReferenceDataValueProps {
 	fontSize?: number;
 }
 
-export function ReferenceDataValue({ entity, value, showEmoji = true, fallback = '\u2014', fontSize = 13 }: ReferenceDataValueProps) {
+export function ReferenceDataValue({
+	entity,
+	value,
+	showEmoji = true,
+	fallback = '\u2014',
+	fontSize = 13,
+}: ReferenceDataValueProps) {
 	const { data: option, isLoading } = trpc.referenceData.getReferenceOption.useQuery(
 		{ entity, value: value!, includeDeactivated: true },
 		{ enabled: !!value, staleTime: 5 * 60 * 1000, gcTime: 10 * 60 * 1000 }
@@ -165,7 +276,14 @@ interface ReferenceDataChipProps {
 	fontSize?: number;
 }
 
-export function ReferenceDataChip({ entity, value, showEmoji = true, color = 'neutral', variant = 'outlined', fontSize = 12 }: ReferenceDataChipProps) {
+export function ReferenceDataChip({
+	entity,
+	value,
+	showEmoji = true,
+	color = 'neutral',
+	variant = 'outlined',
+	fontSize = 12,
+}: ReferenceDataChipProps) {
 	const { data: option, isLoading } = trpc.referenceData.getReferenceOption.useQuery(
 		{ entity, value: value!, includeDeactivated: true },
 		{ enabled: !!value, staleTime: 5 * 60 * 1000, gcTime: 10 * 60 * 1000 }

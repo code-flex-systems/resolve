@@ -10,35 +10,17 @@ import { Kysely, sql } from 'kysely';
  */
 
 export async function up(db: Kysely<any>): Promise<void> {
-	await db.schema
-		.alterTable('claim_party')
-		.dropColumn('representative_title')
-		.execute();
+	await db.schema.alterTable('claim_party').dropColumn('representative_title').execute();
 
-	await db.schema
-		.alterTable('claim_party')
-		.dropColumn('representative_email')
-		.execute();
+	await db.schema.alterTable('claim_party').dropColumn('representative_email').execute();
 
-	await db.schema
-		.alterTable('claim_party')
-		.dropColumn('representative_phone')
-		.execute();
+	await db.schema.alterTable('claim_party').dropColumn('representative_phone').execute();
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
-	await db.schema
-		.alterTable('claim_party')
-		.addColumn('representative_title', 'text')
-		.execute();
+	await db.schema.alterTable('claim_party').addColumn('representative_title', 'text').execute();
 
-	await db.schema
-		.alterTable('claim_party')
-		.addColumn('representative_email', 'text')
-		.execute();
+	await db.schema.alterTable('claim_party').addColumn('representative_email', 'text').execute();
 
-	await db.schema
-		.alterTable('claim_party')
-		.addColumn('representative_phone', 'text')
-		.execute();
+	await db.schema.alterTable('claim_party').addColumn('representative_phone', 'text').execute();
 }

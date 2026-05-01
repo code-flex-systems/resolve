@@ -29,7 +29,10 @@ export async function createDeadline(
 ) {
 	// Create deadline and log admin action within transaction
 	const created = await ctx.db.transaction().execute(async (trx) => {
-		const deadline = await deadlineQueries.createDeadline({ ...ctx, db: trx }, { claimId, ...params });
+		const deadline = await deadlineQueries.createDeadline(
+			{ ...ctx, db: trx },
+			{ claimId, ...params }
+		);
 
 		// Log deadline creation
 		await logAdminAction(
@@ -98,7 +101,11 @@ export async function updateDeadlineStatus(
 ) {
 	// Update deadline status and log action within transaction
 	const updated = await ctx.db.transaction().execute(async (trx) => {
-		const deadline = await deadlineQueries.updateDeadlineStatus({ ...ctx, db: trx }, deadlineId, status);
+		const deadline = await deadlineQueries.updateDeadlineStatus(
+			{ ...ctx, db: trx },
+			deadlineId,
+			status
+		);
 
 		// Log user workflow action if completing, otherwise log as admin action
 		if (status === DeadlineStatus.MET) {
@@ -135,7 +142,10 @@ export async function updateDeadlineStatus(
  * @param ctx - request context
  * @param input - deadline id
  */
-export async function deleteDeadline(ctx: ProtectedContext, { deadlineId }: { deadlineId: string }) {
+export async function deleteDeadline(
+	ctx: ProtectedContext,
+	{ deadlineId }: { deadlineId: string }
+) {
 	// Delete deadline and log admin action within transaction
 	await ctx.db.transaction().execute(async (trx) => {
 		// Delete the deadline (uses RETURNING to get all fields for logging)

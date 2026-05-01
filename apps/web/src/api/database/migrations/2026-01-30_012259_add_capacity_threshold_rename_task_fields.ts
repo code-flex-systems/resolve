@@ -17,7 +17,9 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.addColumn('capacity_threshold', 'integer', (col) => col.notNull().defaultTo(100))
 		.execute();
 
-	await sql`COMMENT ON COLUMN desk_location.capacity_threshold IS 'Work unit threshold for this location. Used for capacity alerting and workflow analytics.'`.execute(db);
+	await sql`COMMENT ON COLUMN desk_location.capacity_threshold IS 'Work unit threshold for this location. Used for capacity alerting and workflow analytics.'`.execute(
+		db
+	);
 
 	// 2. Rename task columns
 	await sql`ALTER TABLE task RENAME COLUMN assigned_by TO assigned_to`.execute(db);
@@ -49,9 +51,15 @@ export async function up(db: Kysely<any>): Promise<void> {
 	await db.schema.createIndex('idx_task_started_by').on('task').column('started_by').execute();
 
 	// 6. Update column comments
-	await sql`COMMENT ON COLUMN task.assigned_to IS 'User this task is assigned to (nullable - unassigned tasks are available to anyone)'`.execute(db);
-	await sql`COMMENT ON COLUMN task.started_by IS 'User who started working on the task'`.execute(db);
-	await sql`COMMENT ON COLUMN task.started_at IS 'When the user started working on the task'`.execute(db);
+	await sql`COMMENT ON COLUMN task.assigned_to IS 'User this task is assigned to (nullable - unassigned tasks are available to anyone)'`.execute(
+		db
+	);
+	await sql`COMMENT ON COLUMN task.started_by IS 'User who started working on the task'`.execute(
+		db
+	);
+	await sql`COMMENT ON COLUMN task.started_at IS 'When the user started working on the task'`.execute(
+		db
+	);
 }
 
 export async function down(db: Kysely<any>): Promise<void> {

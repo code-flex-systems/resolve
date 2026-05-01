@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 
 const cloneSearch = (sp: URLSearchParams) => new URLSearchParams(sp.toString());
-const toStr = (v: string | null) => (v || undefined);
+const toStr = (v: string | null) => v || undefined;
 
 export function useChecklistDeepLink(initReady: boolean) {
 	const router = useRouter();
@@ -33,7 +33,8 @@ export function useChecklistDeepLink(initReady: boolean) {
 		const { questionId, instanceId, focus } = target;
 
 		// Nothing to apply? bail early (prevents URL replace when no params present)
-		const hasActionable = instanceId !== undefined || questionId !== undefined || focus !== undefined;
+		const hasActionable =
+			instanceId !== undefined || questionId !== undefined || focus !== undefined;
 		if (!hasActionable) return;
 
 		// Apply in the right order so UI can expand tree cleanly
@@ -67,7 +68,9 @@ export function useChecklistDeepLink(initReady: boolean) {
 
 		if (nextQs !== currentQs) {
 			const hash = typeof window !== 'undefined' ? window.location.hash : '';
-			router.replace(nextQs ? `${pathname}?${nextQs}${hash}` : `${pathname}${hash}`, { scroll: false });
+			router.replace(nextQs ? `${pathname}?${nextQs}${hash}` : `${pathname}${hash}`, {
+				scroll: false,
+			});
 		}
 	}, [initReady, target, pathname, router, sp]);
 

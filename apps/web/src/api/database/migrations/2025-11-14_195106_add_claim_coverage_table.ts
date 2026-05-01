@@ -59,7 +59,11 @@ export async function up(db: Kysely<any>): Promise<void> {
 	`.execute(db);
 
 	// Add indexes for performance
-	await db.schema.createIndex('idx_claim_coverage_claim_id').on('claim_coverage').column('claim_id').execute();
+	await db.schema
+		.createIndex('idx_claim_coverage_claim_id')
+		.on('claim_coverage')
+		.column('claim_id')
+		.execute();
 
 	await db.schema
 		.createIndex('idx_claim_coverage_client_id')
@@ -71,7 +75,9 @@ export async function up(db: Kysely<any>): Promise<void> {
 	await sql`COMMENT ON COLUMN claim_coverage.coverage_type IS 'Type of coverage (CoverageType enum enforced in TypeScript)'`.execute(
 		db
 	);
-	await sql`COMMENT ON TABLE claim_coverage IS 'Tracks coverage types and amounts for each claim'`.execute(db);
+	await sql`COMMENT ON TABLE claim_coverage IS 'Tracks coverage types and amounts for each claim'`.execute(
+		db
+	);
 }
 
 export async function down(db: Kysely<any>): Promise<void> {

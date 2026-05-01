@@ -80,15 +80,17 @@ export const downloadDocInput = z.object({
 export type DownloadDocInput = z.infer<typeof downloadDocInput>;
 
 export const listDocsInput = z.object({
-	filters: z.object({
-		claim_id: z.string().uuid().optional(),
-		doc_group_id: z.string().uuid().nullable().optional(),
-		doc_type: docTypeEnum.optional(),
-		doc_status: docStatusEnum.optional(),
-		is_current_version: z.boolean().optional(),
-		question_id: z.string().uuid().optional(),
-		answer_id: z.string().uuid().optional(),
-	}).optional(),
+	filters: z
+		.object({
+			claim_id: z.string().uuid().optional(),
+			doc_group_id: z.string().uuid().nullable().optional(),
+			doc_type: docTypeEnum.optional(),
+			doc_status: docStatusEnum.optional(),
+			is_current_version: z.boolean().optional(),
+			question_id: z.string().uuid().optional(),
+			answer_id: z.string().uuid().optional(),
+		})
+		.optional(),
 	limit: z.number().int().positive().max(1000).optional(),
 	offset: z.number().int().nonnegative().optional(),
 });

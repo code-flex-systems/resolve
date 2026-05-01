@@ -60,13 +60,7 @@ function formatRelativeTime(dateStr: string | Date): string {
 }
 
 function CardSkeleton() {
-	return (
-		<Skeleton
-			variant="rect"
-			height={80}
-			className="rounded-lg"
-		/>
-	);
+	return <Skeleton variant="rect" height={80} className="rounded-lg" />;
 }
 
 /**
@@ -80,9 +74,7 @@ export default function PendingExecutionsPanel() {
 	const { listPendingExecutions, approvePendingExecution, rejectPendingExecution } =
 		useWorkflowTrpc();
 
-	const { data, isLoading, isFetching } = listPendingExecutions(
-		{ limit: PAGE_SIZE, offset }
-	);
+	const { data, isLoading, isFetching } = listPendingExecutions({ limit: PAGE_SIZE, offset });
 
 	const rows = data?.rows ?? [];
 	const totalCount = data?.count ?? 0;
@@ -116,9 +108,7 @@ export default function PendingExecutionsPanel() {
 		return (
 			<Card variant="beveled" padding="lg">
 				<div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-					<span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-						Pending Approvals
-					</span>
+					<span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Pending Approvals</span>
 					<Skeleton variant="rect" width={28} height={22} />
 				</div>
 				<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -133,9 +123,7 @@ export default function PendingExecutionsPanel() {
 		<Card variant="beveled" padding="lg">
 			{/* Header */}
 			<div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-				<span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-					Pending Approvals
-				</span>
+				<span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>Pending Approvals</span>
 				<CountBadge value={totalCount} />
 			</div>
 
@@ -153,7 +141,9 @@ export default function PendingExecutionsPanel() {
 						}}
 					>
 						<IconHourglass size={40} style={{ color: 'var(--text-muted)' }} />
-						<span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>No pending executions</span>
+						<span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
+							No pending executions
+						</span>
 					</div>
 				) : (
 					<div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -166,8 +156,7 @@ export default function PendingExecutionsPanel() {
 									alignItems: 'center',
 									justifyContent: 'space-between',
 									gap: 16,
-									borderBottom:
-										idx === rows.length - 1 ? 'none' : '1px solid var(--border)',
+									borderBottom: idx === rows.length - 1 ? 'none' : '1px solid var(--border)',
 									opacity: isFetching ? 0.6 : 1,
 									transition: 'opacity 0.2s',
 								}}

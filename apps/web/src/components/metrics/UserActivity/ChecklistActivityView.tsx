@@ -20,7 +20,10 @@ import styles from './ChecklistActivityView.module.css';
 
 export default function ChecklistActivityView() {
 	const today = dayjs();
-	const [range, setRange] = useState<DateRange<Dayjs>>([today.startOf('month'), today.endOf('month')]);
+	const [range, setRange] = useState<DateRange<Dayjs>>([
+		today.startOf('month'),
+		today.endOf('month'),
+	]);
 	const [users, setUsers] = useState<GetUserOutput[]>([]);
 	const [searchTerm, setSearchTerm] = useState('');
 	const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
@@ -36,7 +39,10 @@ export default function ChecklistActivityView() {
 	const exportFilters = useMemo(
 		() => ({
 			emails: users.map((u) => u.email),
-			range: [range[0]?.toString() ?? null, range[1]?.toString() ?? null] as [string | null, string | null],
+			range: [range[0]?.toString() ?? null, range[1]?.toString() ?? null] as [
+				string | null,
+				string | null,
+			],
 			searchTerm: debouncedSearchTerm,
 		}),
 		[users, range, debouncedSearchTerm]
@@ -115,43 +121,43 @@ export default function ChecklistActivityView() {
 			<UserActivityChart users={users} range={range} />
 
 			<Card variant="beveled" padding="lg">
-					<div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%' }}>
-						<div className={styles.cardHeader}>
-							<span className={styles.cardTitle}>Response Change Log</span>
-							<div className={styles.cardActions}>
-								<span className={styles.cardCount}>
-									{logCount.toLocaleString()} event{logCount !== 1 ? 's' : ''}
-								</span>
-								<SearchInput
-									value={searchTerm}
-									onChange={(value) => {
-										setSearchTerm(value);
-										debouncedSearch(value);
-									}}
-									placeholder="Search by question..."
-								/>
-								<ExportButton
-									onExport={async () => {
-										const result = await trpcUtils.response.exportResponseAuditLogs.fetch({
-											filters: exportFilters,
-										});
-										return result;
-									}}
-									columns={csvColumns}
-									filename="checklist_activity"
-									size="sm"
-								/>
-							</div>
-						</div>
-						<div className={styles.tableArea}>
-							<UserActivityTable
-								users={users}
-								range={range}
-								searchTerm={debouncedSearchTerm}
-								onCountChange={setLogCount}
+				<div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%' }}>
+					<div className={styles.cardHeader}>
+						<span className={styles.cardTitle}>Response Change Log</span>
+						<div className={styles.cardActions}>
+							<span className={styles.cardCount}>
+								{logCount.toLocaleString()} event{logCount !== 1 ? 's' : ''}
+							</span>
+							<SearchInput
+								value={searchTerm}
+								onChange={(value) => {
+									setSearchTerm(value);
+									debouncedSearch(value);
+								}}
+								placeholder="Search by question..."
+							/>
+							<ExportButton
+								onExport={async () => {
+									const result = await trpcUtils.response.exportResponseAuditLogs.fetch({
+										filters: exportFilters,
+									});
+									return result;
+								}}
+								columns={csvColumns}
+								filename="checklist_activity"
+								size="sm"
 							/>
 						</div>
 					</div>
+					<div className={styles.tableArea}>
+						<UserActivityTable
+							users={users}
+							range={range}
+							searchTerm={debouncedSearchTerm}
+							onCountChange={setLogCount}
+						/>
+					</div>
+				</div>
 			</Card>
 		</div>
 	);

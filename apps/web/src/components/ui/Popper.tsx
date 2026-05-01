@@ -138,11 +138,7 @@ function Popper({
 		.join(' ');
 
 	return createPortal(
-		<div
-			ref={popperRef}
-			className={classNames}
-			style={{ top: position.top, left: position.left }}
-		>
+		<div ref={popperRef} className={classNames} style={{ top: position.top, left: position.left }}>
 			{children}
 		</div>,
 		document.body

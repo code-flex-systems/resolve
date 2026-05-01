@@ -45,7 +45,10 @@ export default function TaskBulkCancellationDialog({
 				cancellationReason: data.cancellationReason,
 			});
 
-			showAlert(`${result.cancelledCount} task${result.cancelledCount === 1 ? '' : 's'} cancelled`, 'success');
+			showAlert(
+				`${result.cancelledCount} task${result.cancelledCount === 1 ? '' : 's'} cancelled`,
+				'success'
+			);
 			onCancelled?.();
 			onClose();
 		} catch (error: any) {
@@ -73,7 +76,15 @@ export default function TaskBulkCancellationDialog({
 			onClose={onClose}
 			width={450}
 		>
-			<div style={{ width: '100%', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 16 }}>
+			<div
+				style={{
+					width: '100%',
+					display: 'flex',
+					alignItems: 'center',
+					flexDirection: 'column',
+					gap: 16,
+				}}
+			>
 				<span style={{ width: 380, marginBottom: 1 }}>
 					You are about to cancel <strong>{taskIds.length}</strong> task
 					{taskIds.length === 1 ? '' : 's'}. This action cannot be undone.
@@ -93,7 +104,11 @@ export default function TaskBulkCancellationDialog({
 							required
 							error={!!errors.cancellationReason}
 							errorText={errors.cancellationReason?.message}
-							helperText={!errors.cancellationReason ? 'This reason will be applied to all selected tasks' : undefined}
+							helperText={
+								!errors.cancellationReason
+									? 'This reason will be applied to all selected tasks'
+									: undefined
+							}
 							placeholder="Explain why these tasks are being cancelled..."
 						/>
 					)}

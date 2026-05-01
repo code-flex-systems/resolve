@@ -14,7 +14,12 @@ export async function assignClaim(
 ) {
 	// Assign claim and log admin action within transaction
 	const results = await ctx.db.transaction().execute(async (trx) => {
-		const assignment = await claimQueries.assignClaim({ ...ctx, db: trx }, checklistId, claimId, assignee);
+		const assignment = await claimQueries.assignClaim(
+			{ ...ctx, db: trx },
+			checklistId,
+			claimId,
+			assignee
+		);
 
 		// Log checklist_claim assignment (this creates the relationship)
 		await logAdminAction(
@@ -97,10 +102,7 @@ export async function getRolloverClaimCount(ctx: ProtectedContext) {
  * @param ctx - request context
  * @param input - array of claim objects
  */
-export async function createClaims(
-	ctx: ProtectedContext,
-	{ claims }: { claims: ClaimData[] }
-) {
+export async function createClaims(ctx: ProtectedContext, { claims }: { claims: ClaimData[] }) {
 	// Create claims and log admin actions within transaction
 	const created = await ctx.db.transaction().execute(async (trx) => {
 		const newClaims = await claimQueries.createClaims({ ...ctx, db: trx }, claims);

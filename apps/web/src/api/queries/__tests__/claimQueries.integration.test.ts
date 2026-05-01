@@ -42,7 +42,13 @@ import {
 } from '../claimQueries';
 import type { Kysely } from 'kysely';
 import type { DB } from '@/api/database/types';
-import { ClaimSearch, RecoveryStatus, LineOfBusiness, LossType, CoverageType } from '@/config/enums';
+import {
+	ClaimSearch,
+	RecoveryStatus,
+	LineOfBusiness,
+	LossType,
+	CoverageType,
+} from '@/config/enums';
 import { getCurrentFiscalQuarterStart } from '@/lib/utils/utils';
 
 describe('claimQueries integration', () => {
@@ -130,7 +136,10 @@ describe('claimQueries integration', () => {
 			const contributor = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
 			const otherUser = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
 
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: contributor.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: contributor.id,
+			});
 
 			// Claim 1: Owned by contributor (via checklist_claim)
 			const claim1 = await createTestClaim(db, { client_id: client.id, insured: 'Owned Claim' });
@@ -152,7 +161,10 @@ describe('claimQueries integration', () => {
 			});
 
 			// Claim 3: Owned by other user (should NOT be visible to contributor)
-			const claim3 = await createTestClaim(db, { client_id: client.id, insured: 'Other User Claim' });
+			const claim3 = await createTestClaim(db, {
+				client_id: client.id,
+				insured: 'Other User Claim',
+			});
 			await createTestChecklistClaim(db, {
 				client_id: client.id,
 				checklist_id: checklist.id,
@@ -164,7 +176,11 @@ describe('claimQueries integration', () => {
 			// Claim 4: Unassigned (no checklist_claim entry) - should be visible
 			await createTestClaim(db, { client_id: client.id, insured: 'Unassigned Claim' });
 
-			const ctx = createTestContext(db, { id: contributor.id, client_id: client.id, role: 'Contributor' });
+			const ctx = createTestContext(db, {
+				id: contributor.id,
+				client_id: client.id,
+				role: 'Contributor',
+			});
 
 			// Act
 			const { rows: claims } = await getClaims(ctx, {});
@@ -184,7 +200,10 @@ describe('claimQueries integration', () => {
 			const contributor = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
 			const otherUser = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
 
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: contributor.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: contributor.id,
+			});
 
 			// Create desk locations
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
@@ -233,7 +252,11 @@ describe('claimQueries integration', () => {
 				assignee: otherUser.id,
 			});
 
-			const ctx = createTestContext(db, { id: contributor.id, client_id: client.id, role: 'Contributor' });
+			const ctx = createTestContext(db, {
+				id: contributor.id,
+				client_id: client.id,
+				role: 'Contributor',
+			});
 
 			// Act
 			const { rows: claims } = await getClaims(ctx, {});
@@ -250,7 +273,10 @@ describe('claimQueries integration', () => {
 			const contributor = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
 			const otherUser = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
 
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: contributor.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: contributor.id,
+			});
 
 			// Create desk location
 			const deskType = await createTestDeskLocationType(db, { client_id: client.id });
@@ -280,7 +306,11 @@ describe('claimQueries integration', () => {
 				assignee: otherUser.id,
 			});
 
-			const ctx = createTestContext(db, { id: contributor.id, client_id: client.id, role: 'Contributor' });
+			const ctx = createTestContext(db, {
+				id: contributor.id,
+				client_id: client.id,
+				role: 'Contributor',
+			});
 
 			// Act
 			const { rows: claims } = await getClaims(ctx, {});
@@ -324,8 +354,12 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
-			const { rows: pendingClaims } = await getClaims(ctx, { recovery_status: RecoveryStatus.PENDING });
-			const { rows: inProgressClaims } = await getClaims(ctx, { recovery_status: RecoveryStatus.IN_PROGRESS });
+			const { rows: pendingClaims } = await getClaims(ctx, {
+				recovery_status: RecoveryStatus.PENDING,
+			});
+			const { rows: inProgressClaims } = await getClaims(ctx, {
+				recovery_status: RecoveryStatus.IN_PROGRESS,
+			});
 
 			// Assert
 			expect(pendingClaims).toHaveLength(2);
@@ -383,9 +417,21 @@ describe('claimQueries integration', () => {
 				status: 'Online',
 			});
 
-			await createTestClaim(db, { client_id: client.id, feed_id: feed1.id, insured: 'Feed 1 Claim' });
-			await createTestClaim(db, { client_id: client.id, feed_id: feed1.id, insured: 'Feed 1 Claim 2' });
-			await createTestClaim(db, { client_id: client.id, feed_id: feed2.id, insured: 'Feed 2 Claim' });
+			await createTestClaim(db, {
+				client_id: client.id,
+				feed_id: feed1.id,
+				insured: 'Feed 1 Claim',
+			});
+			await createTestClaim(db, {
+				client_id: client.id,
+				feed_id: feed1.id,
+				insured: 'Feed 1 Claim 2',
+			});
+			await createTestClaim(db, {
+				client_id: client.id,
+				feed_id: feed2.id,
+				insured: 'Feed 2 Claim',
+			});
 			await createTestClaim(db, { client_id: client.id, insured: 'Manual Claim' }); // No feed
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -419,8 +465,16 @@ describe('claimQueries integration', () => {
 				status: 'Inactive',
 			});
 
-			await createTestClaim(db, { client_id: client.id, feed_id: activeFeed.id, insured: 'Active Claim' });
-			await createTestClaim(db, { client_id: client.id, feed_id: inactiveFeed.id, insured: 'Inactive Claim' });
+			await createTestClaim(db, {
+				client_id: client.id,
+				feed_id: activeFeed.id,
+				insured: 'Active Claim',
+			});
+			await createTestClaim(db, {
+				client_id: client.id,
+				feed_id: inactiveFeed.id,
+				insured: 'Inactive Claim',
+			});
 			await createTestClaim(db, { client_id: client.id, insured: 'Manual Claim' });
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -442,7 +496,11 @@ describe('claimQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 
-			const feed = await createTestFeed(db, { client_id: client.id, created_by: user.id, status: 'Online' });
+			const feed = await createTestFeed(db, {
+				client_id: client.id,
+				created_by: user.id,
+				status: 'Online',
+			});
 
 			// 3 feed claims
 			await createTestClaim(db, { client_id: client.id, feed_id: feed.id });
@@ -470,7 +528,11 @@ describe('claimQueries integration', () => {
 			const otherClient = await createTestClient(db, { name: 'Other Client' });
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 
-			const feed = await createTestFeed(db, { client_id: client.id, created_by: user.id, status: 'Online' });
+			const feed = await createTestFeed(db, {
+				client_id: client.id,
+				created_by: user.id,
+				status: 'Online',
+			});
 
 			// feed claims (non-null feed_id)
 			await createTestClaim(db, { client_id: client.id, feed_id: feed.id });
@@ -589,7 +651,11 @@ describe('claimQueries integration', () => {
 			});
 			const claim = await createTestClaim(db, { client_id: client.id });
 
-			const ctx = createTestContext(db, { id: contributor.id, client_id: client.id, role: 'Contributor' });
+			const ctx = createTestContext(db, {
+				id: contributor.id,
+				client_id: client.id,
+				role: 'Contributor',
+			});
 
 			// Act & Assert - Contributor cannot access unpublished checklist
 			await expect(getClaim(ctx, claim.id, unpublishedChecklist.id)).rejects.toThrow(
@@ -656,7 +722,11 @@ describe('claimQueries integration', () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const feed = await createTestFeed(db, { client_id: client.id, created_by: user.id, status: 'Online' });
+			const feed = await createTestFeed(db, {
+				client_id: client.id,
+				created_by: user.id,
+				status: 'Online',
+			});
 
 			// Create claims with explicit created_at spacing to avoid UUID-tiebreak nondeterminism
 			const claim1 = await createTestClaim(db, {
@@ -712,7 +782,11 @@ describe('claimQueries integration', () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const feed = await createTestFeed(db, { client_id: client.id, created_by: user.id, status: 'Online' });
+			const feed = await createTestFeed(db, {
+				client_id: client.id,
+				created_by: user.id,
+				status: 'Online',
+			});
 
 			// Explicit created_at spacing to avoid UUID-tiebreak nondeterminism
 			const claim1 = await createTestClaim(db, {
@@ -750,10 +824,22 @@ describe('claimQueries integration', () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const feed = await createTestFeed(db, { client_id: client.id, created_by: user.id, status: 'Online' });
+			const feed = await createTestFeed(db, {
+				client_id: client.id,
+				created_by: user.id,
+				status: 'Online',
+			});
 
-			await createTestClaim(db, { client_id: client.id, feed_id: feed.id, insured: 'Unassigned 1' });
-			await createTestClaim(db, { client_id: client.id, feed_id: feed.id, insured: 'Unassigned 2' });
+			await createTestClaim(db, {
+				client_id: client.id,
+				feed_id: feed.id,
+				insured: 'Unassigned 1',
+			});
+			await createTestClaim(db, {
+				client_id: client.id,
+				feed_id: feed.id,
+				insured: 'Unassigned 2',
+			});
 			const assignedClaim = await createTestClaim(db, {
 				client_id: client.id,
 				feed_id: feed.id,
@@ -785,7 +871,11 @@ describe('claimQueries integration', () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const feed = await createTestFeed(db, { client_id: client.id, created_by: user.id, status: 'Online' });
+			const feed = await createTestFeed(db, {
+				client_id: client.id,
+				created_by: user.id,
+				status: 'Online',
+			});
 
 			// Explicit created_at spacing to avoid UUID-tiebreak nondeterminism
 			await createTestClaim(db, {
@@ -815,7 +905,11 @@ describe('claimQueries integration', () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const feed = await createTestFeed(db, { client_id: client.id, created_by: user.id, status: 'Online' });
+			const feed = await createTestFeed(db, {
+				client_id: client.id,
+				created_by: user.id,
+				status: 'Online',
+			});
 
 			const claim = await createTestClaim(db, { client_id: client.id, feed_id: feed.id });
 			const checklist = await createTestChecklist(db, {
@@ -891,8 +985,16 @@ describe('claimQueries integration', () => {
 			const claim2 = await createTestClaim(db, { client_id: client.id, insured: 'Water Claim' });
 
 			// Create separate parties for each claim (party names must be unique per client)
-			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Loss Type Party 1' });
-			const party2 = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Loss Type Party 2' });
+			const party1 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: 'Loss Type Party 1',
+			});
+			const party2 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: 'Loss Type Party 2',
+			});
 
 			// Create claim parties with loss_type (facilitator field)
 			await createTestClaimParty(db, {
@@ -926,7 +1028,10 @@ describe('claimQueries integration', () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const currentFqStart = getCurrentFiscalQuarterStart();
 			const beforeStart = currentFqStart.subtract(1, 'day').toDate();
 			const afterStart = currentFqStart.add(1, 'day').toDate();
@@ -1081,9 +1186,36 @@ describe('claimQueries integration', () => {
 
 			// Act
 			const result = await createClaims(ctx, [
-				{ claim_number: 'BULK-001', insured: 'Bulk Insured 1', client: null, client_adjuster: null, date_of_loss: null, line_of_business: null, last_update: null, last_updated_by: null },
-				{ claim_number: 'BULK-002', insured: 'Bulk Insured 2', client: null, client_adjuster: null, date_of_loss: null, line_of_business: null, last_update: null, last_updated_by: null },
-				{ claim_number: 'BULK-003', insured: 'Bulk Insured 3', client: null, client_adjuster: null, date_of_loss: null, line_of_business: null, last_update: null, last_updated_by: null },
+				{
+					claim_number: 'BULK-001',
+					insured: 'Bulk Insured 1',
+					client: null,
+					client_adjuster: null,
+					date_of_loss: null,
+					line_of_business: null,
+					last_update: null,
+					last_updated_by: null,
+				},
+				{
+					claim_number: 'BULK-002',
+					insured: 'Bulk Insured 2',
+					client: null,
+					client_adjuster: null,
+					date_of_loss: null,
+					line_of_business: null,
+					last_update: null,
+					last_updated_by: null,
+				},
+				{
+					claim_number: 'BULK-003',
+					insured: 'Bulk Insured 3',
+					client: null,
+					client_adjuster: null,
+					date_of_loss: null,
+					line_of_business: null,
+					last_update: null,
+					last_updated_by: null,
+				},
 			]);
 
 			// Assert
@@ -1108,7 +1240,18 @@ describe('claimQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act - Insert with same claim_number should update
-			const result = await createClaims(ctx, [{ claim_number: 'UPSERT-001', insured: 'Updated Insured', client: null, client_adjuster: null, date_of_loss: null, line_of_business: null, last_update: null, last_updated_by: null }]);
+			const result = await createClaims(ctx, [
+				{
+					claim_number: 'UPSERT-001',
+					insured: 'Updated Insured',
+					client: null,
+					client_adjuster: null,
+					date_of_loss: null,
+					line_of_business: null,
+					last_update: null,
+					last_updated_by: null,
+				},
+			]);
 
 			// Assert
 			expect(result).toHaveLength(1);
@@ -1132,12 +1275,28 @@ describe('claimQueries integration', () => {
 			const claim = await createTestClaim(db, { client_id: client.id });
 
 			// Create entity parties (have liability_percentage, no parent)
-			const entityParty1 = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Entity 1' });
-			const entityParty2 = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Entity 2' });
+			const entityParty1 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: 'Entity 1',
+			});
+			const entityParty2 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: 'Entity 2',
+			});
 
 			// Create facilitator parties (have loss_type, linked to entities)
-			const facilitatorParty1 = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Facilitator 1' });
-			const facilitatorParty2 = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Facilitator 2' });
+			const facilitatorParty1 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: 'Facilitator 1',
+			});
+			const facilitatorParty2 = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: 'Facilitator 2',
+			});
 
 			// Create entity claim parties with liability_percentage
 			const entityClaimParty1 = await createTestClaimParty(db, {
@@ -1192,8 +1351,16 @@ describe('claimQueries integration', () => {
 			const claim = await createTestClaim(db, { client_id: client.id });
 
 			// Create entity with 40% liability
-			const entityParty = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Entity' });
-			const facilitatorParty = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Facilitator' });
+			const entityParty = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: 'Entity',
+			});
+			const facilitatorParty = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: 'Facilitator',
+			});
 
 			const entityClaimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
@@ -1250,7 +1417,11 @@ describe('claimQueries integration', () => {
 			const claim = await createTestClaim(db, { client_id: client.id });
 
 			// Set claim_amount on the claim (total paid)
-			await db.updateTable('claim').set({ claim_amount: '20000' }).where('id', '=', claim.id).execute();
+			await db
+				.updateTable('claim')
+				.set({ claim_amount: '20000' })
+				.where('id', '=', claim.id)
+				.execute();
 
 			// Create party with 40% liability
 			const party = await createTestParty(db, { client_id: client.id, created_by: user.id });
@@ -1288,7 +1459,11 @@ describe('claimQueries integration', () => {
 			const claim = await createTestClaim(db, { client_id: client.id });
 
 			// Set claim_amount on the claim (total paid)
-			await db.updateTable('claim').set({ claim_amount: '25000' }).where('id', '=', claim.id).execute();
+			await db
+				.updateTable('claim')
+				.set({ claim_amount: '25000' })
+				.where('id', '=', claim.id)
+				.execute();
 
 			// Party 1: 25% liability
 			const party1 = await createTestParty(db, { client_id: client.id, created_by: user.id });
@@ -1329,7 +1504,11 @@ describe('claimQueries integration', () => {
 			const claim = await createTestClaim(db, { client_id: client.id });
 
 			// Set claim_amount (payments made)
-			await db.updateTable('claim').set({ claim_amount: '15000' }).where('id', '=', claim.id).execute();
+			await db
+				.updateTable('claim')
+				.set({ claim_amount: '15000' })
+				.where('id', '=', claim.id)
+				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1349,7 +1528,11 @@ describe('claimQueries integration', () => {
 			const claim = await createTestClaim(db, { client_id: client.id });
 
 			// Set claim_amount (payments made)
-			await db.updateTable('claim').set({ claim_amount: '8000' }).where('id', '=', claim.id).execute();
+			await db
+				.updateTable('claim')
+				.set({ claim_amount: '8000' })
+				.where('id', '=', claim.id)
+				.execute();
 
 			// Create party but don't assign liability (NULL liability_percentage)
 			const party = await createTestParty(db, { client_id: client.id, created_by: user.id });
@@ -1452,7 +1635,11 @@ describe('claimQueries integration', () => {
 			// Arrange
 			const client = await createTestClient(db);
 			const admin = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const feed = await createTestFeed(db, { client_id: client.id, created_by: admin.id, name: 'Test Feed' });
+			const feed = await createTestFeed(db, {
+				client_id: client.id,
+				created_by: admin.id,
+				name: 'Test Feed',
+			});
 			const claim = await createTestClaim(db, {
 				client_id: client.id,
 				feed_id: feed.id,
@@ -1546,7 +1733,10 @@ describe('claimQueries integration', () => {
 			const client = await createTestClient(db);
 			const admin = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const contributor = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
-			const otherContributor = await createTestUser(db, { client_id: client.id, role: 'Contributor' });
+			const otherContributor = await createTestUser(db, {
+				client_id: client.id,
+				role: 'Contributor',
+			});
 
 			const claim = await createTestClaim(db, { client_id: client.id });
 			const checklist = await createTestChecklist(db, {
@@ -1564,10 +1754,16 @@ describe('claimQueries integration', () => {
 				assignee: otherContributor.id,
 			});
 
-			const ctx = createTestContext(db, { id: contributor.id, client_id: client.id, role: 'Contributor' });
+			const ctx = createTestContext(db, {
+				id: contributor.id,
+				client_id: client.id,
+				role: 'Contributor',
+			});
 
 			// Act & Assert - Contributor without access should be denied
-			await expect(getClaimDetail(ctx, claim.id)).rejects.toThrow('You do not have access to this claim');
+			await expect(getClaimDetail(ctx, claim.id)).rejects.toThrow(
+				'You do not have access to this claim'
+			);
 		});
 
 		it('should allow contributor access via desk location', async () => {
@@ -1609,7 +1805,11 @@ describe('claimQueries integration', () => {
 				assignee: otherUser.id,
 			});
 
-			const ctx = createTestContext(db, { id: contributor.id, client_id: client.id, role: 'Contributor' });
+			const ctx = createTestContext(db, {
+				id: contributor.id,
+				client_id: client.id,
+				role: 'Contributor',
+			});
 
 			// Act - Contributor should have access via desk location
 			const result = await getClaimDetail(ctx, claim.id);
@@ -1636,8 +1836,14 @@ describe('claimQueries integration', () => {
 			const claim1 = await createTestClaim(db, { client_id: client.id, insured: 'User Claim 1' });
 			const claim2 = await createTestClaim(db, { client_id: client.id, insured: 'User Claim 2' });
 			const claim3 = await createTestClaim(db, { client_id: client.id, insured: 'User Claim 3' });
-			const otherClaim1 = await createTestClaim(db, { client_id: client.id, insured: 'Other Claim 1' });
-			const otherClaim2 = await createTestClaim(db, { client_id: client.id, insured: 'Other Claim 2' });
+			const otherClaim1 = await createTestClaim(db, {
+				client_id: client.id,
+				insured: 'Other Claim 1',
+			});
+			const otherClaim2 = await createTestClaim(db, {
+				client_id: client.id,
+				insured: 'Other Claim 2',
+			});
 
 			await createTestChecklistClaim(db, {
 				client_id: client.id,
@@ -1988,8 +2194,16 @@ describe('claimQueries integration', () => {
 				status: 'Inactive',
 			});
 
-			await createTestClaim(db, { client_id: client.id, feed_id: activeFeed.id, insured: 'Active Claim' });
-			await createTestClaim(db, { client_id: client.id, feed_id: inactiveFeed.id, insured: 'Inactive Claim' });
+			await createTestClaim(db, {
+				client_id: client.id,
+				feed_id: activeFeed.id,
+				insured: 'Active Claim',
+			});
+			await createTestClaim(db, {
+				client_id: client.id,
+				feed_id: inactiveFeed.id,
+				insured: 'Inactive Claim',
+			});
 			await createTestClaim(db, { client_id: client.id, insured: 'Manual Claim' });
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -2047,7 +2261,11 @@ describe('claimQueries integration', () => {
 		it('should filter by loss_type using claim_party exists', async () => {
 			const client = await createTestClient(db, { name: 'Loss Type Client' });
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const party = await createTestParty(db, { client_id: client.id, created_by: user.id, name: 'Loss Party' });
+			const party = await createTestParty(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: 'Loss Party',
+			});
 
 			const collisionClaim = await createTestClaim(db, {
 				client_id: client.id,
@@ -2114,7 +2332,10 @@ describe('claimQueries integration', () => {
 			const clientResult = await getClaims(ctx, { client: 'Acme' });
 
 			expect(recoveryResult.count).toBe(2);
-			expect(recoveryResult.rows.map((claim) => claim.claim_number)).toEqual(['REC-001', 'REC-002']);
+			expect(recoveryResult.rows.map((claim) => claim.claim_number)).toEqual([
+				'REC-001',
+				'REC-002',
+			]);
 
 			expect(insuredResult.count).toBe(2);
 			expect(insuredResult.rows.map((claim) => claim.claim_number)).toEqual(['REC-001', 'REC-003']);

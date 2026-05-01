@@ -13,10 +13,7 @@ import { Kysely, sql } from 'kysely';
 
 export async function up(db: Kysely<any>): Promise<void> {
 	// 1. Add daily_work_units column to desk_location
-	await db.schema
-		.alterTable('desk_location')
-		.addColumn('daily_work_units', 'integer')
-		.execute();
+	await db.schema.alterTable('desk_location').addColumn('daily_work_units', 'integer').execute();
 
 	await sql`COMMENT ON COLUMN desk_location.daily_work_units IS 'Maximum work units per day for this location (NULL = unlimited). 1 unit = 5 minutes.'`.execute(
 		db
@@ -90,12 +87,9 @@ export async function up(db: Kysely<any>): Promise<void> {
 
 	await db.schema
 		.alterTable('task')
-		.addForeignKeyConstraint(
-			'task_desk_location_id_fkey',
-			['desk_location_id'],
-			'desk_location',
-			['id']
-		)
+		.addForeignKeyConstraint('task_desk_location_id_fkey', ['desk_location_id'], 'desk_location', [
+			'id',
+		])
 		.execute();
 
 	await db.schema
@@ -147,11 +141,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.where('status' as any, '=', 'pending')
 		.execute();
 
-	await db.schema
-		.createIndex('idx_task_assigned_by')
-		.on('task')
-		.column('assigned_by')
-		.execute();
+	await db.schema.createIndex('idx_task_assigned_by').on('task').column('assigned_by').execute();
 
 	await db.schema.createIndex('idx_task_claimed_by').on('task').column('claimed_by').execute();
 
@@ -194,18 +184,12 @@ export async function up(db: Kysely<any>): Promise<void> {
 	);
 	await sql`COMMENT ON COLUMN task.title IS 'Brief description of the task'`.execute(db);
 	await sql`COMMENT ON COLUMN task.description IS 'Detailed task instructions'`.execute(db);
-	await sql`COMMENT ON COLUMN task.due_date IS 'Optional deadline for task completion'`.execute(
-		db
-	);
+	await sql`COMMENT ON COLUMN task.due_date IS 'Optional deadline for task completion'`.execute(db);
 	await sql`COMMENT ON COLUMN task.status IS 'Current task status (pending, in_progress, completed, cancelled)'`.execute(
 		db
 	);
-	await sql`COMMENT ON COLUMN task.assigned_by IS 'User who created/assigned the task'`.execute(
-		db
-	);
-	await sql`COMMENT ON COLUMN task.claimed_by IS 'User currently working on the task'`.execute(
-		db
-	);
+	await sql`COMMENT ON COLUMN task.assigned_by IS 'User who created/assigned the task'`.execute(db);
+	await sql`COMMENT ON COLUMN task.claimed_by IS 'User currently working on the task'`.execute(db);
 	await sql`COMMENT ON COLUMN task.completed_by IS 'User who completed the task'`.execute(db);
 	await sql`COMMENT ON COLUMN task.completion_notes IS 'Notes added when completing the task'`.execute(
 		db

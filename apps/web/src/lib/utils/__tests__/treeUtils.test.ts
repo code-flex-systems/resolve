@@ -820,7 +820,9 @@ describe('updatePropertyInTree', () => {
 			},
 		];
 		const result = updatePropertyInTree(tree, '5', 'title', 'Updated Level 5');
-		expect(result[0].children![0].children![0].children![0].children![0].title).toBe('Updated Level 5');
+		expect(result[0].children![0].children![0].children![0].children![0].title).toBe(
+			'Updated Level 5'
+		);
 	});
 
 	it('should preserve all other properties when updating one property', () => {

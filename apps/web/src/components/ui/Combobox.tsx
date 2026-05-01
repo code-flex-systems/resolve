@@ -118,7 +118,7 @@ export default function Combobox<T extends ComboboxOption = ComboboxOption>({
 		if (filterDisabled || !search) return options;
 		const lower = search.toLowerCase();
 		return options.filter(
-			(o) => o.label.toLowerCase().includes(lower) || (o.description?.toLowerCase().includes(lower))
+			(o) => o.label.toLowerCase().includes(lower) || o.description?.toLowerCase().includes(lower)
 		);
 	}, [options, search, filterDisabled]);
 
@@ -198,7 +198,11 @@ export default function Combobox<T extends ComboboxOption = ComboboxOption>({
 	useEffect(() => {
 		if (!open) return;
 		const handler = (e: MouseEvent) => {
-			if (wrapperRef.current?.contains(e.target as Node) || menuRef.current?.contains(e.target as Node)) return;
+			if (
+				wrapperRef.current?.contains(e.target as Node) ||
+				menuRef.current?.contains(e.target as Node)
+			)
+				return;
 			closeMenu();
 		};
 		document.addEventListener('mousedown', handler);
@@ -221,7 +225,10 @@ export default function Combobox<T extends ComboboxOption = ComboboxOption>({
 	const handleKeyDown = useCallback(
 		(e: KeyboardEvent<HTMLInputElement>) => {
 			if (!open) {
-				if (e.key === 'ArrowDown' || e.key === 'Enter') { e.preventDefault(); openMenu(); }
+				if (e.key === 'ArrowDown' || e.key === 'Enter') {
+					e.preventDefault();
+					openMenu();
+				}
 				return;
 			}
 			switch (e.key) {
@@ -254,17 +261,39 @@ export default function Combobox<T extends ComboboxOption = ComboboxOption>({
 					closeMenu();
 					break;
 				case 'Backspace':
-					if (multiple && !search && values && values.length > 0) removeTag(values[values.length - 1]);
+					if (multiple && !search && values && values.length > 0)
+						removeTag(values[values.length - 1]);
 					break;
 			}
 		},
-		[open, openMenu, closeMenu, selectOption, highlightedIndex, filtered, freeSolo, search, multiple, values, removeTag]
+		[
+			open,
+			openMenu,
+			closeMenu,
+			selectOption,
+			highlightedIndex,
+			filtered,
+			freeSolo,
+			search,
+			multiple,
+			values,
+			removeTag,
+		]
 	);
 
-	const hasValue = multiple ? (values && values.length > 0) : !!value;
+	const hasValue = multiple ? values && values.length > 0 : !!value;
 
-	const wrapperCls = [styles.wrapper, fullWidth && styles.fullWidth, className].filter(Boolean).join(' ');
-	const inputCls = [styles.inputWrapper, open && styles.open, error && styles.error, disabled && styles.disabled].filter(Boolean).join(' ');
+	const wrapperCls = [styles.wrapper, fullWidth && styles.fullWidth, className]
+		.filter(Boolean)
+		.join(' ');
+	const inputCls = [
+		styles.inputWrapper,
+		open && styles.open,
+		error && styles.error,
+		disabled && styles.disabled,
+	]
+		.filter(Boolean)
+		.join(' ');
 
 	return (
 		<div className={wrapperCls} ref={wrapperRef}>
@@ -283,7 +312,15 @@ export default function Combobox<T extends ComboboxOption = ComboboxOption>({
 						{values.map((v) => (
 							<span key={String(v.value)} className={styles.tag}>
 								<span className={styles.tagLabel}>{v.label}</span>
-								<button type="button" className={styles.tagRemove} onClick={(e) => { e.stopPropagation(); removeTag(v); }} tabIndex={-1}>
+								<button
+									type="button"
+									className={styles.tagRemove}
+									onClick={(e) => {
+										e.stopPropagation();
+										removeTag(v);
+									}}
+									tabIndex={-1}
+								>
 									<IconX size={12} stroke={2} />
 								</button>
 							</span>
@@ -319,31 +356,60 @@ export default function Combobox<T extends ComboboxOption = ComboboxOption>({
 				<span className={styles.helperText}>{helperText}</span>
 			) : null}
 
-			{open && menuPos && createPortal(
-				<div ref={menuRef} className={styles.menu} style={{ top: menuPos.top, left: menuPos.left, width: menuPos.width }} role="listbox">
-					{filtered.length === 0 && !loading && <div className={styles.emptyState}>{noOptionsText}</div>}
-					{loading && filtered.length === 0 && <div className={styles.emptyState}>Loading...</div>}
-					{filtered.map((opt, i) => {
-						const sel = isSelected(opt);
-						const cls = [styles.option, sel && styles.selected, opt.disabled && styles.optionDisabled, i === highlightedIndex && styles.highlighted].filter(Boolean).join(' ');
-						return (
-							<div key={String(opt.value)} className={cls} role="option" aria-selected={sel} onClick={() => selectOption(opt)} onMouseEnter={() => !opt.disabled && setHighlightedIndex(i)}>
-								{renderOption ? renderOption(opt) : (
-									<>
-										{opt.icon && <span className={styles.optionIcon}>{opt.icon}</span>}
-										<span className={styles.optionContent}>
-											<span className={styles.optionLabel}>{opt.label}</span>
-											{opt.description && <span className={styles.optionDescription}>{opt.description}</span>}
-										</span>
-									</>
-								)}
-								{multiple && sel && <span className={styles.checkmark}>✓</span>}
-							</div>
-						);
-					})}
-				</div>,
-				getPortalTarget(wrapperRef)
-			)}
+			{open &&
+				menuPos &&
+				createPortal(
+					<div
+						ref={menuRef}
+						className={styles.menu}
+						style={{ top: menuPos.top, left: menuPos.left, width: menuPos.width }}
+						role="listbox"
+					>
+						{filtered.length === 0 && !loading && (
+							<div className={styles.emptyState}>{noOptionsText}</div>
+						)}
+						{loading && filtered.length === 0 && (
+							<div className={styles.emptyState}>Loading...</div>
+						)}
+						{filtered.map((opt, i) => {
+							const sel = isSelected(opt);
+							const cls = [
+								styles.option,
+								sel && styles.selected,
+								opt.disabled && styles.optionDisabled,
+								i === highlightedIndex && styles.highlighted,
+							]
+								.filter(Boolean)
+								.join(' ');
+							return (
+								<div
+									key={String(opt.value)}
+									className={cls}
+									role="option"
+									aria-selected={sel}
+									onClick={() => selectOption(opt)}
+									onMouseEnter={() => !opt.disabled && setHighlightedIndex(i)}
+								>
+									{renderOption ? (
+										renderOption(opt)
+									) : (
+										<>
+											{opt.icon && <span className={styles.optionIcon}>{opt.icon}</span>}
+											<span className={styles.optionContent}>
+												<span className={styles.optionLabel}>{opt.label}</span>
+												{opt.description && (
+													<span className={styles.optionDescription}>{opt.description}</span>
+												)}
+											</span>
+										</>
+									)}
+									{multiple && sel && <span className={styles.checkmark}>✓</span>}
+								</div>
+							);
+						})}
+					</div>,
+					getPortalTarget(wrapperRef)
+				)}
 		</div>
 	);
 }

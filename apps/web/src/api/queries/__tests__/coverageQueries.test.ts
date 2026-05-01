@@ -67,7 +67,12 @@ describe('coverageQueries', () => {
 
 		// Each method returns the chain for fluent API
 		Object.keys(mockChain).forEach((key) => {
-			if (typeof mockChain[key] === 'function' && key !== 'execute' && key !== 'executeTakeFirst' && key !== 'executeTakeFirstOrThrow') {
+			if (
+				typeof mockChain[key] === 'function' &&
+				key !== 'execute' &&
+				key !== 'executeTakeFirst' &&
+				key !== 'executeTakeFirstOrThrow'
+			) {
 				mockChain[key].mockReturnValue(mockChain);
 			}
 		});
@@ -88,7 +93,13 @@ describe('coverageQueries', () => {
 			const mockChain = createMockQueryBuilder();
 			mockChain.execute.mockResolvedValue([
 				{ id: 1, claim_id: 100, loss_type: 'dwelling', coverage_amount: '50000', deleted_at: null },
-				{ id: 2, claim_id: 100, loss_type: 'personal_property', coverage_amount: '25000', deleted_at: null },
+				{
+					id: 2,
+					claim_id: 100,
+					loss_type: 'personal_property',
+					coverage_amount: '25000',
+					deleted_at: null,
+				},
 			]);
 
 			(db.selectFrom as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
@@ -178,19 +189,21 @@ describe('coverageQueries', () => {
 
 			expect(db.selectFrom).toHaveBeenCalledWith('claim');
 			expect(db.insertInto).toHaveBeenCalledWith('claim_coverage');
-			expect(mockChain.values).toHaveBeenCalledWith(expect.objectContaining({
-				claim_id: 'claim-100',
-				claim_party_id: 'party-50',
-				loss_type: 'dwelling',
-				coverage_amount: 50000,
-				amount_reserved: null,
-				deductible_amount: 0,
-				deductible_status: DeductibleStatus.NOT_CONFIRMED,
-				subro_applicable: false,
-				statute_preserved: false,
-				client_id: 'client-abc',
-				created_by: 'admin-123',
-			}));
+			expect(mockChain.values).toHaveBeenCalledWith(
+				expect.objectContaining({
+					claim_id: 'claim-100',
+					claim_party_id: 'party-50',
+					loss_type: 'dwelling',
+					coverage_amount: 50000,
+					amount_reserved: null,
+					deductible_amount: 0,
+					deductible_status: DeductibleStatus.NOT_CONFIRMED,
+					subro_applicable: false,
+					statute_preserved: false,
+					client_id: 'client-abc',
+					created_by: 'admin-123',
+				})
+			);
 		});
 
 		it('should require claim_party_id for new coverages', async () => {
@@ -280,10 +293,12 @@ describe('coverageQueries', () => {
 			const result = await archiveCoverage(mockAdminContext, 'cov-1');
 
 			expect(db.updateTable).toHaveBeenCalledWith('claim_coverage');
-			expect(mockChain.set).toHaveBeenCalledWith(expect.objectContaining({
-				deleted_at: expect.any(Date),
-				deleted_by: 'admin-123',
-			}));
+			expect(mockChain.set).toHaveBeenCalledWith(
+				expect.objectContaining({
+					deleted_at: expect.any(Date),
+					deleted_by: 'admin-123',
+				})
+			);
 			expect(result.claimId).toBe(100);
 		});
 
@@ -293,7 +308,9 @@ describe('coverageQueries', () => {
 
 			(db.updateTable as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
 
-			await expect(archiveCoverage(mockAdminContext, 'cov-999')).rejects.toThrow('Coverage not found');
+			await expect(archiveCoverage(mockAdminContext, 'cov-999')).rejects.toThrow(
+				'Coverage not found'
+			);
 		});
 	});
 
@@ -338,11 +355,13 @@ describe('coverageQueries', () => {
 			expect(mockChain.where).toHaveBeenCalledWith('claim_party_id', '=', 'party-50');
 			expect(mockChain.where).toHaveBeenCalledWith('client_id', '=', 'client-abc');
 			expect(mockChain.where).toHaveBeenCalledWith('deleted_at', 'is', null);
-			expect(mockChain.set).toHaveBeenCalledWith(expect.objectContaining({
-				deleted_at: expect.any(Date),
-				deleted_by: 'admin-123',
-				claim_party_id: null,
-			}));
+			expect(mockChain.set).toHaveBeenCalledWith(
+				expect.objectContaining({
+					deleted_at: expect.any(Date),
+					deleted_by: 'admin-123',
+					claim_party_id: null,
+				})
+			);
 		});
 	});
 });

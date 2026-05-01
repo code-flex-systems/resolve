@@ -100,7 +100,9 @@ function ConditionRow({
 					label="Field"
 					options={WORKFLOW_CONDITION_FIELDS.map((f) => ({ value: f.field, label: f.label }))}
 					value={condition.field}
-					onChange={(v) => onChange({ ...condition, field: String(v), operator: 'eq' as any, value: null })}
+					onChange={(v) =>
+						onChange({ ...condition, field: String(v), operator: 'eq' as any, value: null })
+					}
 					size="sm"
 				/>
 			</div>
@@ -108,16 +110,21 @@ function ConditionRow({
 				<div style={{ minWidth: 120 }}>
 					<Dropdown
 						label="Operator"
-						options={selectedFieldDef.allowedOperators.map((op) => ({ value: op, label: OPERATOR_LABELS[op] }))}
+						options={selectedFieldDef.allowedOperators.map((op) => ({
+							value: op,
+							label: OPERATOR_LABELS[op],
+						}))}
 						value={condition.operator}
 						onChange={(v) => onChange({ ...condition, operator: v as any })}
 						size="sm"
 					/>
 				</div>
 			)}
-			{selectedFieldDef && condition.operator && !VALUE_LESS_OPERATORS.includes(condition.operator as any) && (
-				<div style={{ flex: 1 }}>{renderValueInput(selectedFieldDef, condition, onChange)}</div>
-			)}
+			{selectedFieldDef &&
+				condition.operator &&
+				!VALUE_LESS_OPERATORS.includes(condition.operator as any) && (
+					<div style={{ flex: 1 }}>{renderValueInput(selectedFieldDef, condition, onChange)}</div>
+				)}
 			<Button variant="icon" size="sm" onClick={onRemove} color="error">
 				<IconTrash size={16} stroke={1.5} />
 			</Button>
@@ -136,9 +143,14 @@ function RuleConditionsBuilder({
 		return (
 			<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
 				<p style={{ color: 'var(--text-secondary)', fontSize: 14, margin: 0 }}>
-					Conditions determine which claims this rule applies to. Without conditions, the rule applies to all claims.
+					Conditions determine which claims this rule applies to. Without conditions, the rule
+					applies to all claims.
 				</p>
-				<Button variant="outlined" size="sm" onClick={() => onChange({ logic: 'AND', conditions: [] })}>
+				<Button
+					variant="outlined"
+					size="sm"
+					onClick={() => onChange({ logic: 'AND', conditions: [] })}
+				>
 					Add Conditions
 				</Button>
 			</div>
@@ -172,7 +184,12 @@ function RuleConditionsBuilder({
 						updated[idx] = newCond;
 						onChange({ ...conditions, conditions: updated });
 					}}
-					onRemove={() => onChange({ ...conditions, conditions: conditions.conditions.filter((_, i) => i !== idx) })}
+					onRemove={() =>
+						onChange({
+							...conditions,
+							conditions: conditions.conditions.filter((_, i) => i !== idx),
+						})
+					}
 				/>
 			))}
 			<Button
@@ -181,7 +198,10 @@ function RuleConditionsBuilder({
 				onClick={() =>
 					onChange({
 						...conditions,
-						conditions: [...conditions.conditions, { field: 'claim.recovery_status', operator: 'eq', value: null } as any],
+						conditions: [
+							...conditions.conditions,
+							{ field: 'claim.recovery_status', operator: 'eq', value: null } as any,
+						],
 					})
 				}
 			>
@@ -195,7 +215,11 @@ function RuleConditionsBuilder({
    MAIN COMPONENT
    ========================================================================= */
 
-export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }: WorkflowRuleDialogProps) {
+export default function WorkflowRuleDialog({
+	onClose,
+	workflowId,
+	editingRule,
+}: WorkflowRuleDialogProps) {
 	const [activeStep, setActiveStep] = useState(0);
 	const [formData, setFormData] = useState({
 		name: '',
@@ -277,7 +301,8 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 						content: (
 							<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16 }}>
 								<p style={{ color: 'var(--text-secondary)', fontSize: 14, margin: 0 }}>
-									Define the basic properties of this rule — what triggers it and what action it performs.
+									Define the basic properties of this rule — what triggers it and what action it
+									performs.
 								</p>
 								<Input
 									label="Rule Name"
@@ -303,7 +328,9 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 										description: config.description,
 									}))}
 									value={formData.triggerType}
-									onChange={(v) => setFormData({ ...formData, triggerType: v as WorkflowTriggerType })}
+									onChange={(v) =>
+										setFormData({ ...formData, triggerType: v as WorkflowTriggerType })
+									}
 									placeholder="Select when this rule fires..."
 									required
 									fullWidth
@@ -316,7 +343,9 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 										description: config.description,
 									}))}
 									value={formData.actionType}
-									onChange={(v) => setFormData({ ...formData, actionType: v as WorkflowActionType })}
+									onChange={(v) =>
+										setFormData({ ...formData, actionType: v as WorkflowActionType })
+									}
 									placeholder="Select what action to perform..."
 									required
 									fullWidth
@@ -328,7 +357,11 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 											onChange={(id) =>
 												setFormData({
 													...formData,
-													actionConfig: { ...formData.actionConfig, targetLocationTypeId: id, targetLocationId: null },
+													actionConfig: {
+														...formData.actionConfig,
+														targetLocationTypeId: id,
+														targetLocationId: null,
+													},
 												})
 											}
 											placeholder="Select desk location type..."
@@ -342,7 +375,9 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 													actionConfig: { ...formData.actionConfig, targetLocationId: id },
 												})
 											}
-											deskLocationTypeId={(formData.actionConfig.targetLocationTypeId as string) || null}
+											deskLocationTypeId={
+												(formData.actionConfig.targetLocationTypeId as string) || null
+											}
 											label="Target Desk Location"
 											fullWidth
 										/>
@@ -372,7 +407,8 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 						content: (
 							<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 16 }}>
 								<p style={{ color: 'var(--text-secondary)', fontSize: 14, margin: 0 }}>
-									Choose how this rule executes. Suggest mode requires admin approval before actions are taken. Auto mode executes immediately.
+									Choose how this rule executes. Suggest mode requires admin approval before actions
+									are taken. Auto mode executes immediately.
 								</p>
 								<Dropdown
 									label="Execution Mode"
@@ -382,14 +418,18 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 										description: config.description,
 									}))}
 									value={formData.executionMode}
-									onChange={(v) => setFormData({ ...formData, executionMode: v as WorkflowExecutionMode })}
+									onChange={(v) =>
+										setFormData({ ...formData, executionMode: v as WorkflowExecutionMode })
+									}
 									fullWidth
 								/>
 								<Input
 									label="Priority"
 									type="number"
 									value={formData.priority}
-									onChange={(e) => setFormData({ ...formData, priority: parseInt(e.target.value, 10) })}
+									onChange={(e) =>
+										setFormData({ ...formData, priority: parseInt(e.target.value, 10) })
+									}
 									helperText="Lower numbers = higher priority (1-1000)"
 									placeholder="500"
 								/>
@@ -415,37 +455,100 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 								</p>
 								<div style={{ display: 'flex', flexDirection: 'column' as const, gap: 12 }}>
 									<div>
-										<span style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>Name</span>
-										<div style={{ fontSize: 14, fontWeight: 500, marginTop: 2 }}>{formData.name || '—'}</div>
+										<span
+											style={{
+												fontSize: 12,
+												color: 'var(--text-muted)',
+												textTransform: 'uppercase' as const,
+												letterSpacing: '0.04em',
+											}}
+										>
+											Name
+										</span>
+										<div style={{ fontSize: 14, fontWeight: 500, marginTop: 2 }}>
+											{formData.name || '—'}
+										</div>
 									</div>
 									{formData.description && (
 										<div>
-											<span style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>Description</span>
+											<span
+												style={{
+													fontSize: 12,
+													color: 'var(--text-muted)',
+													textTransform: 'uppercase' as const,
+													letterSpacing: '0.04em',
+												}}
+											>
+												Description
+											</span>
 											<div style={{ fontSize: 14, marginTop: 2 }}>{formData.description}</div>
 										</div>
 									)}
 									<div style={{ display: 'flex', gap: 24 }}>
 										<div>
-											<span style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>Trigger</span>
+											<span
+												style={{
+													fontSize: 12,
+													color: 'var(--text-muted)',
+													textTransform: 'uppercase' as const,
+													letterSpacing: '0.04em',
+												}}
+											>
+												Trigger
+											</span>
 											<div style={{ marginTop: 4 }}>
-												<Chip color="info" size="sm">{TRIGGER_CONFIG[formData.triggerType as WorkflowTriggerType]?.label ?? '—'}</Chip>
+												<Chip color="info" size="sm">
+													{TRIGGER_CONFIG[formData.triggerType as WorkflowTriggerType]?.label ??
+														'—'}
+												</Chip>
 											</div>
 										</div>
 										<div>
-											<span style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>Action</span>
+											<span
+												style={{
+													fontSize: 12,
+													color: 'var(--text-muted)',
+													textTransform: 'uppercase' as const,
+													letterSpacing: '0.04em',
+												}}
+											>
+												Action
+											</span>
 											<div style={{ marginTop: 4 }}>
-												<Chip color="neutral" size="sm">{ACTION_CONFIG[formData.actionType as WorkflowActionType]?.label ?? '—'}</Chip>
+												<Chip color="neutral" size="sm">
+													{ACTION_CONFIG[formData.actionType as WorkflowActionType]?.label ?? '—'}
+												</Chip>
 											</div>
 										</div>
 										<div>
-											<span style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>Mode</span>
+											<span
+												style={{
+													fontSize: 12,
+													color: 'var(--text-muted)',
+													textTransform: 'uppercase' as const,
+													letterSpacing: '0.04em',
+												}}
+											>
+												Mode
+											</span>
 											<div style={{ marginTop: 4 }}>
-												<Chip color="neutral" size="sm">{MODE_CONFIG[formData.executionMode]?.label ?? '—'}</Chip>
+												<Chip color="neutral" size="sm">
+													{MODE_CONFIG[formData.executionMode]?.label ?? '—'}
+												</Chip>
 											</div>
 										</div>
 									</div>
 									<div>
-										<span style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>Conditions</span>
+										<span
+											style={{
+												fontSize: 12,
+												color: 'var(--text-muted)',
+												textTransform: 'uppercase' as const,
+												letterSpacing: '0.04em',
+											}}
+										>
+											Conditions
+										</span>
 										<div style={{ fontSize: 14, marginTop: 2 }}>
 											{formData.conditions?.conditions?.length
 												? `${formData.conditions.conditions.length} condition(s) — ${formData.conditions.logic}`
@@ -453,7 +556,16 @@ export default function WorkflowRuleDialog({ onClose, workflowId, editingRule }:
 										</div>
 									</div>
 									<div>
-										<span style={{ fontSize: 12, color: 'var(--text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.04em' }}>Priority</span>
+										<span
+											style={{
+												fontSize: 12,
+												color: 'var(--text-muted)',
+												textTransform: 'uppercase' as const,
+												letterSpacing: '0.04em',
+											}}
+										>
+											Priority
+										</span>
 										<div style={{ fontSize: 14, marginTop: 2 }}>{formData.priority}</div>
 									</div>
 								</div>

@@ -90,7 +90,9 @@ describe('Authorization Functions', () => {
 			};
 
 			expect(() => requireRole(ctx, ['Admin', 'Super Admin'])).toThrow(TRPCError);
-			expect(() => requireRole(ctx, ['Admin', 'Super Admin'])).toThrow('User must have one of: Admin, Super Admin');
+			expect(() => requireRole(ctx, ['Admin', 'Super Admin'])).toThrow(
+				'User must have one of: Admin, Super Admin'
+			);
 		});
 
 		it('should handle Super Admin role correctly', () => {
@@ -361,9 +363,11 @@ describe('Authorization Functions', () => {
 
 			const mockSelect = vi.fn().mockReturnValue({
 				where: vi.fn().mockReturnThis(),
-				executeTakeFirstOrThrow: vi.fn().mockRejectedValue(
-					new TRPCError({ code: 'BAD_REQUEST', message: 'Checklist + claim does not exist' })
-				),
+				executeTakeFirstOrThrow: vi
+					.fn()
+					.mockRejectedValue(
+						new TRPCError({ code: 'BAD_REQUEST', message: 'Checklist + claim does not exist' })
+					),
 			});
 
 			vi.spyOn(db, 'selectFrom').mockReturnValue({
@@ -371,7 +375,9 @@ describe('Authorization Functions', () => {
 			} as any);
 
 			await expect(requireOwnership(ctx, 'checklist-999', 'claim-999')).rejects.toThrow(TRPCError);
-			await expect(requireOwnership(ctx, 'checklist-999', 'claim-999')).rejects.toThrow('Checklist + claim does not exist');
+			await expect(requireOwnership(ctx, 'checklist-999', 'claim-999')).rejects.toThrow(
+				'Checklist + claim does not exist'
+			);
 		});
 
 		it('should query the correct table and fields', async () => {
@@ -490,7 +496,9 @@ describe('Authorization Functions', () => {
 				where: vi.fn().mockReturnThis(),
 				executeTakeFirstOrThrow: vi
 					.fn()
-					.mockRejectedValue(new TRPCError({ code: 'BAD_REQUEST', message: 'Checklist + claim does not exist' })),
+					.mockRejectedValue(
+						new TRPCError({ code: 'BAD_REQUEST', message: 'Checklist + claim does not exist' })
+					),
 			});
 			vi.spyOn(db, 'selectFrom').mockReturnValue({ select: mockSelectBadRequest } as any);
 
@@ -604,9 +612,11 @@ describe('Authorization Functions', () => {
 
 			const mockSelect = vi.fn().mockReturnValue({
 				where: vi.fn().mockReturnThis(),
-				executeTakeFirstOrThrow: vi.fn().mockRejectedValue(
-					new TRPCError({ code: 'BAD_REQUEST', message: 'Checklist + claim does not exist' })
-				),
+				executeTakeFirstOrThrow: vi
+					.fn()
+					.mockRejectedValue(
+						new TRPCError({ code: 'BAD_REQUEST', message: 'Checklist + claim does not exist' })
+					),
 			});
 
 			vi.spyOn(db, 'selectFrom').mockReturnValue({
@@ -614,7 +624,9 @@ describe('Authorization Functions', () => {
 			} as any);
 
 			await expect(requireAssigned(ctx, 'checklist-999', 'claim-999')).rejects.toThrow(TRPCError);
-			await expect(requireAssigned(ctx, 'checklist-999', 'claim-999')).rejects.toThrow('Checklist + claim does not exist');
+			await expect(requireAssigned(ctx, 'checklist-999', 'claim-999')).rejects.toThrow(
+				'Checklist + claim does not exist'
+			);
 		});
 
 		it('should query the correct table and fields', async () => {
@@ -692,7 +704,9 @@ describe('Authorization Functions', () => {
 				where: vi.fn().mockReturnThis(),
 				executeTakeFirstOrThrow: vi
 					.fn()
-					.mockRejectedValue(new TRPCError({ code: 'BAD_REQUEST', message: 'Checklist + claim does not exist' })),
+					.mockRejectedValue(
+						new TRPCError({ code: 'BAD_REQUEST', message: 'Checklist + claim does not exist' })
+					),
 			});
 			vi.spyOn(db, 'selectFrom').mockReturnValue({ select: mockSelectBadRequest } as any);
 

@@ -241,7 +241,13 @@ export default function BasicMonthRangePicker({
 							setLabelConfirmed(EMPTY_LABEL);
 							onConfirm(range);
 						}}
-						style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 14 }}
+						style={{
+							background: 'none',
+							border: 'none',
+							cursor: 'pointer',
+							padding: 0,
+							fontSize: 14,
+						}}
 					>
 						x
 					</button>

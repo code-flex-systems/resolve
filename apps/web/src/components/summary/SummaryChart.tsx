@@ -26,7 +26,12 @@ export default function SummaryChart() {
 	const selectedSummarySegment = useChecklistStore((state) => state.selectedSummarySegment);
 	const updateSelectedSegment = useChecklistStore((state) => state.updateSelectedSegment);
 	const {
-		data: totals = { total_answered: 0, total_questions: 0, total_action_required: 0, total_unknown: 0 },
+		data: totals = {
+			total_answered: 0,
+			total_questions: 0,
+			total_action_required: 0,
+			total_unknown: 0,
+		},
 		isFetching: loading,
 	} = useChecklistTrpc().getSummary(
 		{ checklistId: checklistId!, claimId: claimId! },
@@ -68,9 +73,10 @@ export default function SummaryChart() {
 	}, [totals]);
 
 	const maxValue = Math.max(...rows.map((r) => r.value), 1);
-	const progressPct = totals.total_questions > 0
-		? Math.round((totals.total_answered / totals.total_questions) * 100)
-		: 0;
+	const progressPct =
+		totals.total_questions > 0
+			? Math.round((totals.total_answered / totals.total_questions) * 100)
+			: 0;
 
 	if (loading) {
 		return (
@@ -85,13 +91,27 @@ export default function SummaryChart() {
 		<div style={{ display: 'flex', flexDirection: 'column', gap: 16, height: '100%' }}>
 			{/* Progress summary */}
 			<Card variant="beveled" padding="md">
-				<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+				<div
+					style={{
+						display: 'flex',
+						justifyContent: 'space-between',
+						alignItems: 'baseline',
+						marginBottom: 8,
+					}}
+				>
 					<span style={{ fontSize: 14, fontWeight: 600 }}>Progress</span>
 					<span style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-accent)' }}>
 						{progressPct}%
 					</span>
 				</div>
-				<div style={{ height: 6, background: 'var(--bg-tertiary, #2a2a2a)', borderRadius: 3, overflow: 'hidden' }}>
+				<div
+					style={{
+						height: 6,
+						background: 'var(--bg-tertiary, #2a2a2a)',
+						borderRadius: 3,
+						overflow: 'hidden',
+					}}
+				>
 					<div
 						style={{
 							width: `${progressPct}%`,
@@ -102,8 +122,18 @@ export default function SummaryChart() {
 						}}
 					/>
 				</div>
-				<div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6, fontSize: 12, color: 'var(--text-secondary)' }}>
-					<span>{totals.total_answered} of {totals.total_questions} questions</span>
+				<div
+					style={{
+						display: 'flex',
+						justifyContent: 'space-between',
+						marginTop: 6,
+						fontSize: 12,
+						color: 'var(--text-secondary)',
+					}}
+				>
+					<span>
+						{totals.total_answered} of {totals.total_questions} questions
+					</span>
 					<span>{pageData.maxPosition} pages</span>
 				</div>
 			</Card>
@@ -128,7 +158,9 @@ export default function SummaryChart() {
 									gap: 12,
 									padding: '10px 12px',
 									borderRadius: 6,
-									background: isSelected ? `color-mix(in srgb, ${row.color} 12%, transparent)` : 'transparent',
+									background: isSelected
+										? `color-mix(in srgb, ${row.color} 12%, transparent)`
+										: 'transparent',
 									cursor: 'pointer',
 									transition: 'background 0.15s ease',
 									border: isSelected ? `1px solid ${row.color}` : '1px solid transparent',

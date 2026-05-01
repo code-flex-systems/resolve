@@ -382,19 +382,26 @@ export async function logUserWorkflowAction(
 	ctx: ProtectedContext,
 	params: {
 		claimId: string;
-		action: 'task_assign' | 'task_unassign' | 'task_start' | 'task_complete' | 'deadline_complete' | 'comment_create';
+		action:
+			| 'task_assign'
+			| 'task_unassign'
+			| 'task_start'
+			| 'task_complete'
+			| 'deadline_complete'
+			| 'comment_create';
 		entityId: string;
 		value?: any;
 	}
 ): Promise<void> {
-	const actionMap: Record<typeof params.action, { entityName: EntityName; logAction: LogAction }> = {
-		task_assign: { entityName: EntityName.TASK, logAction: LogAction.ASSIGN },
-		task_unassign: { entityName: EntityName.TASK, logAction: LogAction.UNASSIGN },
-		task_start: { entityName: EntityName.TASK, logAction: LogAction.START },
-		task_complete: { entityName: EntityName.TASK, logAction: LogAction.COMPLETE },
-		deadline_complete: { entityName: EntityName.DEADLINE, logAction: LogAction.COMPLETE },
-		comment_create: { entityName: EntityName.COMMENT, logAction: LogAction.CREATE },
-	};
+	const actionMap: Record<typeof params.action, { entityName: EntityName; logAction: LogAction }> =
+		{
+			task_assign: { entityName: EntityName.TASK, logAction: LogAction.ASSIGN },
+			task_unassign: { entityName: EntityName.TASK, logAction: LogAction.UNASSIGN },
+			task_start: { entityName: EntityName.TASK, logAction: LogAction.START },
+			task_complete: { entityName: EntityName.TASK, logAction: LogAction.COMPLETE },
+			deadline_complete: { entityName: EntityName.DEADLINE, logAction: LogAction.COMPLETE },
+			comment_create: { entityName: EntityName.COMMENT, logAction: LogAction.CREATE },
+		};
 
 	const { entityName, logAction: action } = actionMap[params.action];
 
@@ -449,7 +456,9 @@ export async function logActions(ctx: ProtectedContext, logs: LogActionParams[])
 		logs.map(async (log) => {
 			const claimId = log.claimId ?? (await deriveClaimId(ctx, log.entityName, log.entityId));
 			if (claimId === null) {
-				console.warn(`Could not derive claim_id for ${log.entityName} ${log.entityId}. Skipping log.`);
+				console.warn(
+					`Could not derive claim_id for ${log.entityName} ${log.entityId}. Skipping log.`
+				);
 				return null;
 			}
 

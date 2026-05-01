@@ -6,7 +6,12 @@ import { useChecklistParams } from '@/hooks/useChecklistParams';
 import config from '@/config/config';
 import useIsAssigned from '@/hooks/useIsAssigned';
 import { TreeNode } from '@/types/types';
-import { IconChevronLeft, IconChevronRight, IconCirclePlus, IconMessage } from '@tabler/icons-react';
+import {
+	IconChevronLeft,
+	IconChevronRight,
+	IconCirclePlus,
+	IconMessage,
+} from '@tabler/icons-react';
 import Skeleton from '@/components/ui/Skeleton';
 import Collapse from '@/components/ui/Collapse';
 import Divider from '@/components/ui/Divider';
@@ -97,7 +102,11 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 					padding: '5px 10px',
 				}}
 			>
-				<Badge active={Boolean(data?.count)} content={(data?.count ?? 0) || undefined} color="primary">
+				<Badge
+					active={Boolean(data?.count)}
+					content={(data?.count ?? 0) || undefined}
+					color="primary"
+				>
 					<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Comments</span>
 				</Badge>
 
@@ -191,7 +200,15 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 				}}
 			>
 				{isFetching ? (
-					<div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 12, padding: 12 }}>
+					<div
+						style={{
+							width: '100%',
+							display: 'flex',
+							flexDirection: 'column',
+							gap: 12,
+							padding: 12,
+						}}
+					>
 						{[1, 2, 3].map((i) => (
 							<Skeleton key={i} variant="rect" height={50} />
 						))}

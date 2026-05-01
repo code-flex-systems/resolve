@@ -33,7 +33,14 @@ export default function DocumentPreviewDialog({ onClose, document }: DocumentPre
 	return (
 		<BasicDialog
 			title={
-				<span style={{ maxWidth: '80%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+				<span
+					style={{
+						maxWidth: '80%',
+						whiteSpace: 'nowrap',
+						overflow: 'hidden',
+						textOverflow: 'ellipsis',
+					}}
+				>
 					{document.title || document.alias}
 				</span>
 			}
@@ -49,21 +56,21 @@ export default function DocumentPreviewDialog({ onClose, document }: DocumentPre
 		>
 			{/* Document metadata */}
 			<div style={{ marginBottom: 16 }}>
-				<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
+				<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
 					<strong>Filename:</strong> {document.filename}
 				</span>
-				<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
+				<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
 					<strong>Type:</strong> {document.doc_type.replace(/_/g, ' ')}
 				</span>
-				<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
+				<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
 					<strong>Size:</strong>{' '}
 					{document.file_size ? `${(Number(document.file_size) / 1024).toFixed(1)} KB` : 'Unknown'}
 				</span>
-				<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
+				<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
 					<strong>Uploaded:</strong> {formatMDY(document.created_at)}
 				</span>
 				{(document as any).description && (
-					<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
+					<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
 						<strong>Description:</strong> {(document as any).description}
 					</span>
 				)}
@@ -122,18 +129,19 @@ export default function DocumentPreviewDialog({ onClose, document }: DocumentPre
 						alignItems: 'center',
 					}}
 				>
-					<span style={{ fontSize: 13,  color: 'var(--text-secondary)'  }}>
+					<span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
 						Preview not available for this file type.
 					</span>
-					<span style={{ fontSize: 12,  color: 'var(--text-secondary)'  }}>
+					<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
 						MIME Type: {document.mime_type || 'Unknown'}
 					</span>
-					<Button variant="icon"
+					<Button
+						variant="icon"
 						onClick={handleDownload}
 						style={{
 							backgroundColor: 'primary.main',
 							color: 'white',
-							}}
+						}}
 					>
 						<IconCloudDownload size={20} />
 					</Button>

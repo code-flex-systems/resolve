@@ -13,7 +13,11 @@ import type { DB } from '@/api/database/types';
 import { getTestDb, createTestContext } from '@/__tests__/integration/testDb';
 import { getAdminLogsByClaim, getAdminLogsByEntity } from '../adminLogQueries';
 import { EntityName } from '@/api/utils/activityLogger';
-import { createTestClient, createTestUser, createTestClaim } from '@/__tests__/integration/fixtures';
+import {
+	createTestClient,
+	createTestUser,
+	createTestClaim,
+} from '@/__tests__/integration/fixtures';
 
 describe('adminLogQueries integration tests', () => {
 	let db: Kysely<DB>;
@@ -25,9 +29,17 @@ describe('adminLogQueries integration tests', () => {
 	describe('getAdminLogsByClaim', () => {
 		it('should return admin logs for a claim', async () => {
 			const client = await createTestClient(db, { name: 'AdminLog Test Client' });
-			const user = await createTestUser(db, { client_id: client.id, email: 'adminlog-test@test.com' });
+			const user = await createTestUser(db, {
+				client_id: client.id,
+				email: 'adminlog-test@test.com',
+			});
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'admin' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'admin',
+			});
 
 			// Insert test logs
 			await db
@@ -66,7 +78,12 @@ describe('adminLogQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'admin' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'admin',
+			});
 
 			// Insert logs with different actor types
 			await db
@@ -103,10 +120,24 @@ describe('adminLogQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'admin' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'admin',
+			});
 
 			// Insert many logs (using valid action values from current LogAction enum)
-			const actions = ['CREATE', 'UPDATE', 'DELETE', 'ASSIGN', 'UNASSIGN', 'START', 'COMPLETE', 'CANCEL'];
+			const actions = [
+				'CREATE',
+				'UPDATE',
+				'DELETE',
+				'ASSIGN',
+				'UNASSIGN',
+				'START',
+				'COMPLETE',
+				'CANCEL',
+			];
 			for (let i = 0; i < 15; i++) {
 				await db
 					.insertInto('claim_activity_logs')
@@ -135,7 +166,12 @@ describe('adminLogQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'admin' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'admin',
+			});
 
 			// Insert logs with slight time differences
 			await db
@@ -176,11 +212,22 @@ describe('adminLogQueries integration tests', () => {
 		it('should not return logs from different client (tenant isolation)', async () => {
 			const clientA = await createTestClient(db, { name: 'AdminLog Client A' });
 			const clientB = await createTestClient(db, { name: 'AdminLog Client B' });
-			const userA = await createTestUser(db, { client_id: clientA.id, email: 'adminlog-a@test.com' });
-			const userB = await createTestUser(db, { client_id: clientB.id, email: 'adminlog-b@test.com' });
+			const userA = await createTestUser(db, {
+				client_id: clientA.id,
+				email: 'adminlog-a@test.com',
+			});
+			const userB = await createTestUser(db, {
+				client_id: clientB.id,
+				email: 'adminlog-b@test.com',
+			});
 			const claimA = await createTestClaim(db, { client_id: clientA.id, created_by: userA.id });
 			const claimB = await createTestClaim(db, { client_id: clientB.id, created_by: userB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'admin' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'admin',
+			});
 
 			// Create log for client A
 			await db
@@ -225,7 +272,12 @@ describe('adminLogQueries integration tests', () => {
 				const client = await createTestClient(db);
 				const user = await createTestUser(db, { client_id: client.id });
 				const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-				const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'admin' });
+				const ctx = createTestContext(db, {
+					id: user.id,
+					client_id: client.id,
+					email: user.email,
+					role: 'admin',
+				});
 
 				await db
 					.insertInto('claim_activity_logs')
@@ -250,7 +302,12 @@ describe('adminLogQueries integration tests', () => {
 				const client = await createTestClient(db);
 				const user = await createTestUser(db, { client_id: client.id });
 				const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-				const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'admin' });
+				const ctx = createTestContext(db, {
+					id: user.id,
+					client_id: client.id,
+					email: user.email,
+					role: 'admin',
+				});
 
 				const taskId = '123';
 				await db
@@ -276,7 +333,12 @@ describe('adminLogQueries integration tests', () => {
 				const client = await createTestClient(db);
 				const user = await createTestUser(db, { client_id: client.id });
 				const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-				const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'admin' });
+				const ctx = createTestContext(db, {
+					id: user.id,
+					client_id: client.id,
+					email: user.email,
+					role: 'admin',
+				});
 
 				const deadlineId = '456';
 				await db
@@ -302,7 +364,12 @@ describe('adminLogQueries integration tests', () => {
 				const client = await createTestClient(db);
 				const user = await createTestUser(db, { client_id: client.id });
 				const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-				const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'admin' });
+				const ctx = createTestContext(db, {
+					id: user.id,
+					client_id: client.id,
+					email: user.email,
+					role: 'admin',
+				});
 
 				await db
 					.insertInto('claim_activity_logs')
@@ -339,7 +406,12 @@ describe('adminLogQueries integration tests', () => {
 			it('should return logs for CHECKLIST entity from admin_config_logs', async () => {
 				const client = await createTestClient(db);
 				const user = await createTestUser(db, { client_id: client.id });
-				const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'admin' });
+				const ctx = createTestContext(db, {
+					id: user.id,
+					client_id: client.id,
+					email: user.email,
+					role: 'admin',
+				});
 
 				const checklistId = '789';
 				await db
@@ -362,7 +434,12 @@ describe('adminLogQueries integration tests', () => {
 			it('should return logs for PAGE entity from admin_config_logs', async () => {
 				const client = await createTestClient(db);
 				const user = await createTestUser(db, { client_id: client.id });
-				const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'admin' });
+				const ctx = createTestContext(db, {
+					id: user.id,
+					client_id: client.id,
+					email: user.email,
+					role: 'admin',
+				});
 
 				const pageId = '101';
 				await db
@@ -385,7 +462,12 @@ describe('adminLogQueries integration tests', () => {
 			it('should return logs for QUESTION entity from admin_config_logs', async () => {
 				const client = await createTestClient(db);
 				const user = await createTestUser(db, { client_id: client.id });
-				const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'admin' });
+				const ctx = createTestContext(db, {
+					id: user.id,
+					client_id: client.id,
+					email: user.email,
+					role: 'admin',
+				});
 
 				const questionId = '202';
 				await db
@@ -410,9 +492,23 @@ describe('adminLogQueries integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'admin' });
+			const ctx = createTestContext(db, {
+				id: user.id,
+				client_id: client.id,
+				email: user.email,
+				role: 'admin',
+			});
 
-			const actions = ['CREATE', 'UPDATE', 'DELETE', 'ASSIGN', 'UNASSIGN', 'START', 'COMPLETE', 'CANCEL'];
+			const actions = [
+				'CREATE',
+				'UPDATE',
+				'DELETE',
+				'ASSIGN',
+				'UNASSIGN',
+				'START',
+				'COMPLETE',
+				'CANCEL',
+			];
 			for (let i = 0; i < 15; i++) {
 				await db
 					.insertInto('claim_activity_logs')
@@ -438,7 +534,12 @@ describe('adminLogQueries integration tests', () => {
 			const userA = await createTestUser(db, { client_id: clientA.id });
 			const userB = await createTestUser(db, { client_id: clientB.id });
 			const claimB = await createTestClaim(db, { client_id: clientB.id, created_by: userB.id });
-			const ctxA = createTestContext(db, { id: userA.id, client_id: clientA.id, email: userA.email, role: 'admin' });
+			const ctxA = createTestContext(db, {
+				id: userA.id,
+				client_id: clientA.id,
+				email: userA.email,
+				role: 'admin',
+			});
 
 			await db
 				.insertInto('claim_activity_logs')

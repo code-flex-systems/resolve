@@ -66,10 +66,7 @@ export default function SettlementTimeline({
 }: SettlementTimelineProps) {
 	const [activeSettlementId, setActiveSettlementId] = useState<string | null>(null);
 
-	const settlementMap = useMemo(
-		() => new Map(settlements.map((s) => [s.id, s])),
-		[settlements]
-	);
+	const settlementMap = useMemo(() => new Map(settlements.map((s) => [s.id, s])), [settlements]);
 
 	const timeline = useMemo<TimelineItem[]>(() => {
 		const items: TimelineItem[] = [
@@ -115,7 +112,15 @@ export default function SettlementTimeline({
 				return (
 					<div key={`${item.type}-${index}`} style={{ display: 'flex' }}>
 						{/* Left column: indicator and connector */}
-						<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 24, flexShrink: 0 }}>
+						<div
+							style={{
+								display: 'flex',
+								flexDirection: 'column',
+								alignItems: 'center',
+								width: 24,
+								flexShrink: 0,
+							}}
+						>
 							<div
 								style={{
 									width: 12,
@@ -150,12 +155,30 @@ export default function SettlementTimeline({
 							}}
 						>
 							{/* Summary row - clickable */}
-							<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+							<div
+								style={{
+									display: 'flex',
+									justifyContent: 'space-between',
+									alignItems: 'flex-start',
+								}}
+							>
 								<div
 									onClick={() => handleItemClick(item.settlementId)}
-									style={{ cursor: 'pointer', borderRadius: 4, padding: 8, marginLeft: -8, flex: 1 }}
+									style={{
+										cursor: 'pointer',
+										borderRadius: 4,
+										padding: 8,
+										marginLeft: -8,
+										flex: 1,
+									}}
 								>
-									<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+									<div
+										style={{
+											display: 'flex',
+											justifyContent: 'space-between',
+											alignItems: 'center',
+										}}
+									>
 										<div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
 											<span style={{ fontSize: 14, fontWeight: 600 }}>
 												{dayjs(item.date).format('MMM D')}
@@ -163,13 +186,19 @@ export default function SettlementTimeline({
 											{isSettlement ? (
 												<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
 													{settlement.party_name}
-													{settlement.loss_type && <> · {formatCoverageType(settlement.loss_type)}</>}
+													{settlement.loss_type && (
+														<> · {formatCoverageType(settlement.loss_type)}</>
+													)}
 												</span>
 											) : (
 												<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
 													{recovery.recovery_source || 'No source'}
 													{relatedSettlement && (
-														<> · {relatedSettlement.party_name} · {formatCoverageType(relatedSettlement.loss_type)}</>
+														<>
+															{' '}
+															· {relatedSettlement.party_name} ·{' '}
+															{formatCoverageType(relatedSettlement.loss_type)}
+														</>
 													)}
 												</span>
 											)}
@@ -192,7 +221,9 @@ export default function SettlementTimeline({
 												variant="icon"
 												size="sm"
 												color="neutral"
-												onClick={() => isSettlement ? onEditSettlement(settlement) : onEditRecovery(recovery)}
+												onClick={() =>
+													isSettlement ? onEditSettlement(settlement) : onEditRecovery(recovery)
+												}
 											>
 												<IconEdit size={16} />
 											</Button>
@@ -202,7 +233,11 @@ export default function SettlementTimeline({
 												variant="icon"
 												size="sm"
 												color="neutral"
-												onClick={() => isSettlement ? onArchiveSettlement(settlement) : onArchiveRecovery(recovery)}
+												onClick={() =>
+													isSettlement
+														? onArchiveSettlement(settlement)
+														: onArchiveRecovery(recovery)
+												}
 											>
 												<IconArchive size={16} style={{ color: 'var(--status-error)' }} />
 											</Button>
@@ -280,16 +315,20 @@ function SettlementDetails({ settlement }: { settlement: any }) {
 					<DetailField label="Structure">
 						<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
 							<SettlementStructureIcon structure={settlement.settlement_structure} />
-							{settlement.settlement_structure === SettlementStructure.PAYMENT_PLAN ? 'Payment Plan' : 'Lump Sum'}
+							{settlement.settlement_structure === SettlementStructure.PAYMENT_PLAN
+								? 'Payment Plan'
+								: 'Lump Sum'}
 						</div>
 					</DetailField>
 				)}
-				{settlement.settlement_structure === SettlementStructure.PAYMENT_PLAN && settlement.payment_amount && (
-					<DetailField label="Payment Amount">
-						{formatCurrencyExact(parseFloat(settlement.payment_amount.toString()))}
-						{settlement.payment_frequency && ` / ${formatPaymentFrequency(settlement.payment_frequency)}`}
-					</DetailField>
-				)}
+				{settlement.settlement_structure === SettlementStructure.PAYMENT_PLAN &&
+					settlement.payment_amount && (
+						<DetailField label="Payment Amount">
+							{formatCurrencyExact(parseFloat(settlement.payment_amount.toString()))}
+							{settlement.payment_frequency &&
+								` / ${formatPaymentFrequency(settlement.payment_frequency)}`}
+						</DetailField>
+					)}
 			</div>
 			{settlement.notes && (
 				<DetailField label="Notes">
@@ -300,7 +339,13 @@ function SettlementDetails({ settlement }: { settlement: any }) {
 	);
 }
 
-function RecoveryDetails({ recovery, relatedSettlement }: { recovery: any; relatedSettlement: any }) {
+function RecoveryDetails({
+	recovery,
+	relatedSettlement,
+}: {
+	recovery: any;
+	relatedSettlement: any;
+}) {
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
 			<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Recovery Details</span>
@@ -328,7 +373,9 @@ function RecoveryDetails({ recovery, relatedSettlement }: { recovery: any; relat
 					<DetailField label="Structure">
 						<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
 							<SettlementStructureIcon structure={relatedSettlement.settlement_structure} />
-							{relatedSettlement.settlement_structure === SettlementStructure.PAYMENT_PLAN ? 'Payment Plan' : 'Lump Sum'}
+							{relatedSettlement.settlement_structure === SettlementStructure.PAYMENT_PLAN
+								? 'Payment Plan'
+								: 'Lump Sum'}
 						</div>
 					</DetailField>
 				)}

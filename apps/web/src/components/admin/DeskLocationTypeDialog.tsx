@@ -22,7 +22,9 @@ interface DeskLocationTypeDialogProps {
 export default function DeskLocationTypeDialog({ deskType, onClose }: DeskLocationTypeDialogProps) {
 	// Accept both prop names for backward compatibility
 	const deskLocationType = deskType;
-	const toggleNewDeskLocationTypeDialog = useAdminStore((state) => state.toggleNewDeskLocationTypeDialog);
+	const toggleNewDeskLocationTypeDialog = useAdminStore(
+		(state) => state.toggleNewDeskLocationTypeDialog
+	);
 	const deskTrpc = useDeskTrpc();
 	const { mutateAsync: createType, isPending: creating } = deskTrpc.createType;
 	const { mutateAsync: updateType, isPending: updating } = deskTrpc.updateType;
@@ -89,7 +91,15 @@ export default function DeskLocationTypeDialog({ deskType, onClose }: DeskLocati
 			onClose={handleClose}
 			width={500}
 		>
-			<div style={{ width: '100%', display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 16 }}>
+			<div
+				style={{
+					width: '100%',
+					display: 'flex',
+					alignItems: 'center',
+					flexDirection: 'column',
+					gap: 16,
+				}}
+			>
 				<Controller
 					name="name"
 					control={control}
@@ -113,7 +123,12 @@ export default function DeskLocationTypeDialog({ deskType, onClose }: DeskLocati
 						control={control}
 						render={({ field }) => (
 							<div style={{ width: 400 }}>
-								<Checkbox checked={field.value} onChange={(checked) => field.onChange(checked)} disabled={isSubmitting} label="Create default desk locations (Pending, Transactional, Closed, etc.)" />
+								<Checkbox
+									checked={field.value}
+									onChange={(checked) => field.onChange(checked)}
+									disabled={isSubmitting}
+									label="Create default desk locations (Pending, Transactional, Closed, etc.)"
+								/>
 							</div>
 						)}
 					/>
@@ -127,5 +142,5 @@ const styles = {
 	textFieldOverrides: {
 		width: 400,
 		margin: '5px 0px',
-		},
+	},
 };

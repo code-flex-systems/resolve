@@ -122,7 +122,11 @@ export default function AddressDialog({ address, onClose }: AddressDialogProps) 
 						postal_code: data.postal_code || null,
 						country: (data.country as CountryCode) || null,
 						address_type: data.address_type as 'home' | 'business',
-						address_status: data.address_status as 'valid' | 'mailing' | 'undeliverable' | 'unknown',
+						address_status: data.address_status as
+							| 'valid'
+							| 'mailing'
+							| 'undeliverable'
+							| 'unknown',
 					},
 				});
 				showAlert('Address updated successfully', 'success');
@@ -162,7 +166,11 @@ export default function AddressDialog({ address, onClose }: AddressDialogProps) 
 
 	// Find selected party option
 	const selectedPartyOption = selectedParty
-		? { value: selectedParty.id, label: selectedParty.name, description: selectedParty.organization ?? undefined }
+		? {
+				value: selectedParty.id,
+				label: selectedParty.name,
+				description: selectedParty.organization ?? undefined,
+			}
 		: null;
 
 	/* =========================================================================
@@ -186,7 +194,9 @@ export default function AddressDialog({ address, onClose }: AddressDialogProps) 
 							options={partyOptions}
 							value={selectedPartyOption}
 							onChange={(opt) => {
-								const party = opt ? (partyMatches as PartySearchResult[]).find((p) => p.id === opt.value) ?? null : null;
+								const party = opt
+									? ((partyMatches as PartySearchResult[]).find((p) => p.id === opt.value) ?? null)
+									: null;
 								setSelectedParty(party);
 								field.onChange(party?.id || null);
 							}}
@@ -286,10 +296,13 @@ export default function AddressDialog({ address, onClose }: AddressDialogProps) 
 
 	const addressTypeLabel = addressType === AddressType.HOME ? 'Home' : 'Business';
 	const addressStatusLabel =
-		addressStatus === AddressStatus.VALID ? 'Valid'
-		: addressStatus === AddressStatus.MAILING ? 'Mailing'
-		: addressStatus === AddressStatus.UNDELIVERABLE ? 'Undeliverable'
-		: 'Unknown';
+		addressStatus === AddressStatus.VALID
+			? 'Valid'
+			: addressStatus === AddressStatus.MAILING
+				? 'Mailing'
+				: addressStatus === AddressStatus.UNDELIVERABLE
+					? 'Undeliverable'
+					: 'Unknown';
 
 	const stepReviewContent = (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 520 }}>
@@ -310,7 +323,8 @@ export default function AddressDialog({ address, onClose }: AddressDialogProps) 
 						<div style={reviewStyles.field}>
 							<span style={reviewStyles.label}>Address</span>
 							<span style={reviewStyles.value}>
-								{[streetAddress, city, state, postalCode, country].filter(Boolean).join(', ') || '--'}
+								{[streetAddress, city, state, postalCode, country].filter(Boolean).join(', ') ||
+									'--'}
 							</span>
 						</div>
 					)}

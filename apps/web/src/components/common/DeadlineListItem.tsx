@@ -89,7 +89,15 @@ export default function DeadlineListItem({
 		<>
 			<div className={css.deadlineItem} onClick={handleItemClick}>
 				<div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-					<div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 4 }}>
+					<div
+						style={{
+							width: '100%',
+							display: 'flex',
+							justifyContent: 'space-between',
+							alignItems: 'center',
+							gap: 4,
+						}}
+					>
 						<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
 							{getDeadlineIcon(deadline)}
 							<span style={{ fontWeight: 600, fontSize: 13 }}>
@@ -97,12 +105,22 @@ export default function DeadlineListItem({
 							</span>
 						</div>
 						{showTime && (
-							<span style={{ fontSize: 12, color: isOverduePending ? 'var(--color-error)' : 'var(--text-secondary)' }}>
+							<span
+								style={{
+									fontSize: 12,
+									color: isOverduePending ? 'var(--color-error)' : 'var(--text-secondary)',
+								}}
+							>
 								{dayjs(deadline.deadline_date).format('h:mm A')}
 							</span>
 						)}
 						{showDate && (
-							<span style={{ fontSize: 12, color: isOverduePending ? 'var(--color-error)' : 'var(--text-secondary)' }}>
+							<span
+								style={{
+									fontSize: 12,
+									color: isOverduePending ? 'var(--color-error)' : 'var(--text-secondary)',
+								}}
+							>
 								{dayjs(deadline.deadline_date).format('MMM D, YYYY')}
 							</span>
 						)}
@@ -114,10 +132,7 @@ export default function DeadlineListItem({
 						</span>
 					)}
 
-					<span
-						className={css.claimLink}
-						onClick={handleClaimClick}
-					>
+					<span className={css.claimLink} onClick={handleClaimClick}>
 						{deadline.claim_number}
 					</span>
 				</div>

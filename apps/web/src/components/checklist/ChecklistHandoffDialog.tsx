@@ -13,7 +13,8 @@ import Collapse from '@/components/ui/Collapse';
 export default function ChecklistHandoffDialog() {
 	const { checklistId = '', claimId = '' } = useChecklistParams();
 	const selectedAssignee = useChecklistStore((state) => state.selectedAssignee);
-	const formattedAssignee = `${selectedAssignee?.first ?? ''} ${selectedAssignee?.last ?? ''}`.trim();
+	const formattedAssignee =
+		`${selectedAssignee?.first ?? ''} ${selectedAssignee?.last ?? ''}`.trim();
 	const { mutateAsync: updateChecklistClaim, isPending } = useChecklistTrpc().updateForClaim;
 	const { showSuccess, showError } = useCrudAlerts('checklist');
 
@@ -53,13 +54,24 @@ export default function ChecklistHandoffDialog() {
 			closeDisabled={isPending}
 			width={550}
 			showCloseButton={false}
-			showOverflow>
+			showOverflow
+		>
 			<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
 				<div style={styles.paper}>
 					{/* <div style={styles.warning}> */}
 					<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
-						<IconAlertTriangle size={20} style={{ color: 'var(--text-secondary)', marginLeft: '5px' }} />
-						<div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start', marginLeft: '10px' }}>
+						<IconAlertTriangle
+							size={20}
+							style={{ color: 'var(--text-secondary)', marginLeft: '5px' }}
+						/>
+						<div
+							style={{
+								display: 'flex',
+								justifyContent: 'flex-start',
+								alignItems: 'flex-start',
+								marginLeft: '10px',
+							}}
+						>
 							<span style={{ fontSize: 15 }}>
 								This action will transfer the claim to the selected assignee.
 							</span>
@@ -70,15 +82,38 @@ export default function ChecklistHandoffDialog() {
 					</div>
 					{/* </div> */}
 
-					<div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+					<div
+						style={{
+							width: '100%',
+							display: 'flex',
+							justifyContent: 'center',
+							alignItems: 'center',
+						}}
+					>
 						<div style={{ margin: '10px' }}>
-							<UserSearch selectedUser={selectedAssignee} setSelectedUser={(user) => useChecklistStore.getState().updateSelectedAssignee(user)} />
+							<UserSearch
+								selectedUser={selectedAssignee}
+								setSelectedUser={(user) =>
+									useChecklistStore.getState().updateSelectedAssignee(user)
+								}
+							/>
 						</div>
 
 						<Collapse open={!!selectedAssignee}>
 							<span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
 								<Chip color="info">{`${formattedAssignee} <${selectedAssignee?.email}>`}</Chip>
-								<button onClick={() => useChecklistStore.getState().updateSelectedAssignee(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontSize: 14 }}>x</button>
+								<button
+									onClick={() => useChecklistStore.getState().updateSelectedAssignee(null)}
+									style={{
+										background: 'none',
+										border: 'none',
+										cursor: 'pointer',
+										padding: 0,
+										fontSize: 14,
+									}}
+								>
+									x
+								</button>
 							</span>
 						</Collapse>
 					</div>

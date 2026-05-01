@@ -11,10 +11,7 @@ import { Kysely, sql } from 'kysely';
 
 export async function up(db: Kysely<any>): Promise<void> {
 	// Step 1: Add client_id column as nullable uuid (allows backfill)
-	await db.schema
-		.alterTable('claim_party')
-		.addColumn('client_id', 'uuid')
-		.execute();
+	await db.schema.alterTable('claim_party').addColumn('client_id', 'uuid').execute();
 
 	// Step 2: Backfill client_id from claim table
 	await sql`
@@ -33,12 +30,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 	// Step 4: Add foreign key constraint to client table
 	await db.schema
 		.alterTable('claim_party')
-		.addForeignKeyConstraint(
-			'claim_party_client_id_fkey',
-			['client_id'],
-			'client',
-			['id']
-		)
+		.addForeignKeyConstraint('claim_party_client_id_fkey', ['client_id'], 'client', ['id'])
 		.execute();
 
 	// Step 5: Add index for performance (client_id + claim_id is common filter pattern)
@@ -62,14 +54,8 @@ export async function down(db: Kysely<any>): Promise<void> {
 	await db.schema.dropIndex('idx_claim_party_client_claim').execute();
 
 	// Drop foreign key constraint
-	await db.schema
-		.alterTable('claim_party')
-		.dropConstraint('claim_party_client_id_fkey')
-		.execute();
+	await db.schema.alterTable('claim_party').dropConstraint('claim_party_client_id_fkey').execute();
 
 	// Drop column
-	await db.schema
-		.alterTable('claim_party')
-		.dropColumn('client_id')
-		.execute();
+	await db.schema.alterTable('claim_party').dropColumn('client_id').execute();
 }

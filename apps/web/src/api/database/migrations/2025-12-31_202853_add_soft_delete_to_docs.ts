@@ -24,8 +24,12 @@ export async function up(db: Kysely<any>): Promise<void> {
 		.execute();
 
 	// Add index on deleted_at for efficient filtering of non-deleted records
-	await sql`CREATE INDEX idx_doc_deleted_at ON doc (deleted_at) WHERE deleted_at IS NULL`.execute(db);
-	await sql`CREATE INDEX idx_doc_group_deleted_at ON doc_group (deleted_at) WHERE deleted_at IS NULL`.execute(db);
+	await sql`CREATE INDEX idx_doc_deleted_at ON doc (deleted_at) WHERE deleted_at IS NULL`.execute(
+		db
+	);
+	await sql`CREATE INDEX idx_doc_group_deleted_at ON doc_group (deleted_at) WHERE deleted_at IS NULL`.execute(
+		db
+	);
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
@@ -41,9 +45,5 @@ export async function down(db: Kysely<any>): Promise<void> {
 		.execute();
 
 	// Remove soft delete columns from doc table
-	await db.schema
-		.alterTable('doc')
-		.dropColumn('deleted_at')
-		.dropColumn('deleted_by')
-		.execute();
+	await db.schema.alterTable('doc').dropColumn('deleted_at').dropColumn('deleted_by').execute();
 }

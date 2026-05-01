@@ -57,16 +57,15 @@ export default function ClaimActivityLogsFiltersPopper({
 			onApply={onApply}
 		>
 			<div>
-				<span  style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
-					Claim
-				</span>
+				<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>Claim</span>
 				<ClaimFilter claim={draftClaim} setClaim={setDraftClaim} height={32} zIndex={1500} />
 			</div>
 			<div>
-				<span  style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
+				<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 					Actor Type
 				</span>
-				<Dropdown inlineLabel
+				<Dropdown
+					inlineLabel
 					fullWidth
 					value={draftActorType ?? ''}
 					onChange={(val) => {

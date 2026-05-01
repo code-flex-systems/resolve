@@ -34,7 +34,11 @@ async function main() {
 			return;
 		}
 
-		const user = await db.selectFrom('users').select(['id']).where('client_id', '=', client.id).executeTakeFirst();
+		const user = await db
+			.selectFrom('users')
+			.select(['id'])
+			.where('client_id', '=', client.id)
+			.executeTakeFirst();
 
 		if (!user) {
 			console.error('❌ No user found in database. Please seed data first.');
@@ -82,7 +86,11 @@ async function main() {
 		// Recalculate
 		await recalculateActualRecovery(claim.id, client.id);
 
-		const claim1 = await db.selectFrom('claim').selectAll().where('id', '=', claim.id).executeTakeFirstOrThrow();
+		const claim1 = await db
+			.selectFrom('claim')
+			.selectAll()
+			.where('id', '=', claim.id)
+			.executeTakeFirstOrThrow();
 
 		console.log(`✓ Created recovery event #${recovery1.id}`);
 		console.log(`✓ Claim actual_recovery updated to: $${claim1.actual_recovery}\n`);
@@ -104,7 +112,11 @@ async function main() {
 
 		await recalculateActualRecovery(claim.id, client.id);
 
-		const claim2 = await db.selectFrom('claim').selectAll().where('id', '=', claim.id).executeTakeFirstOrThrow();
+		const claim2 = await db
+			.selectFrom('claim')
+			.selectAll()
+			.where('id', '=', claim.id)
+			.executeTakeFirstOrThrow();
 
 		console.log(`✓ Created recovery event #${recovery2.id}`);
 		console.log(`✓ Claim actual_recovery updated to: $${claim2.actual_recovery}`);
@@ -116,7 +128,11 @@ async function main() {
 
 		await recalculateActualRecovery(claim.id, client.id);
 
-		const claim3 = await db.selectFrom('claim').selectAll().where('id', '=', claim.id).executeTakeFirstOrThrow();
+		const claim3 = await db
+			.selectFrom('claim')
+			.selectAll()
+			.where('id', '=', claim.id)
+			.executeTakeFirstOrThrow();
 
 		console.log(`✓ Deleted recovery event #${recovery1.id}`);
 		console.log(`✓ Claim actual_recovery recalculated to: $${claim3.actual_recovery}`);
@@ -189,7 +205,11 @@ async function main() {
 			.where('claim_id', '=', claim.id)
 			.execute();
 
-		const deadlines = await db.selectFrom('deadline').selectAll().where('claim_id', '=', claim.id).execute();
+		const deadlines = await db
+			.selectFrom('deadline')
+			.selectAll()
+			.where('claim_id', '=', claim.id)
+			.execute();
 
 		console.log(`  Claim: ${finalClaim.claim_number}`);
 		console.log(`  Expected Recovery: $${finalClaim.expected_recovery}`);

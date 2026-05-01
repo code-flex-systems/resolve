@@ -5,7 +5,15 @@ import { ActionType } from '@/config/enums';
 import { ActionDefinition } from '@/types/types';
 import dayjs from 'dayjs';
 import MetricValue from '../common/MetricValue';
-import { IconBug, IconCalendar, IconClipboardCheck, IconInfoCircle, IconMail, IconMailbox, IconShare } from '@tabler/icons-react';
+import {
+	IconBug,
+	IconCalendar,
+	IconClipboardCheck,
+	IconInfoCircle,
+	IconMail,
+	IconMailbox,
+	IconShare,
+} from '@tabler/icons-react';
 import Card from '@/components/ui/Card';
 import Skeleton from '@/components/ui/Skeleton';
 import Divider from '@/components/ui/Divider';
@@ -68,46 +76,88 @@ export default function ActionsMetric() {
 						</span>
 						<div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
 							<Tooltip content="Actions are ranked by highest execution rate across unique checklist + claim combinations.">
-							<Button variant="icon" size="sm" color="neutral">
-							<IconInfoCircle size={16} />
-						</Button>
-						</Tooltip>
+								<Button variant="icon" size="sm" color="neutral">
+									<IconInfoCircle size={16} />
+								</Button>
+							</Tooltip>
 							<Tooltip content="Open in Inspector">
-							<Button variant="icon" size="sm" color="neutral">
-							<IconBug style={{ transform: 'scaleX(-1)', color: 'var(--text-accent)' }} size={16} />
-						</Button>
-						</Tooltip>
+								<Button variant="icon" size="sm" color="neutral">
+									<IconBug
+										style={{ transform: 'scaleX(-1)', color: 'var(--text-accent)' }}
+										size={16}
+									/>
+								</Button>
+							</Tooltip>
 						</div>
 					</div>
 
 					{/* Action list */}
-					<div style={{ display: 'flex', flexDirection: 'column', justifyContent: stats.length ? 'flex-start' : 'center', alignItems: stats.length ? 'stretch' : 'center', minHeight: 200 }}>
+					<div
+						style={{
+							display: 'flex',
+							flexDirection: 'column',
+							justifyContent: stats.length ? 'flex-start' : 'center',
+							alignItems: stats.length ? 'stretch' : 'center',
+							minHeight: 200,
+						}}
+					>
 						{stats.length ? (
 							stats.map((s) => {
 								const type = s.type as ActionType;
 								return (
-									<div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--border-primary)' }}>
+									<div
+										key={s.id}
+										style={{
+											display: 'flex',
+											alignItems: 'center',
+											gap: 10,
+											padding: '8px 0',
+											borderBottom: '1px solid var(--border-primary)',
+										}}
+									>
 										<div style={{ minWidth: 32, color: 'var(--text-secondary)' }}>
 											{getActionIcon(type)}
 										</div>
 										<div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-											<span style={{ fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-primary)' }}>
+											<span
+												style={{
+													fontSize: 13,
+													whiteSpace: 'nowrap',
+													overflow: 'hidden',
+													textOverflow: 'ellipsis',
+													color: 'var(--text-primary)',
+												}}
+											>
 												{getActionPrimaryContent(type, s.definition as ActionDefinition)}
 											</span>
-											<span style={{ fontSize: 12, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: 'var(--text-muted)' }}>
+											<span
+												style={{
+													fontSize: 12,
+													whiteSpace: 'nowrap',
+													overflow: 'hidden',
+													textOverflow: 'ellipsis',
+													color: 'var(--text-muted)',
+												}}
+											>
 												{getActionSecondaryContent(type, s.definition as ActionDefinition)}
 											</span>
 										</div>
-										<span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', minWidth: 24, textAlign: 'right' }}>
+										<span
+											style={{
+												fontSize: 13,
+												fontWeight: 600,
+												color: 'var(--text-primary)',
+												minWidth: 24,
+												textAlign: 'right',
+											}}
+										>
 											{s.count.toLocaleString()}
 										</span>
 									</div>
 								);
 							})
 						) : (
-							<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-								No actions
-							</span>
+							<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>No actions</span>
 						)}
 					</div>
 				</div>

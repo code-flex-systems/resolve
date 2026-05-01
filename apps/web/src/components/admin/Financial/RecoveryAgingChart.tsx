@@ -1,6 +1,15 @@
 'use client';
 
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
+import {
+	BarChart,
+	Bar,
+	XAxis,
+	YAxis,
+	Tooltip,
+	Legend,
+	ResponsiveContainer,
+	CartesianGrid,
+} from 'recharts';
 import Card from '@/components/ui/Card';
 import { formatCurrency } from '@/lib/utils/recoveryUtils';
 import type { RecoveryAgingBreakdown } from '@/hooks/trpc/useFinancialReportingTrpc';
@@ -48,7 +57,12 @@ export default function RecoveryAgingChart({ data }: Props) {
 					<Legend />
 					<Bar dataKey="open_demand" name="Open Demand" stackId="a" fill="#4fc3f7" />
 					<Bar dataKey="in_negotiation" name="In Negotiation" stackId="a" fill="#ffb74d" />
-					<Bar dataKey="settled_outstanding" name="Settled Outstanding" stackId="a" fill="#e57373" />
+					<Bar
+						dataKey="settled_outstanding"
+						name="Settled Outstanding"
+						stackId="a"
+						fill="#e57373"
+					/>
 				</BarChart>
 			</ResponsiveContainer>
 		</Card>

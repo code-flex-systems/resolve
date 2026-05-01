@@ -1,7 +1,17 @@
 'use client';
 
 import { useMemo } from 'react';
-import { ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, CartesianGrid } from 'recharts';
+import {
+	ComposedChart,
+	Bar,
+	Line,
+	XAxis,
+	YAxis,
+	Tooltip,
+	Legend,
+	ResponsiveContainer,
+	CartesianGrid,
+} from 'recharts';
 import Card from '@/components/ui/Card';
 import { formatCurrency } from '@/lib/utils/recoveryUtils';
 import type { NetRecoveryByMonth } from '@/hooks/trpc/useFinancialReportingTrpc';
@@ -44,7 +54,12 @@ function CustomTooltip({ active, payload, label }: any) {
 
 export default function NetRecoveryMonthChart({ data }: Props) {
 	const chartData = useMemo(
-		() => data.map((d) => ({ ...d, payments_out_neg: -d.payments_out, periodLabel: formatPeriod(d.period) })),
+		() =>
+			data.map((d) => ({
+				...d,
+				payments_out_neg: -d.payments_out,
+				periodLabel: formatPeriod(d.period),
+			})),
 		[data]
 	);
 

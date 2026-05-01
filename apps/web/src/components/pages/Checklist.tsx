@@ -33,7 +33,9 @@ export default function Checklist() {
 	const mode = useChecklistStore((state) => state.mode);
 	const updateMode = useChecklistStore((state) => state.updateMode);
 	const showChecklistHandoffDialog = useChecklistStore((state) => state.showChecklistHandoffDialog);
-	const showChecklistProgressDialog = useChecklistStore((state) => state.showChecklistProgressDialog);
+	const showChecklistProgressDialog = useChecklistStore(
+		(state) => state.showChecklistProgressDialog
+	);
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
 	const [modeHandleOpen, setModeHandleOpen] = useState(false);
@@ -44,15 +46,26 @@ export default function Checklist() {
 	const selectedQuestionData = useSelectedQuestionData();
 	const selectedAnswerData = useSelectedAnswerData();
 
-	const { data: checklist } = useChecklistTrpc().get({ id: checklistId! }, { enabled: !!checklistId });
+	const { data: checklist } = useChecklistTrpc().get(
+		{ id: checklistId! },
+		{ enabled: !!checklistId }
+	);
 	const { data: claim } = useClaimTrpc().get(
 		{ checklistId: checklistId!, claimId: claimId! },
 		{ enabled: !!checklistId && !!claimId }
 	);
 	usePageTrpc().listTemplates();
 
-	const checklistUrl = claimId ? `/checklists/${checklistId}/claim/${claimId}` : `/checklists/${checklistId}`;
-	useTrackResource('checklist', checklistId ?? null, checklist?.name ?? null, checklistUrl, !!checklistId);
+	const checklistUrl = claimId
+		? `/checklists/${checklistId}/claim/${claimId}`
+		: `/checklists/${checklistId}`;
+	useTrackResource(
+		'checklist',
+		checklistId ?? null,
+		checklist?.name ?? null,
+		checklistUrl,
+		!!checklistId
+	);
 
 	// Index checklist for global search (standalone entry)
 	const indexMutation = trpc.user.indexResource.useMutation();
@@ -73,7 +86,14 @@ export default function Checklist() {
 
 	// Index checklist+claim linked entry (separate effect so it doesn't race with standalone)
 	useEffect(() => {
-		if (!checklistId || !claimId || !checklist?.name || !claim?.claim_number || indexedLinked.current) return;
+		if (
+			!checklistId ||
+			!claimId ||
+			!checklist?.name ||
+			!claim?.claim_number ||
+			indexedLinked.current
+		)
+			return;
 		indexedLinked.current = true;
 		indexMutation.mutate({
 			resource_type: 'checklist',
@@ -83,8 +103,8 @@ export default function Checklist() {
 			label: checklist.name,
 			secondary_label: claim.claim_number,
 			metadata: {
-				'Claim': claim.claim_number,
-				'Insured': claim.insured ?? 'N/A',
+				Claim: claim.claim_number,
+				Insured: claim.insured ?? 'N/A',
 			},
 			url: `/checklists/${checklistId}/claim/${claimId}`,
 		});
@@ -105,7 +125,9 @@ export default function Checklist() {
 			segments.push({ label: `${selectedPageInfo.title} (p${selectedPageInfo.position + 1})` });
 		}
 		if (selectedQuestion && selectedQuestionData?.text) {
-			segments.push({ label: `${selectedQuestionData.text} (q${selectedQuestionData.position + 1})` });
+			segments.push({
+				label: `${selectedQuestionData.text} (q${selectedQuestionData.position + 1})`,
+			});
 		}
 		if (selectedAnswer && selectedAnswerData?.text) {
 			segments.push({ label: `${selectedAnswerData.text} (a${selectedAnswerData.position + 1})` });

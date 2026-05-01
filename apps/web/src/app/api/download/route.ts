@@ -21,10 +21,7 @@ export async function GET(request: NextRequest) {
 
 		const clientId = session.user.client_id;
 		if (!clientId) {
-			return NextResponse.json(
-				{ error: 'Client ID not found' },
-				{ status: 400 }
-			);
+			return NextResponse.json({ error: 'Client ID not found' }, { status: 400 });
 		}
 
 		// Get document ID from query params
@@ -32,10 +29,7 @@ export async function GET(request: NextRequest) {
 		const docIdStr = searchParams.get('docId');
 
 		if (!docIdStr) {
-			return NextResponse.json(
-				{ error: 'Document ID is required' },
-				{ status: 400 }
-			);
+			return NextResponse.json({ error: 'Document ID is required' }, { status: 400 });
 		}
 
 		const docId = docIdStr;
@@ -49,17 +43,16 @@ export async function GET(request: NextRequest) {
 			.executeTakeFirst();
 
 		if (!doc) {
-			return NextResponse.json(
-				{ error: 'Document not found or access denied' },
-				{ status: 404 }
-			);
+			return NextResponse.json({ error: 'Document not found or access denied' }, { status: 404 });
 		}
 
 		console.log('Downloading document:', {
 			docId,
 			storage_key: doc.storage_key,
 			storage_key_length: doc.storage_key?.length,
-			storage_key_chars: doc.storage_key?.split('').map((c, i) => ({ i, c, code: c.charCodeAt(0) })),
+			storage_key_chars: doc.storage_key
+				?.split('')
+				.map((c, i) => ({ i, c, code: c.charCodeAt(0) })),
 		});
 
 		// Sanitize storage key to remove any non-ASCII characters that might have slipped through
@@ -99,7 +92,10 @@ export async function GET(request: NextRequest) {
 	} catch (error) {
 		console.error('File download error:', error);
 		return NextResponse.json(
-			{ error: 'Failed to download file', details: error instanceof Error ? error.message : 'Unknown error' },
+			{
+				error: 'Failed to download file',
+				details: error instanceof Error ? error.message : 'Unknown error',
+			},
 			{ status: 500 }
 		);
 	}

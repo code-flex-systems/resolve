@@ -43,7 +43,10 @@ describe('questionController integration tests', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const instance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -540,7 +543,10 @@ describe('questionController integration tests', () => {
 				const userA = await createTestUser(db, { client_id: clientA.id });
 				const userB = await createTestUser(db, { client_id: clientB.id });
 				const claimA = await createTestClaim(db, { client_id: clientA.id, created_by: userA.id });
-				const checklistA = await createTestChecklist(db, { client_id: clientA.id, created_by: userA.id });
+				const checklistA = await createTestChecklist(db, {
+					client_id: clientA.id,
+					created_by: userA.id,
+				});
 				const pageA = await createTestPage(db, { client_id: clientA.id, created_by: userA.id });
 				const instanceA = await createTestPageInstance(db, {
 					client_id: clientA.id,

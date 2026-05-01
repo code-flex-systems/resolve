@@ -22,7 +22,9 @@ export default function TopPerformersSection({
 	// Convert DateRange to ISO strings for tRPC
 	const rangeISO = useMemo(
 		() =>
-			range[0] && range[1] ? ([range[0].toISOString(), range[1].toISOString()] as [string, string]) : undefined,
+			range[0] && range[1]
+				? ([range[0].toISOString(), range[1].toISOString()] as [string, string])
+				: undefined,
 		[range]
 	);
 
@@ -37,12 +39,13 @@ export default function TopPerformersSection({
 	);
 
 	// Fetch all events for top performers calculation (not paginated for this component)
-	const { data = { rows: [], count: 0 }, isFetching } = useRecoveryTrpc().listRecoveryEventsWithFilters(
-		{ filters },
-		{
-			enabled: true,
-		}
-	);
+	const { data = { rows: [], count: 0 }, isFetching } =
+		useRecoveryTrpc().listRecoveryEventsWithFilters(
+			{ filters },
+			{
+				enabled: true,
+			}
+		);
 
 	const events = data.rows;
 
@@ -108,7 +111,9 @@ export default function TopPerformersSection({
 		<Card variant="beveled" padding="lg" style={styles.paper}>
 			<span style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>Top Performers</span>
 
-			<div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 24, width: '100%' }}>
+			<div
+				style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 24, width: '100%' }}
+			>
 				{/* Top Claims by Recovery Amount */}
 				<Card variant="beveled" padding="md">
 					<span style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>
@@ -129,7 +134,9 @@ export default function TopPerformersSection({
 								}}
 							>
 								<div style={{ display: 'flex', flexDirection: 'column' }}>
-									<span style={{ fontSize: 13, fontWeight: 500 }}>{claim.claim_number || 'N/A'}</span>
+									<span style={{ fontSize: 13, fontWeight: 500 }}>
+										{claim.claim_number || 'N/A'}
+									</span>
 									<span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
 										{claim.insured || 'Unknown'}
 									</span>

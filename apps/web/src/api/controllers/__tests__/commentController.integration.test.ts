@@ -64,7 +64,10 @@ describe('commentController integration tests', () => {
 		async function setupTestFixtures() {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const claim = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 			await createTestChecklistClaim(db, {
 				client_id: client.id,
@@ -98,7 +101,8 @@ describe('commentController integration tests', () => {
 			});
 
 			it('should return comments keyed by question_id', async () => {
-				const { client, user, checklist, claim, page, pageInstance, ctx } = await setupTestFixtures();
+				const { client, user, checklist, claim, page, pageInstance, ctx } =
+					await setupTestFixtures();
 				const question = await createTestQuestion(db, {
 					client_id: client.id,
 					page_id: page.id,
@@ -126,7 +130,8 @@ describe('commentController integration tests', () => {
 			});
 
 			it('should return multiple comments keyed by different question_ids', async () => {
-				const { client, user, checklist, claim, page, pageInstance, ctx } = await setupTestFixtures();
+				const { client, user, checklist, claim, page, pageInstance, ctx } =
+					await setupTestFixtures();
 				const question1 = await createTestQuestion(db, {
 					client_id: client.id,
 					page_id: page.id,
@@ -173,7 +178,8 @@ describe('commentController integration tests', () => {
 
 		describe('result structure', () => {
 			it('should include comment properties in the result', async () => {
-				const { client, user, checklist, claim, page, pageInstance, ctx } = await setupTestFixtures();
+				const { client, user, checklist, claim, page, pageInstance, ctx } =
+					await setupTestFixtures();
 				const question = await createTestQuestion(db, {
 					client_id: client.id,
 					page_id: page.id,
@@ -206,7 +212,8 @@ describe('commentController integration tests', () => {
 
 		describe('filtering by instanceId', () => {
 			it('should only return comments for the specified instance', async () => {
-				const { client, user, checklist, claim, page, pageInstance, ctx } = await setupTestFixtures();
+				const { client, user, checklist, claim, page, pageInstance, ctx } =
+					await setupTestFixtures();
 				const pageInstance2 = await createTestPageInstance(db, {
 					client_id: client.id,
 					page_id: page.id,
@@ -253,8 +260,12 @@ describe('commentController integration tests', () => {
 
 		describe('filtering by checklistId and claimId', () => {
 			it('should only return comments for the specified checklist and claim', async () => {
-				const { client, user, checklist, claim, page, pageInstance, ctx } = await setupTestFixtures();
-				const checklist2 = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+				const { client, user, checklist, claim, page, pageInstance, ctx } =
+					await setupTestFixtures();
+				const checklist2 = await createTestChecklist(db, {
+					client_id: client.id,
+					created_by: user.id,
+				});
 				const claim2 = await createTestClaim(db, { client_id: client.id, created_by: user.id });
 				const question = await createTestQuestion(db, {
 					client_id: client.id,
@@ -311,7 +322,10 @@ describe('commentController integration tests', () => {
 				const clientB = await createTestClient(db, { name: 'Client B' });
 				const userA = await createTestUser(db, { client_id: clientA.id });
 				const userB = await createTestUser(db, { client_id: clientB.id });
-				const checklistA = await createTestChecklist(db, { client_id: clientA.id, created_by: userA.id });
+				const checklistA = await createTestChecklist(db, {
+					client_id: clientA.id,
+					created_by: userA.id,
+				});
 				const claimA = await createTestClaim(db, { client_id: clientA.id, created_by: userA.id });
 				const pageA = await createTestPage(db, { client_id: clientA.id, created_by: userA.id });
 				const pageInstanceA = await createTestPageInstance(db, {

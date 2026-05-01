@@ -971,7 +971,11 @@ describe('recoveryQueries integration', () => {
 			});
 
 			// Manually update claim actual_recovery to simulate creation
-			await db.updateTable('claim').set({ actual_recovery: '5000' }).where('id', '=', claim.id).execute();
+			await db
+				.updateTable('claim')
+				.set({ actual_recovery: '5000' })
+				.where('id', '=', claim.id)
+				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -997,9 +1001,9 @@ describe('recoveryQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act & Assert
-			await expect(archiveRecoveryEvent(ctx, '00000000-0000-0000-0000-000000000000', claim.id)).rejects.toThrow(
-				'Recovery event not found'
-			);
+			await expect(
+				archiveRecoveryEvent(ctx, '00000000-0000-0000-0000-000000000000', claim.id)
+			).rejects.toThrow('Recovery event not found');
 		});
 
 		it('should throw error when claim ID does not match event', async () => {
@@ -1024,7 +1028,9 @@ describe('recoveryQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act & Assert - Wrong claim ID should fail
-			await expect(archiveRecoveryEvent(ctx, event.id, claim2.id)).rejects.toThrow('Recovery event not found');
+			await expect(archiveRecoveryEvent(ctx, event.id, claim2.id)).rejects.toThrow(
+				'Recovery event not found'
+			);
 
 			// Verify event still exists
 			const stillExists = await db
@@ -1058,7 +1064,9 @@ describe('recoveryQueries integration', () => {
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
 
 			// Act & Assert - Other client should not be able to delete
-			await expect(archiveRecoveryEvent(ctx2, event.id, claim.id)).rejects.toThrow('Recovery event not found');
+			await expect(archiveRecoveryEvent(ctx2, event.id, claim.id)).rejects.toThrow(
+				'Recovery event not found'
+			);
 		});
 	});
 
@@ -1135,7 +1143,11 @@ describe('recoveryQueries integration', () => {
 				recovery_amount: '2500',
 			});
 
-			await db.updateTable('claim').set({ actual_recovery: '0' }).where('id', '=', claim.id).execute();
+			await db
+				.updateTable('claim')
+				.set({ actual_recovery: '0' })
+				.where('id', '=', claim.id)
+				.execute();
 
 			// Act
 			await db.transaction().execute(async (trx) => {
@@ -1565,8 +1577,16 @@ describe('recoveryQueries integration', () => {
 			});
 
 			// Set claim1 to be in range, claim2 out of range
-			await db.updateTable('claim').set({ created_at: inRangeDate }).where('id', '=', claim1.id).execute();
-			await db.updateTable('claim').set({ created_at: outOfRangeDate }).where('id', '=', claim2.id).execute();
+			await db
+				.updateTable('claim')
+				.set({ created_at: inRangeDate })
+				.where('id', '=', claim1.id)
+				.execute();
+			await db
+				.updateTable('claim')
+				.set({ created_at: outOfRangeDate })
+				.where('id', '=', claim2.id)
+				.execute();
 
 			// Create recovery events for actual recovery (within date range)
 			const { settlement: settlement1 } = await createSettlementChain(db, {
@@ -1616,8 +1636,16 @@ describe('recoveryQueries integration', () => {
 			});
 
 			// Set both claims to be in range
-			await db.updateTable('claim').set({ created_at: inRangeDate }).where('id', '=', claim1.id).execute();
-			await db.updateTable('claim').set({ created_at: inRangeDate }).where('id', '=', claim2.id).execute();
+			await db
+				.updateTable('claim')
+				.set({ created_at: inRangeDate })
+				.where('id', '=', claim1.id)
+				.execute();
+			await db
+				.updateTable('claim')
+				.set({ created_at: inRangeDate })
+				.where('id', '=', claim2.id)
+				.execute();
 
 			// Create recovery events - claim1 has Insurance source, claim2 has Legal source
 			const { settlement: settlement1 } = await createSettlementChain(db, {
@@ -1825,7 +1853,9 @@ describe('recoveryQueries integration', () => {
 			rangeEnd.setDate(today.getDate() + 1);
 
 			// Act
-			const result = await getRecoveryMetricsSummary(ctx, [rangeStart, rangeEnd], { checklistId: checklist1.id });
+			const result = await getRecoveryMetricsSummary(ctx, [rangeStart, rangeEnd], {
+				checklistId: checklist1.id,
+			});
 
 			// Assert - only checklist1's claim (1000)
 			expect(result.total_actual).toBe(1000);
@@ -2062,8 +2092,16 @@ describe('recoveryQueries integration', () => {
 			const jan15 = new Date(Date.UTC(2024, 0, 15, 12, 0, 0));
 
 			// Set created_at to January for both claims
-			await db.updateTable('claim').set({ created_at: jan15 }).where('id', '=', claim1.id).execute();
-			await db.updateTable('claim').set({ created_at: jan15 }).where('id', '=', claim2.id).execute();
+			await db
+				.updateTable('claim')
+				.set({ created_at: jan15 })
+				.where('id', '=', claim1.id)
+				.execute();
+			await db
+				.updateTable('claim')
+				.set({ created_at: jan15 })
+				.where('id', '=', claim2.id)
+				.execute();
 
 			const { settlement: settlement1 } = await createSettlementChain(db, {
 				client_id: client1.id,
@@ -2135,7 +2173,11 @@ describe('recoveryQueries integration', () => {
 			});
 
 			// Set claim actual_recovery to match
-			await db.updateTable('claim').set({ actual_recovery: '1000' }).where('id', '=', claim.id).execute();
+			await db
+				.updateTable('claim')
+				.set({ actual_recovery: '1000' })
+				.where('id', '=', claim.id)
+				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -2143,7 +2185,9 @@ describe('recoveryQueries integration', () => {
 			await archiveRecoveryEvent(ctx, event.id, claim.id);
 
 			// Act & Assert - second archive should throw NOT_FOUND (already soft-deleted)
-			await expect(archiveRecoveryEvent(ctx, event.id, claim.id)).rejects.toThrow('Recovery event not found');
+			await expect(archiveRecoveryEvent(ctx, event.id, claim.id)).rejects.toThrow(
+				'Recovery event not found'
+			);
 		});
 
 		it('should correctly decrement claim.actual_recovery after multiple sequential archives', async () => {
@@ -2430,7 +2474,11 @@ describe('recoveryQueries integration', () => {
 			});
 
 			// Set a known actual_recovery value
-			await db.updateTable('claim').set({ actual_recovery: '5000' }).where('id', '=', claim.id).execute();
+			await db
+				.updateTable('claim')
+				.set({ actual_recovery: '5000' })
+				.where('id', '=', claim.id)
+				.execute();
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -2593,7 +2641,11 @@ describe('recoveryQueries integration', () => {
 				.execute();
 
 			// Set actual_recovery to a wrong value to verify recalculation corrects it
-			await db.updateTable('claim').set({ actual_recovery: '9999' }).where('id', '=', claim.id).execute();
+			await db
+				.updateTable('claim')
+				.set({ actual_recovery: '9999' })
+				.where('id', '=', claim.id)
+				.execute();
 
 			// Act
 			await db.transaction().execute(async (trx) => {
@@ -2616,7 +2668,11 @@ describe('recoveryQueries integration', () => {
 			const claim = await createTestClaim(db, { client_id: client.id });
 
 			// Set actual_recovery to a non-zero value
-			await db.updateTable('claim').set({ actual_recovery: '5000' }).where('id', '=', claim.id).execute();
+			await db
+				.updateTable('claim')
+				.set({ actual_recovery: '5000' })
+				.where('id', '=', claim.id)
+				.execute();
 
 			// Act - no recovery events exist at all
 			await db.transaction().execute(async (trx) => {

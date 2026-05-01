@@ -25,7 +25,12 @@ const dateBased = (beforeDate: string, beforeYears: number, afterYears: number) 
 });
 
 // Negligence law types
-type NegligenceType = 'contributory' | 'pure_comparative' | 'comparative_49' | 'comparative_50' | 'slight';
+type NegligenceType =
+	| 'contributory'
+	| 'pure_comparative'
+	| 'comparative_49'
+	| 'comparative_50'
+	| 'slight';
 
 // Helper to get bar percent from negligence type
 const getBarPercent = (type: NegligenceType): number | null => {
@@ -44,10 +49,7 @@ const getBarPercent = (type: NegligenceType): number | null => {
 };
 
 // Negligence law data by state
-const NEGLIGENCE_DATA: Record<
-	string,
-	{ type: NegligenceType; notes?: string }
-> = {
+const NEGLIGENCE_DATA: Record<string, { type: NegligenceType; notes?: string }> = {
 	AL: { type: 'contributory' },
 	AK: { type: 'pure_comparative' },
 	AZ: { type: 'pure_comparative' },
@@ -59,7 +61,8 @@ const NEGLIGENCE_DATA: Record<
 	DC: { type: 'contributory' },
 	FL: {
 		type: 'comparative_50',
-		notes: 'Losses prior to 03/24/2023: Pure Comparative. Losses on or after 03/24/2023: 50% Comparative.',
+		notes:
+			'Losses prior to 03/24/2023: Pure Comparative. Losses on or after 03/24/2023: 50% Comparative.',
 	},
 	GA: { type: 'comparative_49' },
 	HI: { type: 'comparative_50' },
@@ -91,7 +94,8 @@ const NEGLIGENCE_DATA: Record<
 	ND: { type: 'comparative_49' },
 	OH: {
 		type: 'comparative_50',
-		notes: 'For municipality claims: Ohio Government Immunity [ORC Ann. 2744.05 (2006) Limitations on damages awarded].',
+		notes:
+			'For municipality claims: Ohio Government Immunity [ORC Ann. 2744.05 (2006) Limitations on damages awarded].',
 	},
 	OK: { type: 'comparative_50' },
 	OR: { type: 'comparative_50' },
@@ -111,7 +115,8 @@ const NEGLIGENCE_DATA: Record<
 	VA: { type: 'contributory' },
 	WA: {
 		type: 'pure_comparative',
-		notes: 'No pursuit without QA to SME before moving claim out of SAER. See handling instructions under PIP and Medpay tab.',
+		notes:
+			'No pursuit without QA to SME before moving claim out of SAER. See handling instructions under PIP and Medpay tab.',
 	},
 	WV: { type: 'comparative_50' },
 	WI: { type: 'comparative_50' },
@@ -120,7 +125,10 @@ const NEGLIGENCE_DATA: Record<
 
 // All 54 US jurisdictions with their statute of limitations rules
 // Structure: { injury, personal_property, real_property }
-const STATUTE_RULES: Record<string, Record<string, { default_years: number | null; rules: any[] }>> = {
+const STATUTE_RULES: Record<
+	string,
+	Record<string, { default_years: number | null; rules: any[] }>
+> = {
 	AL: { injury: simple(2), personal_property: simple(2), real_property: simple(2) },
 	AK: { injury: simple(2), personal_property: simple(2), real_property: simple(6) },
 	AZ: { injury: simple(2), personal_property: simple(2), real_property: simple(2) },
@@ -132,7 +140,11 @@ const STATUTE_RULES: Record<string, Record<string, { default_years: number | nul
 	DE: { injury: simple(2), personal_property: simple(2), real_property: simple(3) },
 	DC: { injury: simple(3), personal_property: simple(3), real_property: simple(3) },
 	// Florida: Injury is date-based - before 2023-03-24=4yrs, after=2yrs
-	FL: { injury: dateBased('2023-03-23', 4, 2), personal_property: simple(4), real_property: simple(4) },
+	FL: {
+		injury: dateBased('2023-03-23', 4, 2),
+		personal_property: simple(4),
+		real_property: simple(4),
+	},
 	GA: { injury: simple(2), personal_property: simple(4), real_property: simple(4) },
 	HI: { injury: simple(2), personal_property: simple(2), real_property: simple(2) },
 	ID: { injury: simple(2), personal_property: simple(3), real_property: simple(3) },

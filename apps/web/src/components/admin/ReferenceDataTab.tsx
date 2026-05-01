@@ -47,7 +47,9 @@ const getOptionColumns = (isManageMode: boolean): ColumnDef<any, any>[] => [
 				secondary={row.value}
 			/>
 		),
-		header: (params) => <IconHeaderCell {...params} icon={<IconTag style={{ color: 'var(--text-muted)' }} />} />,
+		header: (params) => (
+			<IconHeaderCell {...params} icon={<IconTag style={{ color: 'var(--text-muted)' }} />} />
+		),
 	},
 	{
 		header: 'Status',
@@ -120,7 +122,9 @@ function OptionsOverlay({ selectedEntity }: { selectedEntity: ReferenceEntity | 
 export default function ReferenceDataTab() {
 	const showNewReferenceOptionDialog = useAdminStore((state) => state.showNewReferenceOptionDialog);
 	const selectedReferenceEntity = useAdminStore((state) => state.selectedReferenceEntity);
-	const toggleNewReferenceOptionDialog = useAdminStore((state) => state.toggleNewReferenceOptionDialog);
+	const toggleNewReferenceOptionDialog = useAdminStore(
+		(state) => state.toggleNewReferenceOptionDialog
+	);
 	const setReferenceEntity = useAdminStore((state) => state.setReferenceEntity);
 
 	const [isManageMode, setIsManageMode] = useState(false);

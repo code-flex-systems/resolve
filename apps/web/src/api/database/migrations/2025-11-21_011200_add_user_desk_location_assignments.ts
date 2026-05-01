@@ -28,12 +28,7 @@ export async function up(db: Kysely<any>): Promise<void> {
 	// 2. Add foreign key constraints
 	await db.schema
 		.alterTable('user_desk_location')
-		.addForeignKeyConstraint(
-			'user_desk_location_user_id_fkey',
-			['user_id'],
-			'users',
-			['id']
-		)
+		.addForeignKeyConstraint('user_desk_location_user_id_fkey', ['user_id'], 'users', ['id'])
 		.execute();
 
 	await db.schema
@@ -48,22 +43,14 @@ export async function up(db: Kysely<any>): Promise<void> {
 
 	await db.schema
 		.alterTable('user_desk_location')
-		.addForeignKeyConstraint(
-			'user_desk_location_assigned_by_fkey',
-			['assigned_by'],
-			'users',
-			['id']
-		)
+		.addForeignKeyConstraint('user_desk_location_assigned_by_fkey', ['assigned_by'], 'users', [
+			'id',
+		])
 		.execute();
 
 	await db.schema
 		.alterTable('user_desk_location')
-		.addForeignKeyConstraint(
-			'user_desk_location_removed_by_fkey',
-			['removed_by'],
-			'users',
-			['id']
-		)
+		.addForeignKeyConstraint('user_desk_location_removed_by_fkey', ['removed_by'], 'users', ['id'])
 		.execute();
 
 	// 3. Add CHECK constraint for priority range (1-5)
@@ -114,21 +101,35 @@ export async function up(db: Kysely<any>): Promise<void> {
 
 	// 6. Add column comments
 	await sql`COMMENT ON COLUMN user_desk_location.id IS 'Primary key'`.execute(db);
-	await sql`COMMENT ON COLUMN user_desk_location.user_id IS 'User assigned to this desk location'`.execute(db);
-	await sql`COMMENT ON COLUMN user_desk_location.desk_location_id IS 'Desk location the user is assigned to'`.execute(db);
-	await sql`COMMENT ON COLUMN user_desk_location.priority IS 'Priority level (1-5) for this desk location assignment, 1 being highest'`.execute(db);
-	await sql`COMMENT ON COLUMN user_desk_location.assigned_at IS 'When the user was assigned to this desk location'`.execute(db);
-	await sql`COMMENT ON COLUMN user_desk_location.assigned_by IS 'User who made the assignment'`.execute(db);
-	await sql`COMMENT ON COLUMN user_desk_location.removed_at IS 'Soft deletion timestamp - when assignment was removed'`.execute(db);
-	await sql`COMMENT ON COLUMN user_desk_location.removed_by IS 'User who removed the assignment'`.execute(db);
+	await sql`COMMENT ON COLUMN user_desk_location.user_id IS 'User assigned to this desk location'`.execute(
+		db
+	);
+	await sql`COMMENT ON COLUMN user_desk_location.desk_location_id IS 'Desk location the user is assigned to'`.execute(
+		db
+	);
+	await sql`COMMENT ON COLUMN user_desk_location.priority IS 'Priority level (1-5) for this desk location assignment, 1 being highest'`.execute(
+		db
+	);
+	await sql`COMMENT ON COLUMN user_desk_location.assigned_at IS 'When the user was assigned to this desk location'`.execute(
+		db
+	);
+	await sql`COMMENT ON COLUMN user_desk_location.assigned_by IS 'User who made the assignment'`.execute(
+		db
+	);
+	await sql`COMMENT ON COLUMN user_desk_location.removed_at IS 'Soft deletion timestamp - when assignment was removed'`.execute(
+		db
+	);
+	await sql`COMMENT ON COLUMN user_desk_location.removed_by IS 'User who removed the assignment'`.execute(
+		db
+	);
 
 	// 7. Add table comment
-	await sql`COMMENT ON TABLE user_desk_location IS 'Junction table assigning users to desk locations with priority ordering. Supports collaborative work pools where multiple users can access the same desk location. Priority determines which desk work appears first in user queues.'`.execute(db);
+	await sql`COMMENT ON TABLE user_desk_location IS 'Junction table assigning users to desk locations with priority ordering. Supports collaborative work pools where multiple users can access the same desk location. Priority determines which desk work appears first in user queues.'`.execute(
+		db
+	);
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
 	// Drop the user_desk_location table (foreign keys and indexes drop automatically)
-	await db.schema
-		.dropTable('user_desk_location')
-		.execute();
+	await db.schema.dropTable('user_desk_location').execute();
 }

@@ -91,8 +91,16 @@ describe('checklistQueries integration', () => {
 				created_by: user.id,
 				name: 'Source Checklist',
 			});
-			const page1 = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Page 1' });
-			const page2 = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Page 2' });
+			const page1 = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Page 1',
+			});
+			const page2 = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Page 2',
+			});
 			await createTestPageInstance(db, {
 				client_id: client.id,
 				page_id: page1.id,
@@ -365,7 +373,11 @@ describe('checklistQueries integration', () => {
 				name: 'Unpublished',
 				published: false,
 			});
-			const ctx = createTestContext(db, { id: contributor.id, client_id: client.id, role: 'Contributor' });
+			const ctx = createTestContext(db, {
+				id: contributor.id,
+				client_id: client.id,
+				role: 'Contributor',
+			});
 
 			// Act & Assert
 			await expect(getChecklist(ctx, unpublishedChecklist.id)).rejects.toThrow();
@@ -382,7 +394,11 @@ describe('checklistQueries integration', () => {
 				name: 'Published For Contributor',
 				published: true,
 			});
-			const ctx = createTestContext(db, { id: contributor.id, client_id: client.id, role: 'Contributor' });
+			const ctx = createTestContext(db, {
+				id: contributor.id,
+				client_id: client.id,
+				role: 'Contributor',
+			});
 
 			// Act
 			const result = await getChecklist(ctx, publishedChecklist.id);
@@ -456,7 +472,11 @@ describe('checklistQueries integration', () => {
 				name: 'Unpublished For Contributor',
 				published: false,
 			});
-			const ctx = createTestContext(db, { id: contributor.id, client_id: client.id, role: 'Contributor' });
+			const ctx = createTestContext(db, {
+				id: contributor.id,
+				client_id: client.id,
+				role: 'Contributor',
+			});
 
 			// Act
 			const result = await getChecklists(ctx);
@@ -560,7 +580,11 @@ describe('checklistQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			await createTestChecklist(db, { client_id: client.id, created_by: user.id, published: true });
 			await createTestChecklist(db, { client_id: client.id, created_by: user.id, published: true });
-			await createTestChecklist(db, { client_id: client.id, created_by: user.id, published: false });
+			await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+				published: false,
+			});
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			// Act
@@ -1003,7 +1027,10 @@ describe('checklistQueries integration', () => {
 				created_by: user.id,
 			});
 
-			const grandchildPage = await createTestPage(db, { client_id: client.id, created_by: user.id });
+			const grandchildPage = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const grandchildInstance = await createTestPageInstance(db, {
 				client_id: client.id,
 				page_id: grandchildPage.id,
@@ -1179,7 +1206,11 @@ describe('checklistQueries integration', () => {
 				checklist_id: checklistA.id,
 				created_by: userA.id,
 			});
-			await createTestQuestion(db, { client_id: clientA.id, page_id: pageA.id, created_by: userA.id });
+			await createTestQuestion(db, {
+				client_id: clientA.id,
+				page_id: pageA.id,
+				created_by: userA.id,
+			});
 
 			// Client B tries to query client A's checklist+claim
 			const clientB = await createTestClient(db);
@@ -1215,7 +1246,11 @@ describe('checklistQueries integration', () => {
 			});
 
 			// Q1: regular answer (answered, not action-required)
-			const q1 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+			const q1 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+			});
 			const q1Answer = await createTestAnswer(db, {
 				client_id: client.id,
 				question_id: q1.id,
@@ -1233,7 +1268,11 @@ describe('checklistQueries integration', () => {
 			await createTestQuestionResponseAnswer(db, { response_id: r1.id, answer_id: q1Answer.id });
 
 			// Q2: "Unknown" answer (answered AND action-required AND unknown)
-			const q2 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+			const q2 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+			});
 			const q2Answer = await createTestAnswer(db, {
 				client_id: client.id,
 				question_id: q2.id,
@@ -1331,7 +1370,11 @@ describe('checklistQueries integration', () => {
 			});
 
 			// Q1 (control): regular answer that IS counted as answered
-			const q1 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+			const q1 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+			});
 			const a1 = await createTestAnswer(db, {
 				client_id: client.id,
 				question_id: q1.id,
@@ -1349,7 +1392,11 @@ describe('checklistQueries integration', () => {
 			await createTestQuestionResponseAnswer(db, { response_id: r1.id, answer_id: a1.id });
 
 			// Q2: requires_upload answer selected, but no response_doc_id - should NOT count
-			const q2 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+			const q2 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+			});
 			const a2 = await createTestAnswer(db, {
 				client_id: client.id,
 				question_id: q2.id,
@@ -1396,7 +1443,11 @@ describe('checklistQueries integration', () => {
 			});
 
 			// Q1: answer with an associated action - action_required
-			const q1 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+			const q1 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+			});
 			const a1 = await createTestAnswer(db, {
 				client_id: client.id,
 				question_id: q1.id,
@@ -1424,7 +1475,11 @@ describe('checklistQueries integration', () => {
 			await createTestQuestionResponseAnswer(db, { response_id: r1.id, answer_id: a1.id });
 
 			// Q2: has_additional_info=true with empty additional_info - action_required
-			const q2 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+			const q2 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+			});
 			const a2 = await createTestAnswer(db, {
 				client_id: client.id,
 				question_id: q2.id,
@@ -1447,7 +1502,11 @@ describe('checklistQueries integration', () => {
 			});
 
 			// Q3 (control): a plain answer that is NOT action-required
-			const q3 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
+			const q3 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+			});
 			const a3 = await createTestAnswer(db, {
 				client_id: client.id,
 				question_id: q3.id,
@@ -1493,8 +1552,16 @@ describe('checklistQueries integration', () => {
 				checklist_id: checklistA.id,
 				created_by: userA.id,
 			});
-			await createTestQuestion(db, { client_id: clientA.id, page_id: pageA.id, created_by: userA.id });
-			await createTestQuestion(db, { client_id: clientA.id, page_id: pageA.id, created_by: userA.id });
+			await createTestQuestion(db, {
+				client_id: clientA.id,
+				page_id: pageA.id,
+				created_by: userA.id,
+			});
+			await createTestQuestion(db, {
+				client_id: clientA.id,
+				page_id: pageA.id,
+				created_by: userA.id,
+			});
 
 			const clientB = await createTestClient(db);
 			const userB = await createTestUser(db, { client_id: clientB.id, role: 'Admin' });
@@ -1522,7 +1589,11 @@ describe('checklistQueries integration', () => {
 				published: true,
 			});
 			const claim = await createTestClaim(db, { client_id: client.id });
-			const page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'Detail Page' });
+			const page = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'Detail Page',
+			});
 			const pageInstance = await createTestPageInstance(db, {
 				client_id: client.id,
 				page_id: page.id,
@@ -1587,7 +1658,11 @@ describe('checklistQueries integration', () => {
 				published: true,
 			});
 			const claim = await createTestClaim(db, { client_id: client.id });
-			const page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'P' });
+			const page = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'P',
+			});
 			const pageInstance = await createTestPageInstance(db, {
 				client_id: client.id,
 				page_id: page.id,
@@ -1651,7 +1726,11 @@ describe('checklistQueries integration', () => {
 				published: true,
 			});
 			const claim = await createTestClaim(db, { client_id: client.id });
-			const page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'P' });
+			const page = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'P',
+			});
 			const pageInstance = await createTestPageInstance(db, {
 				client_id: client.id,
 				page_id: page.id,
@@ -1740,7 +1819,11 @@ describe('checklistQueries integration', () => {
 				published: true,
 			});
 			const claim = await createTestClaim(db, { client_id: client.id });
-			const page = await createTestPage(db, { client_id: client.id, created_by: user.id, title: 'P' });
+			const page = await createTestPage(db, {
+				client_id: client.id,
+				created_by: user.id,
+				title: 'P',
+			});
 			const pageInstance = await createTestPageInstance(db, {
 				client_id: client.id,
 				page_id: page.id,
@@ -1937,7 +2020,12 @@ describe('checklistQueries integration', () => {
 		it('should return paginated checklist claims', async () => {
 			// Arrange
 			const client = await createTestClient(db);
-			const user = await createTestUser(db, { client_id: client.id, role: 'Admin', first: 'Jane', last: 'Smith' });
+			const user = await createTestUser(db, {
+				client_id: client.id,
+				role: 'Admin',
+				first: 'Jane',
+				last: 'Smith',
+			});
 			const checklist = await createTestChecklist(db, {
 				client_id: client.id,
 				created_by: user.id,
@@ -1947,7 +2035,10 @@ describe('checklistQueries integration', () => {
 
 			// Create multiple claims
 			for (let i = 0; i < 5; i++) {
-				const claim = await createTestClaim(db, { client_id: client.id, claim_number: `PAGED-${i}` });
+				const claim = await createTestClaim(db, {
+					client_id: client.id,
+					claim_number: `PAGED-${i}`,
+				});
 				await createTestChecklistClaim(db, {
 					client_id: client.id,
 					checklist_id: checklist.id,
@@ -2045,7 +2136,11 @@ describe('checklistQueries integration', () => {
 			// Act
 			const result = await getChecklistClaims(
 				ctx,
-				{ range: [pastDate, futureDate], checklistId: checklist.id, claimStatus: ClaimStatus.SUBMITTED },
+				{
+					range: [pastDate, futureDate],
+					checklistId: checklist.id,
+					claimStatus: ClaimStatus.SUBMITTED,
+				},
 				10,
 				0
 			);
@@ -2126,7 +2221,10 @@ describe('checklistQueries integration', () => {
 			});
 
 			for (let i = 0; i < 10; i++) {
-				const claim = await createTestClaim(db, { client_id: client.id, claim_number: `EXPORT-${i}` });
+				const claim = await createTestClaim(db, {
+					client_id: client.id,
+					claim_number: `EXPORT-${i}`,
+				});
 				await createTestChecklistClaim(db, {
 					client_id: client.id,
 					checklist_id: checklist.id,
@@ -2141,7 +2239,10 @@ describe('checklistQueries integration', () => {
 			const futureDate = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1 year from now
 
 			// Act
-			const result = await exportChecklistClaims(ctx, { range: [pastDate, futureDate], checklistId: checklist.id });
+			const result = await exportChecklistClaims(ctx, {
+				range: [pastDate, futureDate],
+				checklistId: checklist.id,
+			});
 
 			// Assert
 			expect(result).toHaveLength(10);
@@ -2216,7 +2317,11 @@ describe('checklistQueries integration', () => {
 				assignee: creator.id, // Assigned to creator, not deskUser
 			});
 
-			const ctx = createTestContext(db, { id: deskUser.id, client_id: client.id, role: 'Contributor' });
+			const ctx = createTestContext(db, {
+				id: deskUser.id,
+				client_id: client.id,
+				role: 'Contributor',
+			});
 
 			// Act
 			const result = await getRecentChecklistClaims(ctx);

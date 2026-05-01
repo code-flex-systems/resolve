@@ -74,11 +74,14 @@ describe('getQuarterlyRecoveryStats', () => {
 				q4: 18000,
 			});
 
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				select: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirst: mockExecuteTakeFirst,
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						select: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						executeTakeFirst: mockExecuteTakeFirst,
+					}) as any
+			);
 
 			const result = await getQuarterlyRecoveryStats(mockContext);
 
@@ -97,11 +100,14 @@ describe('getQuarterlyRecoveryStats', () => {
 				q4: 8000,
 			});
 
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				select: vi.fn().mockReturnThis(),
-				where: mockWhere,
-				executeTakeFirst: mockExecuteTakeFirst,
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						select: vi.fn().mockReturnThis(),
+						where: mockWhere,
+						executeTakeFirst: mockExecuteTakeFirst,
+					}) as any
+			);
 
 			// Custom fiscal year starting July 1
 			const customStart = new Date('2024-07-01');
@@ -119,11 +125,14 @@ describe('getQuarterlyRecoveryStats', () => {
 				q4: 0, // Q4 - explicit 0
 			});
 
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				select: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirst: mockExecuteTakeFirst,
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						select: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						executeTakeFirst: mockExecuteTakeFirst,
+					}) as any
+			);
 
 			const result = await getQuarterlyRecoveryStats(mockContext);
 
@@ -144,11 +153,14 @@ describe('getQuarterlyRecoveryStats', () => {
 				q4: 1000,
 			});
 
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				select: vi.fn().mockReturnThis(),
-				where: mockWhere,
-				executeTakeFirst: mockExecuteTakeFirst,
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						select: vi.fn().mockReturnThis(),
+						where: mockWhere,
+						executeTakeFirst: mockExecuteTakeFirst,
+					}) as any
+			);
 
 			await getQuarterlyRecoveryStats(mockContext);
 
@@ -165,11 +177,14 @@ describe('getQuarterlyRecoveryStats', () => {
 				q4: 4000,
 			});
 
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				select: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirst: mockExecuteTakeFirst,
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						select: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						executeTakeFirst: mockExecuteTakeFirst,
+					}) as any
+			);
 
 			const result = await getQuarterlyRecoveryStats(mockContext);
 
@@ -191,11 +206,14 @@ describe('getQuarterlyRecoveryStats', () => {
 				q4: '0',
 			});
 
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				select: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirst: mockExecuteTakeFirst,
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						select: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						executeTakeFirst: mockExecuteTakeFirst,
+					}) as any
+			);
 
 			const result = await getQuarterlyRecoveryStats(mockContext);
 
@@ -215,11 +233,14 @@ describe('getQuarterlyRecoveryStats', () => {
 				q4: 0,
 			});
 
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				select: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirst: mockExecuteTakeFirst,
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						select: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						executeTakeFirst: mockExecuteTakeFirst,
+					}) as any
+			);
 
 			const result = await getQuarterlyRecoveryStats(mockContext);
 
@@ -234,11 +255,14 @@ describe('getQuarterlyRecoveryStats', () => {
 				q4: 0,
 			});
 
-			vi.spyOn(db, 'selectFrom').mockImplementation(() => ({
-				select: vi.fn().mockReturnThis(),
-				where: vi.fn().mockReturnThis(),
-				executeTakeFirst: mockExecuteTakeFirst,
-			}) as any);
+			vi.spyOn(db, 'selectFrom').mockImplementation(
+				() =>
+					({
+						select: vi.fn().mockReturnThis(),
+						where: vi.fn().mockReturnThis(),
+						executeTakeFirst: mockExecuteTakeFirst,
+					}) as any
+			);
 
 			const result = await getQuarterlyRecoveryStats(mockContext);
 
@@ -282,7 +306,10 @@ describe.skip('getRecoveryMetricsTimeSeries', () => {
 
 			vi.spyOn(db, 'executeQuery').mockResolvedValue({ rows: mockRows } as any);
 
-			const result = await getRecoveryMetricsTimeSeries(mockContext, [new Date('2025-01-01'), new Date('2025-03-31')]);
+			const result = await getRecoveryMetricsTimeSeries(mockContext, [
+				new Date('2025-01-01'),
+				new Date('2025-03-31'),
+			]);
 
 			expect(result).toHaveLength(3);
 			expect(result[0].month_start).toBe('2025-01-01');
@@ -297,7 +324,10 @@ describe.skip('getRecoveryMetricsTimeSeries', () => {
 
 			vi.spyOn(db, 'executeQuery').mockResolvedValue({ rows: mockRows } as any);
 
-			const result = await getRecoveryMetricsTimeSeries(mockContext, [new Date('2025-01-01'), new Date('2025-02-28')]);
+			const result = await getRecoveryMetricsTimeSeries(mockContext, [
+				new Date('2025-01-01'),
+				new Date('2025-02-28'),
+			]);
 
 			expect(result).toHaveLength(2);
 			expect(result[0].actual_recovery).toBe(0);
@@ -310,7 +340,10 @@ describe.skip('getRecoveryMetricsTimeSeries', () => {
 
 			vi.spyOn(db, 'executeQuery').mockResolvedValue({ rows: mockRows } as any);
 
-			const result = await getRecoveryMetricsTimeSeries(mockContext, [new Date('2025-06-01'), new Date('2025-06-30')]);
+			const result = await getRecoveryMetricsTimeSeries(mockContext, [
+				new Date('2025-06-01'),
+				new Date('2025-06-30'),
+			]);
 
 			expect(result).toHaveLength(1);
 		});
@@ -325,7 +358,10 @@ describe.skip('getRecoveryMetricsTimeSeries', () => {
 
 			vi.spyOn(db, 'executeQuery').mockResolvedValue({ rows: mockRows } as any);
 
-			const result = await getRecoveryMetricsTimeSeries(mockContext, [new Date('2024-11-01'), new Date('2025-02-28')]);
+			const result = await getRecoveryMetricsTimeSeries(mockContext, [
+				new Date('2024-11-01'),
+				new Date('2025-02-28'),
+			]);
 
 			expect(result).toHaveLength(4);
 		});
@@ -335,9 +371,13 @@ describe.skip('getRecoveryMetricsTimeSeries', () => {
 		it('should apply recoverySource filter', async () => {
 			vi.spyOn(db, 'executeQuery').mockResolvedValue({ rows: [] } as any);
 
-			await getRecoveryMetricsTimeSeries(mockContext, [new Date('2025-01-01'), new Date('2025-03-31')], {
-				recoverySource: 'subrogation',
-			});
+			await getRecoveryMetricsTimeSeries(
+				mockContext,
+				[new Date('2025-01-01'), new Date('2025-03-31')],
+				{
+					recoverySource: 'subrogation',
+				}
+			);
 
 			expect(db.executeQuery).toHaveBeenCalled();
 		});
@@ -345,9 +385,13 @@ describe.skip('getRecoveryMetricsTimeSeries', () => {
 		it('should apply recoveryStatus filter', async () => {
 			vi.spyOn(db, 'executeQuery').mockResolvedValue({ rows: [] } as any);
 
-			await getRecoveryMetricsTimeSeries(mockContext, [new Date('2025-01-01'), new Date('2025-03-31')], {
-				recoveryStatus: 'open',
-			});
+			await getRecoveryMetricsTimeSeries(
+				mockContext,
+				[new Date('2025-01-01'), new Date('2025-03-31')],
+				{
+					recoveryStatus: 'open',
+				}
+			);
 
 			expect(db.executeQuery).toHaveBeenCalled();
 		});
@@ -355,9 +399,13 @@ describe.skip('getRecoveryMetricsTimeSeries', () => {
 		it('should apply checklistId filter', async () => {
 			vi.spyOn(db, 'executeQuery').mockResolvedValue({ rows: [] } as any);
 
-			await getRecoveryMetricsTimeSeries(mockContext, [new Date('2025-01-01'), new Date('2025-03-31')], {
-				checklistId: 'checklist-5',
-			});
+			await getRecoveryMetricsTimeSeries(
+				mockContext,
+				[new Date('2025-01-01'), new Date('2025-03-31')],
+				{
+					checklistId: 'checklist-5',
+				}
+			);
 
 			expect(db.executeQuery).toHaveBeenCalled();
 		});
@@ -365,11 +413,15 @@ describe.skip('getRecoveryMetricsTimeSeries', () => {
 		it('should apply multiple filters together', async () => {
 			vi.spyOn(db, 'executeQuery').mockResolvedValue({ rows: [] } as any);
 
-			await getRecoveryMetricsTimeSeries(mockContext, [new Date('2025-01-01'), new Date('2025-03-31')], {
-				recoverySource: 'subrogation',
-				recoveryStatus: 'pending',
-				checklistId: 'checklist-10',
-			});
+			await getRecoveryMetricsTimeSeries(
+				mockContext,
+				[new Date('2025-01-01'), new Date('2025-03-31')],
+				{
+					recoverySource: 'subrogation',
+					recoveryStatus: 'pending',
+					checklistId: 'checklist-10',
+				}
+			);
 
 			expect(db.executeQuery).toHaveBeenCalled();
 		});
@@ -377,13 +429,14 @@ describe.skip('getRecoveryMetricsTimeSeries', () => {
 
 	describe('Return Value Structure', () => {
 		it('should return array with month_start, expected_recovery, actual_recovery', async () => {
-			const mockRows = [
-				{ month_start: '2025-01-01', expected_recovery: 0, actual_recovery: 5000 },
-			];
+			const mockRows = [{ month_start: '2025-01-01', expected_recovery: 0, actual_recovery: 5000 }];
 
 			vi.spyOn(db, 'executeQuery').mockResolvedValue({ rows: mockRows } as any);
 
-			const result = await getRecoveryMetricsTimeSeries(mockContext, [new Date('2025-01-01'), new Date('2025-01-31')]);
+			const result = await getRecoveryMetricsTimeSeries(mockContext, [
+				new Date('2025-01-01'),
+				new Date('2025-01-31'),
+			]);
 
 			expect(result[0]).toHaveProperty('month_start');
 			expect(result[0]).toHaveProperty('expected_recovery');
@@ -391,13 +444,14 @@ describe.skip('getRecoveryMetricsTimeSeries', () => {
 		});
 
 		it('should return expected_recovery as 0 (not yet implemented)', async () => {
-			const mockRows = [
-				{ month_start: '2025-01-01', expected_recovery: 0, actual_recovery: 5000 },
-			];
+			const mockRows = [{ month_start: '2025-01-01', expected_recovery: 0, actual_recovery: 5000 }];
 
 			vi.spyOn(db, 'executeQuery').mockResolvedValue({ rows: mockRows } as any);
 
-			const result = await getRecoveryMetricsTimeSeries(mockContext, [new Date('2025-01-01'), new Date('2025-01-31')]);
+			const result = await getRecoveryMetricsTimeSeries(mockContext, [
+				new Date('2025-01-01'),
+				new Date('2025-01-31'),
+			]);
 
 			// Expected recovery calculation is TODO, returns 0
 			expect(result[0].expected_recovery).toBe(0);
@@ -408,7 +462,10 @@ describe.skip('getRecoveryMetricsTimeSeries', () => {
 		it('should handle null query result', async () => {
 			vi.spyOn(db, 'executeQuery').mockResolvedValue(null as any);
 
-			const result = await getRecoveryMetricsTimeSeries(mockContext, [new Date('2025-01-01'), new Date('2025-03-31')]);
+			const result = await getRecoveryMetricsTimeSeries(mockContext, [
+				new Date('2025-01-01'),
+				new Date('2025-03-31'),
+			]);
 
 			expect(result).toEqual([]);
 		});
@@ -416,7 +473,10 @@ describe.skip('getRecoveryMetricsTimeSeries', () => {
 		it('should handle undefined rows', async () => {
 			vi.spyOn(db, 'executeQuery').mockResolvedValue({ rows: undefined } as any);
 
-			const result = await getRecoveryMetricsTimeSeries(mockContext, [new Date('2025-01-01'), new Date('2025-03-31')]);
+			const result = await getRecoveryMetricsTimeSeries(mockContext, [
+				new Date('2025-01-01'),
+				new Date('2025-03-31'),
+			]);
 
 			expect(result).toEqual([]);
 		});
@@ -424,7 +484,10 @@ describe.skip('getRecoveryMetricsTimeSeries', () => {
 		it('should handle empty rows', async () => {
 			vi.spyOn(db, 'executeQuery').mockResolvedValue({ rows: [] } as any);
 
-			const result = await getRecoveryMetricsTimeSeries(mockContext, [new Date('2025-01-01'), new Date('2025-03-31')]);
+			const result = await getRecoveryMetricsTimeSeries(mockContext, [
+				new Date('2025-01-01'),
+				new Date('2025-03-31'),
+			]);
 
 			expect(result).toEqual([]);
 		});
@@ -438,7 +501,10 @@ describe.skip('getRecoveryMetricsTimeSeries', () => {
 
 			vi.spyOn(db, 'executeQuery').mockResolvedValue({ rows: mockRows } as any);
 
-			const result = await getRecoveryMetricsTimeSeries(mockContext, [new Date('2025-01-01'), new Date('2025-03-31')]);
+			const result = await getRecoveryMetricsTimeSeries(mockContext, [
+				new Date('2025-01-01'),
+				new Date('2025-03-31'),
+			]);
 
 			expect(result[0].month_start).toBe('2025-01-01');
 			expect(result[1].month_start).toBe('2025-02-01');

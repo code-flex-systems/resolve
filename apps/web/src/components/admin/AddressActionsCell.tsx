@@ -70,48 +70,57 @@ export default function AddressActionsCell(params: AddressActionsCellProps) {
 					onClose={() => setShowActionConfirm(false)}
 					width={500}
 				>
-					<span style={{  fontStyle: 'italic' ,  fontWeight: 'bold'  }}>
+					<span style={{ fontStyle: 'italic', fontWeight: 'bold' }}>
 						Are you sure you want to {isArchived ? 'restore' : 'archive'} this address?
 					</span>
 					{row.name && (
-						<span style={{ paddingTop: '10px', fontStyle: 'italic' }}>
-							Address: {row.name}
-						</span>
+						<span style={{ paddingTop: '10px', fontStyle: 'italic' }}>Address: {row.name}</span>
 					)}
-					{row.party_name && (
-						<span style={{ fontStyle: 'italic' }}>
-							Party: {row.party_name}
-						</span>
-					)}
+					{row.party_name && <span style={{ fontStyle: 'italic' }}>Party: {row.party_name}</span>}
 				</BasicDialog>
 			)}
 
 			<div style={styles.container}>
 				<div style={{ marginRight: isAdminContext ? '5px' : undefined }}>
-					<Tooltip content="isArchived
+					<Tooltip
+						content="isArchived
 								? 'Cannot edit archived address'
 								: isPartyArchived
 									? 'Cannot edit address - parent party is archived'
-									: 'Make changes'">
-							<Button variant="icon" size="sm" color="neutral" onClick={() => setEditing(true)} disabled={isArchived || isPartyArchived}>
+									: 'Make changes'"
+					>
+						<Button
+							variant="icon"
+							size="sm"
+							color="neutral"
+							onClick={() => setEditing(true)}
+							disabled={isArchived || isPartyArchived}
+						>
 							<IconEdit size={15} />
 						</Button>
-						</Tooltip>
+					</Tooltip>
 				</div>
 				{isAdminContext && (
-					<Tooltip content="isPartyArchived
+					<Tooltip
+						content="isPartyArchived
 								? 'Cannot modify address - parent party is archived'
 								: isArchived
 									? 'Restore address'
-									: 'Archive address'">
-							<Button variant="icon" size="sm" color="neutral" onClick={() => setShowActionConfirm(true)} disabled={isPending || isPartyArchived}>
+									: 'Archive address'"
+					>
+						<Button
+							variant="icon"
+							size="sm"
+							color="neutral"
+							onClick={() => setShowActionConfirm(true)}
+							disabled={isPending || isPartyArchived}
+						>
 							isArchived ? (
-								<IconArchiveOff size={15} style={{ color: 'var(--status-success)' }} />
+							<IconArchiveOff size={15} style={{ color: 'var(--status-success)' }} />
 							) : (
-								<IconArchive size={15} style={{ color: 'var(--status-error)' }} />
-							)
+							<IconArchive size={15} style={{ color: 'var(--status-error)' }} />)
 						</Button>
-						</Tooltip>
+					</Tooltip>
 				)}
 			</div>
 		</>

@@ -52,7 +52,14 @@ export default function NewClaimDialog() {
 			onClose={toggleNewClaimDialog}
 			width={700}
 		>
-			<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', paddingBottom: '10px' }}>
+			<div
+				style={{
+					display: 'flex',
+					alignItems: 'center',
+					justifyContent: 'flex-start',
+					paddingBottom: '10px',
+				}}
+			>
 				<IconInfoCircle style={{ color: 'var(--text-accent)' }} />
 				<span style={{ marginLeft: '5px' }}>
 					Toggle <b>Only Manual Claims</b> to filter by claims created here.
@@ -99,7 +106,11 @@ export default function NewClaimDialog() {
 							render={({ field }) => (
 								<DateField
 									label="Date of Loss"
-									value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : field.value}
+									value={
+										field.value instanceof Date
+											? field.value.toISOString().split('T')[0]
+											: field.value
+									}
 									onChange={(val) => field.onChange(val ? new Date(val) : null)}
 									error={!!errors.date_of_loss}
 									sx={{ width: 200 }}
@@ -125,7 +136,11 @@ export default function NewClaimDialog() {
 							render={({ field }) => (
 								<DateField
 									label="Last Update"
-									value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : field.value}
+									value={
+										field.value instanceof Date
+											? field.value.toISOString().split('T')[0]
+											: field.value
+									}
 									onChange={(val) => field.onChange(val ? new Date(val) : null)}
 									error={!!errors.last_update}
 									sx={{ width: 200 }}
@@ -144,9 +159,7 @@ export default function NewClaimDialog() {
 						/>
 					</div>
 					<div style={styles.row}>
-						<span style={{ marginBottom: 8, color: 'var(--text-secondary)' }}>
-							Loss Location
-						</span>
+						<span style={{ marginBottom: 8, color: 'var(--text-secondary)' }}>Loss Location</span>
 						<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 							<AddressFields
 								control={control}

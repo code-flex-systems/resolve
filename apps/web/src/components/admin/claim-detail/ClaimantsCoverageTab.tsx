@@ -1,6 +1,16 @@
 'use client';
 
-import { IconArchive, IconArrowsMaximize, IconArrowsMinimize, IconCircleCheck, IconEdit, IconSettings, IconSquarePlus, IconUser, IconUserPlus } from '@tabler/icons-react';
+import {
+	IconArchive,
+	IconArrowsMaximize,
+	IconArrowsMinimize,
+	IconCircleCheck,
+	IconEdit,
+	IconSettings,
+	IconSquarePlus,
+	IconUser,
+	IconUserPlus,
+} from '@tabler/icons-react';
 import Tooltip from '@/components/ui/Tooltip';
 import Card from '@/components/ui/Card';
 import Skeleton from '@/components/ui/Skeleton';
@@ -36,9 +46,10 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 	const [showCoverageDialog, setShowCoverageDialog] = useState(false);
 	const [editingCoverage, setEditingCoverage] = useState<any | null>(null);
 	const [selectedClaimPartyId, setSelectedClaimPartyId] = useState<string | null>(null);
-	const [archivingCoverage, setArchivingCoverage] = useState<{ id: string; coverageType: string | null } | null>(
-		null
-	);
+	const [archivingCoverage, setArchivingCoverage] = useState<{
+		id: string;
+		coverageType: string | null;
+	} | null>(null);
 	const [archivingClaimParty, setArchivingClaimParty] = useState<any | null>(null);
 	const [isFacilitatorMode, setIsFacilitatorMode] = useState(false);
 	const [parentClaimPartyId, setParentClaimPartyId] = useState<string | null>(null);
@@ -260,7 +271,8 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 
 		try {
 			await archiveClaimPartyMutation.mutateAsync({ id: archivingClaimParty.id });
-			const partyType = archivingClaimParty.party?.party_type === 'facilitator' ? 'Facilitator' : 'Entity';
+			const partyType =
+				archivingClaimParty.party?.party_type === 'facilitator' ? 'Facilitator' : 'Entity';
 			showAlert(`${partyType} archived successfully`, 'success');
 			setArchivingClaimParty(null);
 		} catch (error: any) {
@@ -291,7 +303,14 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 	const renderCoverageContent = useCallback(
 		(claimParty: any) => (
 			<div style={{ marginTop: 16 }}>
-				<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+				<div
+					style={{
+						display: 'flex',
+						justifyContent: 'space-between',
+						alignItems: 'center',
+						marginBottom: 8,
+					}}
+				>
 					<span style={{ fontSize: 13, fontWeight: 600 }}>
 						Coverages ({(claimParty.coverages || []).length})
 					</span>
@@ -306,7 +325,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 				</div>
 
 				{(claimParty.coverages || []).length === 0 && (
-					<span style={{  fontSize: 12,  color: 'var(--text-secondary)'  ,  fontStyle: 'italic'  }}>
+					<span style={{ fontSize: 12, color: 'var(--text-secondary)', fontStyle: 'italic' }}>
 						No coverages added yet
 					</span>
 				)}
@@ -323,7 +342,13 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 										'inset 0 1px 0 0 rgba(255, 255, 255, 0.8), 0 1px 3px 0 rgba(0, 0, 0, 0.04)',
 								}}
 							>
-								<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+								<div
+									style={{
+										display: 'flex',
+										justifyContent: 'space-between',
+										alignItems: 'flex-start',
+									}}
+								>
 									<div style={{ flex: 1, display: 'flex', flexDirection: 'column' as const }}>
 										<span style={{ fontSize: 14, fontWeight: 600 }}>
 											{formatCoverageType(coverage.loss_type)}
@@ -355,12 +380,26 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 												)}
 										</div>
 										{coverage.subro_applicable && (
-											<span style={{ fontSize: 13, marginBottom: 4, color: 'var(--text-secondary)', display: 'block' }}>
+											<span
+												style={{
+													fontSize: 13,
+													marginBottom: 4,
+													color: 'var(--text-secondary)',
+													display: 'block',
+												}}
+											>
 												Subro: <Highlight>Yes</Highlight>
 											</span>
 										)}
 										{coverage.statute_date && (
-											<span style={{ fontSize: 13, marginBottom: 4, color: 'var(--text-secondary)', display: 'block' }}>
+											<span
+												style={{
+													fontSize: 13,
+													marginBottom: 4,
+													color: 'var(--text-secondary)',
+													display: 'block',
+												}}
+											>
 												Statute:{' '}
 												<Highlight>
 													{new Date(coverage.statute_date).toLocaleDateString()}
@@ -370,7 +409,9 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 										{coverage.statute_preserved && (
 											<div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
 												<IconCircleCheck size={15} style={{ color: 'var(--status-success)' }} />
-												<span style={{ fontSize: 13, color: 'var(--text-secondary)', marginLeft: 4 }}>
+												<span
+													style={{ fontSize: 13, color: 'var(--text-secondary)', marginLeft: 4 }}
+												>
 													Statute Preserved
 												</span>
 											</div>
@@ -379,15 +420,15 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 									{isManageMode && (
 										<div style={{ display: 'flex', gap: 4 }}>
 											<Tooltip content="Edit coverage">
-							<Button variant="icon" size="sm" color="neutral">
-							<IconEdit size={16} />
-						</Button>
-						</Tooltip>
+												<Button variant="icon" size="sm" color="neutral">
+													<IconEdit size={16} />
+												</Button>
+											</Tooltip>
 											<Tooltip content="Archive coverage">
-							<Button variant="icon" size="sm" color="neutral">
-							<IconArchive style={{ color: 'var(--status-error)' }} />
-						</Button>
-						</Tooltip>
+												<Button variant="icon" size="sm" color="neutral">
+													<IconArchive style={{ color: 'var(--status-error)' }} />
+												</Button>
+											</Tooltip>
 										</div>
 									)}
 								</div>
@@ -402,7 +443,15 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 
 	return (
 		<div style={{ padding: 24 }}>
-			<div style={{ display: 'flex', flexDirection: 'column', gap: 24, maxWidth: 1000, margin: '0 auto' }}>
+			<div
+				style={{
+					display: 'flex',
+					flexDirection: 'column',
+					gap: 24,
+					maxWidth: 1000,
+					margin: '0 auto',
+				}}
+			>
 				{/* Summary */}
 				<Card variant="float" padding="lg">
 					<span style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
@@ -413,10 +462,10 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 							<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 								Total Coverage Amount
 							</span>
-							<span style={{ fontSize: 11,  color: 'var(--text-secondary)'  }}>
+							<span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
 								Sum of all party coverage limits
 							</span>
-							<span style={{ fontSize: 18,  color: 'var(--text-accent)'  }}>
+							<span style={{ fontSize: 18, color: 'var(--text-accent)' }}>
 								{formatCurrencyExact(totalCoverageAmount)}
 							</span>
 						</div>
@@ -424,10 +473,10 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 							<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 								Total Amount Reserved
 							</span>
-							<span style={{ fontSize: 11,  color: 'var(--text-secondary)'  }}>
+							<span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
 								Sum of all reserved amounts
 							</span>
-							<span style={{ fontSize: 18,  color: 'var(--status-warning)'  }}>
+							<span style={{ fontSize: 18, color: 'var(--status-warning)' }}>
 								{formatCurrencyExact(totalAmountReserved)}
 							</span>
 						</div>
@@ -435,10 +484,10 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 							<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
 								Linked Entities
 							</span>
-							<span style={{ fontSize: 11,  color: 'var(--text-secondary)'  }}>
+							<span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
 								Claimants and other entities
 							</span>
-							<span style={{ fontSize: 18,  color: 'var(--status-success)'  }}>
+							<span style={{ fontSize: 18, color: 'var(--status-success)' }}>
 								{entities.length}
 							</span>
 						</div>
@@ -447,7 +496,14 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 
 				{/* Party List */}
 				<Card variant="beveled" padding="lg">
-					<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+					<div
+						style={{
+							display: 'flex',
+							justifyContent: 'space-between',
+							alignItems: 'center',
+							marginBottom: 16,
+						}}
+					>
 						<span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
 							Claimants & Entities ({entities.length})
 						</span>
@@ -471,17 +527,24 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 							{entities.length > 0 && (
 								<>
 									<Tooltip content="Manage">
-										<Button variant="icon" size="sm"
+										<Button
+											variant="icon"
+											size="sm"
 											onClick={() => setIsManageMode(!isManageMode)}
 											style={{
 												backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined,
 											}}
 										>
-											<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+											<IconSettings
+												size={20}
+												style={{ color: isManageMode ? 'primary.main' : undefined }}
+											/>
 										</Button>
 									</Tooltip>
 									<Tooltip content={allExpanded ? 'Collapse all' : 'Expand all'}>
-										<Button variant="icon" size="sm"
+										<Button
+											variant="icon"
+											size="sm"
 											onClick={() => setAllExpanded(!allExpanded)}
 											style={{ marginRight: 4 }}
 										>
@@ -505,7 +568,15 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 					)}
 
 					{!isLoading && entities.length === 0 && (
-						<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+						<div
+							style={{
+								display: 'flex',
+								flexDirection: 'column',
+								alignItems: 'center',
+								justifyContent: 'center',
+								padding: 32,
+							}}
+						>
 							<IconUser size={48} style={{ color: 'var(--text-muted)', marginBottom: 1 }} />
 							<span style={{ fontSize: 13, color: 'var(--text-muted)', fontStyle: 'italic' }}>
 								No claimants or entities linked yet
@@ -582,18 +653,18 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 					onClose={() => setArchivingCoverage(null)}
 					width={500}
 				>
-					<span style={{  fontStyle: 'italic' ,  fontWeight: 'bold'  }}>
+					<span style={{ fontStyle: 'italic', fontWeight: 'bold' }}>
 						Are you sure you want to archive this coverage?
 					</span>
 					{archivingCoverage.coverageType && (
 						<div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-							<span style={{ fontSize: 13,  color: 'var(--text-secondary)'  }}>
-								Coverage Type:
+							<span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Coverage Type:</span>
+							<span style={{ fontSize: 13 }}>
+								{formatCoverageType(archivingCoverage.coverageType)}
 							</span>
-							<span style={{ fontSize: 13 }}>{formatCoverageType(archivingCoverage.coverageType)}</span>
 						</div>
 					)}
-					<span style={{  paddingTop: '10px', fontStyle: 'italic' ,  color: 'var(--text-secondary)'  }}>
+					<span style={{ paddingTop: '10px', fontStyle: 'italic', color: 'var(--text-secondary)' }}>
 						The coverage will be archived and hidden from view, but the record will be preserved for
 						traceability.
 					</span>
@@ -619,9 +690,9 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 					onClose={() => setArchivingClaimParty(null)}
 					width={500}
 				>
-					<span style={{  fontStyle: 'italic' ,  fontWeight: 'bold'  }}>
+					<span style={{ fontStyle: 'italic', fontWeight: 'bold' }}>
 						Are you sure you want to archive{' '}
-						<span style={{  fontWeight: 'bold' ,  color: 'var(--text-accent)'  }}>
+						<span style={{ fontWeight: 'bold', color: 'var(--text-accent)' }}>
 							{archivingClaimParty.party?.name}
 						</span>
 						?
@@ -632,23 +703,24 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 							style={{
 								backgroundColor: 'rgba(237, 108, 2, 0.08)',
 								padding: 2,
-								marginTop: 16, marginBottom: 16,
+								marginTop: 16,
+								marginBottom: 16,
 								borderLeft: '4px solid',
 								borderColor: 'warning.main',
 							}}
 						>
-							<span style={{  fontSize: 13, fontWeight: 600 ,  color: 'var(--status-warning)'  }}>
+							<span style={{ fontSize: 13, fontWeight: 600, color: 'var(--status-warning)' }}>
 								This will also archive:
 							</span>
 							<div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
 								{archivePreview.facilitatorCount > 0 && (
-									<span style={{ fontSize: 13,  color: 'var(--status-warning)'  }}>
+									<span style={{ fontSize: 13, color: 'var(--status-warning)' }}>
 										• {archivePreview.facilitatorCount} facilitator
 										{archivePreview.facilitatorCount > 1 ? 's' : ''}
 									</span>
 								)}
 								{archivePreview.coverageCount > 0 && (
-									<span style={{ fontSize: 13,  color: 'var(--status-warning)'  }}>
+									<span style={{ fontSize: 13, color: 'var(--status-warning)' }}>
 										• {archivePreview.coverageCount} coverage
 										{archivePreview.coverageCount > 1 ? 's' : ''}
 									</span>
@@ -657,9 +729,10 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 						</div>
 					)}
 
-					<span style={{  paddingTop: '10px', fontStyle: 'italic' ,  color: 'var(--text-secondary)'  }}>
-						The {archivingClaimParty.party?.party_type === 'facilitator' ? 'facilitator' : 'entity'} will be
-						archived and hidden from view, but all records will be preserved for traceability.
+					<span style={{ paddingTop: '10px', fontStyle: 'italic', color: 'var(--text-secondary)' }}>
+						The {archivingClaimParty.party?.party_type === 'facilitator' ? 'facilitator' : 'entity'}{' '}
+						will be archived and hidden from view, but all records will be preserved for
+						traceability.
 					</span>
 				</BasicDialog>
 			)}

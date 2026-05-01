@@ -52,92 +52,58 @@ export const partyRouter = router({
 	/**
 	 * Get paginated list of parties (Admin + Contributor read access)
 	 */
-	getParties: protectedProcedure
-		.input(getPartiesInput)
-		.query(async ({ input, ctx }) => {
-			requireRole(ctx, [
-				config.ROLES.CONTRIBUTOR,
-				config.ROLES.ADMIN,
-				config.ROLES.SUPER_ADMIN,
-			]);
-			return partyController.getParties(ctx, input);
-		}),
+	getParties: protectedProcedure.input(getPartiesInput).query(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.CONTRIBUTOR, config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return partyController.getParties(ctx, input);
+	}),
 
 	/**
 	 * Get single party by ID (Admin + Contributor read access)
 	 */
-	getParty: protectedProcedure
-		.input(getPartyInput)
-		.query(async ({ input, ctx }) => {
-			requireRole(ctx, [
-				config.ROLES.CONTRIBUTOR,
-				config.ROLES.ADMIN,
-				config.ROLES.SUPER_ADMIN,
-			]);
-			return partyController.getParty(ctx, input);
-		}),
+	getParty: protectedProcedure.input(getPartyInput).query(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.CONTRIBUTOR, config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return partyController.getParty(ctx, input);
+	}),
 
 	/**
 	 * Search parties for deduplication (Admin + Contributor read access)
 	 */
-	searchParties: protectedProcedure
-		.input(searchPartiesInput)
-		.query(async ({ input, ctx }) => {
-			requireRole(ctx, [
-				config.ROLES.CONTRIBUTOR,
-				config.ROLES.ADMIN,
-				config.ROLES.SUPER_ADMIN,
-			]);
-			return partyController.searchParties(ctx, input);
-		}),
+	searchParties: protectedProcedure.input(searchPartiesInput).query(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.CONTRIBUTOR, config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return partyController.searchParties(ctx, input);
+	}),
 
 	/**
 	 * Create party (Admin + Contributor)
 	 */
-	createParty: protectedProcedure
-		.input(createPartyInput)
-		.mutation(async ({ input, ctx }) => {
-			requireRole(ctx, [
-				config.ROLES.CONTRIBUTOR,
-				config.ROLES.ADMIN,
-				config.ROLES.SUPER_ADMIN,
-			]);
-			return partyController.createParty(ctx, input);
-		}),
+	createParty: protectedProcedure.input(createPartyInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.CONTRIBUTOR, config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return partyController.createParty(ctx, input);
+	}),
 
 	/**
 	 * Update party (Admin + Contributor)
 	 */
-	updateParty: protectedProcedure
-		.input(updatePartyInput)
-		.mutation(async ({ input, ctx }) => {
-			requireRole(ctx, [
-				config.ROLES.CONTRIBUTOR,
-				config.ROLES.ADMIN,
-				config.ROLES.SUPER_ADMIN,
-			]);
-			return partyController.updateParty(ctx, input);
-		}),
+	updateParty: protectedProcedure.input(updatePartyInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.CONTRIBUTOR, config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return partyController.updateParty(ctx, input);
+	}),
 
 	/**
 	 * Archive party (Admin only)
 	 */
-	archiveParty: protectedProcedure
-		.input(deletePartyInput)
-		.mutation(async ({ input, ctx }) => {
-			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-			return partyController.archiveParty(ctx, input);
-		}),
+	archiveParty: protectedProcedure.input(deletePartyInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return partyController.archiveParty(ctx, input);
+	}),
 
 	/**
 	 * Restore party (Admin only)
 	 */
-	restoreParty: protectedProcedure
-		.input(deletePartyInput)
-		.mutation(async ({ input, ctx }) => {
-			requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
-			return partyController.restoreParty(ctx, input);
-		}),
+	restoreParty: protectedProcedure.input(deletePartyInput).mutation(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return partyController.restoreParty(ctx, input);
+	}),
 
 	// ========================================================================
 	// PARTY ADDRESS CRUD OPERATIONS (renamed from PARTY OFFICE)
@@ -149,11 +115,7 @@ export const partyRouter = router({
 	getPartyAddresses: protectedProcedure
 		.input(getPartyAddressesInput)
 		.query(async ({ input, ctx }) => {
-			requireRole(ctx, [
-				config.ROLES.CONTRIBUTOR,
-				config.ROLES.ADMIN,
-				config.ROLES.SUPER_ADMIN,
-			]);
+			requireRole(ctx, [config.ROLES.CONTRIBUTOR, config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 			return partyController.getPartyAddresses(ctx, input);
 		}),
 
@@ -163,27 +125,17 @@ export const partyRouter = router({
 	getAllPartyAddresses: protectedProcedure
 		.input(getAllPartyAddressesInput)
 		.query(async ({ input, ctx }) => {
-			requireRole(ctx, [
-				config.ROLES.CONTRIBUTOR,
-				config.ROLES.ADMIN,
-				config.ROLES.SUPER_ADMIN,
-			]);
+			requireRole(ctx, [config.ROLES.CONTRIBUTOR, config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 			return partyController.getAllPartyAddresses(ctx, input);
 		}),
 
 	/**
 	 * Get single party address by ID (Admin + Contributor read access)
 	 */
-	getPartyAddress: protectedProcedure
-		.input(getPartyAddressInput)
-		.query(async ({ input, ctx }) => {
-			requireRole(ctx, [
-				config.ROLES.CONTRIBUTOR,
-				config.ROLES.ADMIN,
-				config.ROLES.SUPER_ADMIN,
-			]);
-			return partyController.getPartyAddress(ctx, input);
-		}),
+	getPartyAddress: protectedProcedure.input(getPartyAddressInput).query(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.CONTRIBUTOR, config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return partyController.getPartyAddress(ctx, input);
+	}),
 
 	/**
 	 * Create party address (Admin + Contributor)
@@ -191,11 +143,7 @@ export const partyRouter = router({
 	createPartyAddress: protectedProcedure
 		.input(createPartyAddressInput)
 		.mutation(async ({ input, ctx }) => {
-			requireRole(ctx, [
-				config.ROLES.CONTRIBUTOR,
-				config.ROLES.ADMIN,
-				config.ROLES.SUPER_ADMIN,
-			]);
+			requireRole(ctx, [config.ROLES.CONTRIBUTOR, config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 			return partyController.createPartyAddress(ctx, input);
 		}),
 
@@ -205,11 +153,7 @@ export const partyRouter = router({
 	updatePartyAddress: protectedProcedure
 		.input(updatePartyAddressInput)
 		.mutation(async ({ input, ctx }) => {
-			requireRole(ctx, [
-				config.ROLES.CONTRIBUTOR,
-				config.ROLES.ADMIN,
-				config.ROLES.SUPER_ADMIN,
-			]);
+			requireRole(ctx, [config.ROLES.CONTRIBUTOR, config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 			return partyController.updatePartyAddress(ctx, input);
 		}),
 
@@ -237,22 +181,14 @@ export const partyRouter = router({
 	getPartyOffices: protectedProcedure
 		.input(getPartyAddressesInput)
 		.query(async ({ input, ctx }) => {
-			requireRole(ctx, [
-				config.ROLES.CONTRIBUTOR,
-				config.ROLES.ADMIN,
-				config.ROLES.SUPER_ADMIN,
-			]);
+			requireRole(ctx, [config.ROLES.CONTRIBUTOR, config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 			return partyController.getPartyAddresses(ctx, input);
 		}),
 
 	getAllPartyOffices: protectedProcedure
 		.input(getAllPartyAddressesInput)
 		.query(async ({ input, ctx }) => {
-			requireRole(ctx, [
-				config.ROLES.CONTRIBUTOR,
-				config.ROLES.ADMIN,
-				config.ROLES.SUPER_ADMIN,
-			]);
+			requireRole(ctx, [config.ROLES.CONTRIBUTOR, config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 			return partyController.getAllPartyAddresses(ctx, input);
 		}),
 
@@ -263,16 +199,10 @@ export const partyRouter = router({
 	/**
 	 * Get phones for a party (Admin + Contributor read access)
 	 */
-	getPartyPhones: protectedProcedure
-		.input(getPartyPhonesInput)
-		.query(async ({ input, ctx }) => {
-			requireRole(ctx, [
-				config.ROLES.CONTRIBUTOR,
-				config.ROLES.ADMIN,
-				config.ROLES.SUPER_ADMIN,
-			]);
-			return partyController.getPartyPhones(ctx, input);
-		}),
+	getPartyPhones: protectedProcedure.input(getPartyPhonesInput).query(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.CONTRIBUTOR, config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return partyController.getPartyPhones(ctx, input);
+	}),
 
 	/**
 	 * Create party phone (Admin + Contributor)
@@ -280,11 +210,7 @@ export const partyRouter = router({
 	createPartyPhone: protectedProcedure
 		.input(createPartyPhoneInput)
 		.mutation(async ({ input, ctx }) => {
-			requireRole(ctx, [
-				config.ROLES.CONTRIBUTOR,
-				config.ROLES.ADMIN,
-				config.ROLES.SUPER_ADMIN,
-			]);
+			requireRole(ctx, [config.ROLES.CONTRIBUTOR, config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 			return partyController.createPartyPhone(ctx, input);
 		}),
 
@@ -294,11 +220,7 @@ export const partyRouter = router({
 	updatePartyPhone: protectedProcedure
 		.input(updatePartyPhoneInput)
 		.mutation(async ({ input, ctx }) => {
-			requireRole(ctx, [
-				config.ROLES.CONTRIBUTOR,
-				config.ROLES.ADMIN,
-				config.ROLES.SUPER_ADMIN,
-			]);
+			requireRole(ctx, [config.ROLES.CONTRIBUTOR, config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 			return partyController.updatePartyPhone(ctx, input);
 		}),
 
@@ -329,16 +251,10 @@ export const partyRouter = router({
 	/**
 	 * Get emails for a party (Admin + Contributor read access)
 	 */
-	getPartyEmails: protectedProcedure
-		.input(getPartyEmailsInput)
-		.query(async ({ input, ctx }) => {
-			requireRole(ctx, [
-				config.ROLES.CONTRIBUTOR,
-				config.ROLES.ADMIN,
-				config.ROLES.SUPER_ADMIN,
-			]);
-			return partyController.getPartyEmails(ctx, input);
-		}),
+	getPartyEmails: protectedProcedure.input(getPartyEmailsInput).query(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.CONTRIBUTOR, config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return partyController.getPartyEmails(ctx, input);
+	}),
 
 	/**
 	 * Create party email (Admin + Contributor)
@@ -346,11 +262,7 @@ export const partyRouter = router({
 	createPartyEmail: protectedProcedure
 		.input(createPartyEmailInput)
 		.mutation(async ({ input, ctx }) => {
-			requireRole(ctx, [
-				config.ROLES.CONTRIBUTOR,
-				config.ROLES.ADMIN,
-				config.ROLES.SUPER_ADMIN,
-			]);
+			requireRole(ctx, [config.ROLES.CONTRIBUTOR, config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 			return partyController.createPartyEmail(ctx, input);
 		}),
 
@@ -360,11 +272,7 @@ export const partyRouter = router({
 	updatePartyEmail: protectedProcedure
 		.input(updatePartyEmailInput)
 		.mutation(async ({ input, ctx }) => {
-			requireRole(ctx, [
-				config.ROLES.CONTRIBUTOR,
-				config.ROLES.ADMIN,
-				config.ROLES.SUPER_ADMIN,
-			]);
+			requireRole(ctx, [config.ROLES.CONTRIBUTOR, config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 			return partyController.updatePartyEmail(ctx, input);
 		}),
 
@@ -398,11 +306,7 @@ export const partyRouter = router({
 	getPartyRepresentatives: protectedProcedure
 		.input(getPartyRepresentativesInput)
 		.query(async ({ input, ctx }) => {
-			requireRole(ctx, [
-				config.ROLES.CONTRIBUTOR,
-				config.ROLES.ADMIN,
-				config.ROLES.SUPER_ADMIN,
-			]);
+			requireRole(ctx, [config.ROLES.CONTRIBUTOR, config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 			return partyController.getPartyRepresentatives(ctx, input);
 		}),
 
@@ -412,27 +316,17 @@ export const partyRouter = router({
 	getAllPartyRepresentatives: protectedProcedure
 		.input(getAllPartyRepresentativesInput)
 		.query(async ({ input, ctx }) => {
-			requireRole(ctx, [
-				config.ROLES.CONTRIBUTOR,
-				config.ROLES.ADMIN,
-				config.ROLES.SUPER_ADMIN,
-			]);
+			requireRole(ctx, [config.ROLES.CONTRIBUTOR, config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 			return partyController.getAllPartyRepresentatives(ctx, input);
 		}),
 
 	/**
 	 * Get single party representative by ID (Admin + Contributor read access)
 	 */
-	getPartyRepresentative: protectedProcedure
-		.input(getPartyInput)
-		.query(async ({ input, ctx }) => {
-			requireRole(ctx, [
-				config.ROLES.CONTRIBUTOR,
-				config.ROLES.ADMIN,
-				config.ROLES.SUPER_ADMIN,
-			]);
-			return partyController.getPartyRepresentative(ctx, input);
-		}),
+	getPartyRepresentative: protectedProcedure.input(getPartyInput).query(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.CONTRIBUTOR, config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return partyController.getPartyRepresentative(ctx, input);
+	}),
 
 	/**
 	 * Create party representative (Admin + Contributor)
@@ -440,11 +334,7 @@ export const partyRouter = router({
 	createPartyRepresentative: protectedProcedure
 		.input(createPartyRepresentativeInput)
 		.mutation(async ({ input, ctx }) => {
-			requireRole(ctx, [
-				config.ROLES.CONTRIBUTOR,
-				config.ROLES.ADMIN,
-				config.ROLES.SUPER_ADMIN,
-			]);
+			requireRole(ctx, [config.ROLES.CONTRIBUTOR, config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 			return partyController.createPartyRepresentative(ctx, input);
 		}),
 
@@ -454,11 +344,7 @@ export const partyRouter = router({
 	updatePartyRepresentative: protectedProcedure
 		.input(updatePartyRepresentativeInput)
 		.mutation(async ({ input, ctx }) => {
-			requireRole(ctx, [
-				config.ROLES.CONTRIBUTOR,
-				config.ROLES.ADMIN,
-				config.ROLES.SUPER_ADMIN,
-			]);
+			requireRole(ctx, [config.ROLES.CONTRIBUTOR, config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
 			return partyController.updatePartyRepresentative(ctx, input);
 		}),
 
@@ -499,16 +385,10 @@ export const partyRouter = router({
 	/**
 	 * Get parties linked to a claim (Admin + Contributor read access)
 	 */
-	getClaimParties: protectedProcedure
-		.input(getClaimPartiesInput)
-		.query(async ({ input, ctx }) => {
-			requireRole(ctx, [
-				config.ROLES.CONTRIBUTOR,
-				config.ROLES.ADMIN,
-				config.ROLES.SUPER_ADMIN,
-			]);
-			return partyController.getClaimParties(ctx, input);
-		}),
+	getClaimParties: protectedProcedure.input(getClaimPartiesInput).query(async ({ input, ctx }) => {
+		requireRole(ctx, [config.ROLES.CONTRIBUTOR, config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN]);
+		return partyController.getClaimParties(ctx, input);
+	}),
 
 	/**
 	 * Link party to claim (Admin only)

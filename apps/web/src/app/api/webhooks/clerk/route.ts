@@ -149,10 +149,14 @@ async function handleUserSync(data: WebhookEvent['data']) {
 	};
 
 	// Get primary email
-	const primaryEmail = userData.email_addresses?.find((e) => e.id === userData.primary_email_address_id);
+	const primaryEmail = userData.email_addresses?.find(
+		(e) => e.id === userData.primary_email_address_id
+	);
 
 	// Get primary phone
-	const primaryPhone = userData.phone_numbers?.find((p) => p.id === userData.primary_phone_number_id);
+	const primaryPhone = userData.phone_numbers?.find(
+		(p) => p.id === userData.primary_phone_number_id
+	);
 
 	// Get organization membership (if any)
 	const membership = userData.organization_memberships?.[0];
@@ -255,7 +259,9 @@ async function handleMembershipSync(data: WebhookEvent['data']) {
 	// Look up internal client_id from Clerk org ID
 	const client = await getClientByClerkOrgId(db, membershipData.organization.id);
 	if (!client) {
-		console.log(`No client found for Clerk org ${membershipData.organization.id}, skipping membership sync`);
+		console.log(
+			`No client found for Clerk org ${membershipData.organization.id}, skipping membership sync`
+		);
 		return;
 	}
 
@@ -265,16 +271,25 @@ async function handleMembershipSync(data: WebhookEvent['data']) {
 	// If identifier is not an email, fetch the user from Clerk
 	if (!email || !email.includes('@')) {
 		try {
-			const clerkUser = await getClerkClient().users.getUser(membershipData.public_user_data.user_id);
-			email = clerkUser.emailAddresses.find((e) => e.id === clerkUser.primaryEmailAddressId)?.emailAddress || null;
+			const clerkUser = await getClerkClient().users.getUser(
+				membershipData.public_user_data.user_id
+			);
+			email =
+				clerkUser.emailAddresses.find((e) => e.id === clerkUser.primaryEmailAddressId)
+					?.emailAddress || null;
 		} catch (error) {
-			console.error(`Failed to fetch Clerk user ${membershipData.public_user_data.user_id}:`, error);
+			console.error(
+				`Failed to fetch Clerk user ${membershipData.public_user_data.user_id}:`,
+				error
+			);
 			return;
 		}
 	}
 
 	if (!email) {
-		console.log(`No email found for user ${membershipData.public_user_data.user_id}, skipping membership sync`);
+		console.log(
+			`No email found for user ${membershipData.public_user_data.user_id}, skipping membership sync`
+		);
 		return;
 	}
 
@@ -315,16 +330,25 @@ async function handleMembershipDeleted(data: WebhookEvent['data']) {
 	// If identifier is not an email, fetch the user from Clerk
 	if (!email || !email.includes('@')) {
 		try {
-			const clerkUser = await getClerkClient().users.getUser(membershipData.public_user_data.user_id);
-			email = clerkUser.emailAddresses.find((e) => e.id === clerkUser.primaryEmailAddressId)?.emailAddress || null;
+			const clerkUser = await getClerkClient().users.getUser(
+				membershipData.public_user_data.user_id
+			);
+			email =
+				clerkUser.emailAddresses.find((e) => e.id === clerkUser.primaryEmailAddressId)
+					?.emailAddress || null;
 		} catch (error) {
-			console.error(`Failed to fetch Clerk user ${membershipData.public_user_data.user_id}:`, error);
+			console.error(
+				`Failed to fetch Clerk user ${membershipData.public_user_data.user_id}:`,
+				error
+			);
 			return;
 		}
 	}
 
 	if (!email) {
-		console.log(`No email found for user ${membershipData.public_user_data.user_id}, skipping membership deletion sync`);
+		console.log(
+			`No email found for user ${membershipData.public_user_data.user_id}, skipping membership deletion sync`
+		);
 		return;
 	}
 
@@ -446,7 +470,9 @@ async function handleSessionCreated(data: WebhookEvent['data']) {
 	let email: string | null = null;
 	try {
 		const clerkUser = await getClerkClient().users.getUser(sessionData.user_id);
-		email = clerkUser.emailAddresses.find((e) => e.id === clerkUser.primaryEmailAddressId)?.emailAddress || null;
+		email =
+			clerkUser.emailAddresses.find((e) => e.id === clerkUser.primaryEmailAddressId)
+				?.emailAddress || null;
 	} catch (error) {
 		console.error(`Failed to fetch Clerk user ${sessionData.user_id}:`, error);
 		return;

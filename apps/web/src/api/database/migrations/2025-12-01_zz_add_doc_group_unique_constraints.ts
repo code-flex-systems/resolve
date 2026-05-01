@@ -8,7 +8,7 @@ import { Kysely, sql } from 'kysely';
  * These constraints were in the baseline schema but missing from production.
  *
  * Cleans up any existing duplicates before adding the constraints.
- * 
+ *
  * Uses zz_ prefix to ensure this runs AFTER other 12/1 migrations.
  */
 

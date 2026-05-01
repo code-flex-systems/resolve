@@ -29,10 +29,9 @@ async function createTestDatabase(): Promise<void> {
 	});
 
 	try {
-		const result = await adminPool.query(
-			'SELECT 1 FROM pg_database WHERE datname = $1',
-			[TEST_DB_NAME]
-		);
+		const result = await adminPool.query('SELECT 1 FROM pg_database WHERE datname = $1', [
+			TEST_DB_NAME,
+		]);
 
 		if (result.rows.length === 0) {
 			console.log(`Creating database: ${TEST_DB_NAME}`);
@@ -104,11 +103,14 @@ async function setupSchema(): Promise<void> {
 			.map((f) => f.replace('.ts', ''));
 
 		for (const migration of migrations) {
-			await testPool.query(`
+			await testPool.query(
+				`
 				INSERT INTO ${TEST_SCHEMA}.kysely_migration (name, timestamp)
 				VALUES ($1, $2)
 				ON CONFLICT (name) DO NOTHING
-			`, [migration, new Date().toISOString()]);
+			`,
+				[migration, new Date().toISOString()]
+			);
 		}
 		console.log(`Marked ${migrations.length} migrations as executed`);
 	} finally {

@@ -24,7 +24,10 @@ interface DeskAssignment {
 	priority: number;
 }
 
-export default function EditUserDeskAssignmentsDialog({ userId, onClose }: EditUserDeskAssignmentsDialogProps) {
+export default function EditUserDeskAssignmentsDialog({
+	userId,
+	onClose,
+}: EditUserDeskAssignmentsDialogProps) {
 	const [assignments, setAssignments] = useState<DeskAssignment[]>([
 		{
 			id: null,
@@ -208,7 +211,9 @@ export default function EditUserDeskAssignmentsDialog({ userId, onClose }: EditU
 					return (
 						<div key={assignment.priority}>
 							<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-								<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+								<div
+									style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+								>
 									<span style={{ color: 'var(--text-accent)', fontWeight: 600 }}>
 										Priority {assignment.priority}
 									</span>
@@ -235,7 +240,9 @@ export default function EditUserDeskAssignmentsDialog({ userId, onClose }: EditU
 
 								<DeskLocationSelect
 									value={assignment.deskLocationId}
-									onChange={(value) => updateAssignment(assignment.priority, 'deskLocationId', value)}
+									onChange={(value) =>
+										updateAssignment(assignment.priority, 'deskLocationId', value)
+									}
 									deskLocationTypeId={assignment.deskLocationTypeId}
 									disabled={!assignment.deskLocationTypeId || isSaving}
 									excludedLocationIds={excludedLocationIds}

@@ -23,14 +23,10 @@ export async function getParties(
 	let query = ctx.db
 		.selectFrom('party')
 		.leftJoin('party_email', (join) =>
-			join
-				.onRef('party_email.party_id', '=', 'party.id')
-				.on('party_email.deleted_at', 'is', null)
+			join.onRef('party_email.party_id', '=', 'party.id').on('party_email.deleted_at', 'is', null)
 		)
 		.leftJoin('party_phone', (join) =>
-			join
-				.onRef('party_phone.party_id', '=', 'party.id')
-				.on('party_phone.deleted_at', 'is', null)
+			join.onRef('party_phone.party_id', '=', 'party.id').on('party_phone.deleted_at', 'is', null)
 		)
 		.leftJoin('party_address', (join) =>
 			join
@@ -141,14 +137,10 @@ export async function getParty(ctx: ProtectedContext, id: string) {
 	const result = await ctx.db
 		.selectFrom('party')
 		.leftJoin('party_email', (join) =>
-			join
-				.onRef('party_email.party_id', '=', 'party.id')
-				.on('party_email.deleted_at', 'is', null)
+			join.onRef('party_email.party_id', '=', 'party.id').on('party_email.deleted_at', 'is', null)
 		)
 		.leftJoin('party_phone', (join) =>
-			join
-				.onRef('party_phone.party_id', '=', 'party.id')
-				.on('party_phone.deleted_at', 'is', null)
+			join.onRef('party_phone.party_id', '=', 'party.id').on('party_phone.deleted_at', 'is', null)
 		)
 		.leftJoin('party_address', (join) =>
 			join
@@ -275,9 +267,10 @@ export async function createParty(
 			client_id: ctx.session.user.client_id!,
 			created_by: ctx.session.user.id,
 			// For individual parties, compute the name from first/last name
-			name: params.is_business === false
-				? [params.first_name, params.last_name].filter(Boolean).join(' ')
-				: params.name!,
+			name:
+				params.is_business === false
+					? [params.first_name, params.last_name].filter(Boolean).join(' ')
+					: params.name!,
 			party_type: params.party_type,
 			is_business: params.is_business ?? true,
 			first_name: params.first_name,
@@ -326,7 +319,10 @@ export async function updateParty(
 	if (params.notes !== undefined) updateValues.notes = params.notes;
 
 	// For individual parties, update the name from first/last name if they changed
-	if (params.is_business === false && (params.first_name !== undefined || params.last_name !== undefined)) {
+	if (
+		params.is_business === false &&
+		(params.first_name !== undefined || params.last_name !== undefined)
+	) {
 		// Fetch current values to compute new name
 		const currentParty = await ctx.db
 			.selectFrom('party')
@@ -483,7 +479,11 @@ export async function restoreParty(ctx: ProtectedContext, id: string) {
 /**
  * Get all addresses for a party
  */
-export async function getPartyAddresses(ctx: ProtectedContext, partyId: string, showArchived?: boolean) {
+export async function getPartyAddresses(
+	ctx: ProtectedContext,
+	partyId: string,
+	showArchived?: boolean
+) {
 	// Verify party belongs to client (via join)
 	let query = ctx.db
 		.selectFrom('party_address')
@@ -707,7 +707,10 @@ export async function updatePartyAddress(
 		.where(
 			'party_address.party_id',
 			'in',
-			ctx.db.selectFrom('party').select('party.id').where('party.client_id', '=', ctx.session.user.client_id)
+			ctx.db
+				.selectFrom('party')
+				.select('party.id')
+				.where('party.client_id', '=', ctx.session.user.client_id)
 		)
 		.returningAll()
 		.executeTakeFirstOrThrow();
@@ -729,7 +732,10 @@ export async function archivePartyAddress(ctx: ProtectedContext, id: string) {
 		.where(
 			'party_address.party_id',
 			'in',
-			ctx.db.selectFrom('party').select('party.id').where('party.client_id', '=', ctx.session.user.client_id)
+			ctx.db
+				.selectFrom('party')
+				.select('party.id')
+				.where('party.client_id', '=', ctx.session.user.client_id)
 		)
 		.returningAll()
 		.executeTakeFirstOrThrow();
@@ -750,7 +756,10 @@ export async function restorePartyAddress(ctx: ProtectedContext, id: string) {
 		.where(
 			'party_address.party_id',
 			'in',
-			ctx.db.selectFrom('party').select('party.id').where('party.client_id', '=', ctx.session.user.client_id)
+			ctx.db
+				.selectFrom('party')
+				.select('party.id')
+				.where('party.client_id', '=', ctx.session.user.client_id)
 		)
 		.returningAll()
 		.executeTakeFirstOrThrow();
@@ -765,7 +774,11 @@ export async function restorePartyAddress(ctx: ProtectedContext, id: string) {
 /**
  * Get all phones for a party
  */
-export async function getPartyPhones(ctx: ProtectedContext, partyId: string, showArchived?: boolean) {
+export async function getPartyPhones(
+	ctx: ProtectedContext,
+	partyId: string,
+	showArchived?: boolean
+) {
 	let query = ctx.db
 		.selectFrom('party_phone')
 		.innerJoin('party', 'party.id', 'party_phone.party_id')
@@ -916,7 +929,11 @@ export async function restorePartyPhone(ctx: ProtectedContext, id: string) {
 /**
  * Get all emails for a party
  */
-export async function getPartyEmails(ctx: ProtectedContext, partyId: string, showArchived?: boolean) {
+export async function getPartyEmails(
+	ctx: ProtectedContext,
+	partyId: string,
+	showArchived?: boolean
+) {
 	let query = ctx.db
 		.selectFrom('party_email')
 		.innerJoin('party', 'party.id', 'party_email.party_id')
@@ -1063,7 +1080,10 @@ export async function getPartyRepresentatives(
 		.innerJoin('party', 'party.id', 'party_representative.party_id')
 		.leftJoin('party_address', 'party_address.id', 'party_representative.address_id')
 		.selectAll('party_representative')
-		.select(['party_address.name as address_name', 'party_address.deleted_at as address_deleted_at'])
+		.select([
+			'party_address.name as address_name',
+			'party_address.deleted_at as address_deleted_at',
+		])
 		.where('party.client_id', '=', ctx.session.user.client_id)
 		.where('party_representative.party_id', '=', partyId);
 
@@ -1196,7 +1216,10 @@ export async function archivePartyRepresentative(ctx: ProtectedContext, id: stri
 		.where(
 			'party_representative.party_id',
 			'in',
-			ctx.db.selectFrom('party').select('party.id').where('party.client_id', '=', ctx.session.user.client_id)
+			ctx.db
+				.selectFrom('party')
+				.select('party.id')
+				.where('party.client_id', '=', ctx.session.user.client_id)
 		)
 		.execute();
 
@@ -1219,7 +1242,10 @@ export async function restorePartyRepresentative(ctx: ProtectedContext, id: stri
 		.where(
 			'party_representative.party_id',
 			'in',
-			ctx.db.selectFrom('party').select('party.id').where('party.client_id', '=', ctx.session.user.client_id)
+			ctx.db
+				.selectFrom('party')
+				.select('party.id')
+				.where('party.client_id', '=', ctx.session.user.client_id)
 		)
 		.execute();
 
@@ -1332,7 +1358,10 @@ export async function updatePartyRepresentative(
 		.where(
 			'party_representative.party_id',
 			'in',
-			ctx.db.selectFrom('party').select('party.id').where('party.client_id', '=', ctx.session.user.client_id)
+			ctx.db
+				.selectFrom('party')
+				.select('party.id')
+				.where('party.client_id', '=', ctx.session.user.client_id)
 		)
 		.returningAll()
 		.executeTakeFirstOrThrow();
@@ -1368,7 +1397,10 @@ export async function deletePartyRepresentative(ctx: ProtectedContext, id: strin
 		.where(
 			'party_representative.party_id',
 			'in',
-			ctx.db.selectFrom('party').select('party.id').where('party.client_id', '=', ctx.session.user.client_id)
+			ctx.db
+				.selectFrom('party')
+				.select('party.id')
+				.where('party.client_id', '=', ctx.session.user.client_id)
 		)
 		.execute();
 }
@@ -1390,7 +1422,10 @@ export async function deletePartyRepresentative(ctx: ProtectedContext, id: strin
 export async function getClaimParties(
 	ctx: ProtectedContext,
 	claimId: string,
-	options?: { partyType?: 'entity' | 'facilitator'; roleListEntity?: 'claimant_party_role' | 'adverse_party_role' }
+	options?: {
+		partyType?: 'entity' | 'facilitator';
+		roleListEntity?: 'claimant_party_role' | 'adverse_party_role';
+	}
 ) {
 	// Fetch claim parties with related data
 	let query = ctx.db
@@ -1412,14 +1447,10 @@ export async function getClaimParties(
 				.on('party_address.deleted_at', 'is', null)
 		)
 		.leftJoin('party_email', (join) =>
-			join
-				.onRef('party_email.party_id', '=', 'party.id')
-				.on('party_email.deleted_at', 'is', null)
+			join.onRef('party_email.party_id', '=', 'party.id').on('party_email.deleted_at', 'is', null)
 		)
 		.leftJoin('party_phone', (join) =>
-			join
-				.onRef('party_phone.party_id', '=', 'party.id')
-				.on('party_phone.deleted_at', 'is', null)
+			join.onRef('party_phone.party_id', '=', 'party.id').on('party_phone.deleted_at', 'is', null)
 		)
 		.selectAll('claim_party')
 		.select([
@@ -1441,11 +1472,19 @@ export async function getClaimParties(
 			// For facilitators: use selected office, for entities: use party's primary address
 			sql<number | null>`COALESCE(selected_address.id, party_address.id)`.as('address_id'),
 			sql<string | null>`COALESCE(selected_address.name, party_address.name)`.as('address_name'),
-			sql<string | null>`COALESCE(selected_address.street_address, party_address.street_address)`.as('address_street_address'),
+			sql<
+				string | null
+			>`COALESCE(selected_address.street_address, party_address.street_address)`.as(
+				'address_street_address'
+			),
 			sql<string | null>`COALESCE(selected_address.city, party_address.city)`.as('address_city'),
 			sql<string | null>`COALESCE(selected_address.state, party_address.state)`.as('address_state'),
-			sql<string | null>`COALESCE(selected_address.postal_code, party_address.postal_code)`.as('address_postal_code'),
-			sql<string | null>`COALESCE(selected_address.country, party_address.country)`.as('address_country'),
+			sql<string | null>`COALESCE(selected_address.postal_code, party_address.postal_code)`.as(
+				'address_postal_code'
+			),
+			sql<string | null>`COALESCE(selected_address.country, party_address.country)`.as(
+				'address_country'
+			),
 		])
 		.distinctOn('claim_party.id')
 		.where('claim.client_id', '=', ctx.session.user.client_id)
@@ -1622,7 +1661,9 @@ export async function getTotalLiabilityForClaim(
 	let query = ctx.db
 		.selectFrom('claim_party')
 		.innerJoin('party', 'party.id', 'claim_party.party_id')
-		.select(sql<string>`COALESCE(SUM(CAST(claim_party.liability_percentage AS DECIMAL)), 0)`.as('total'))
+		.select(
+			sql<string>`COALESCE(SUM(CAST(claim_party.liability_percentage AS DECIMAL)), 0)`.as('total')
+		)
 		.where('claim_party.claim_id', '=', claimId)
 		.where('claim_party.client_id', '=', ctx.session.user.client_id)
 		.where('claim_party.deleted_at', 'is', null)
@@ -1754,12 +1795,18 @@ export async function updateClaimParty(
 		.updateTable('claim_party')
 		.set({
 			...(params.role !== undefined && { role: params.role }),
-			...(params.representative_id !== undefined && { representative_id: params.representative_id }),
+			...(params.representative_id !== undefined && {
+				representative_id: params.representative_id,
+			}),
 			...(params.address_id !== undefined && { address_id: params.address_id }),
-			...(params.representative_name !== undefined && { representative_name: params.representative_name }),
+			...(params.representative_name !== undefined && {
+				representative_name: params.representative_name,
+			}),
 			...(params.is_primary !== undefined && { is_primary: params.is_primary }),
 			...(params.notes !== undefined && { notes: params.notes }),
-			...(params.external_reference !== undefined && { external_reference: params.external_reference }),
+			...(params.external_reference !== undefined && {
+				external_reference: params.external_reference,
+			}),
 			...(params.liability_percentage !== undefined && {
 				liability_percentage:
 					params.liability_percentage === null ? null : params.liability_percentage?.toString(),
@@ -1777,7 +1824,10 @@ export async function updateClaimParty(
 		.where(
 			'claim_party.claim_id',
 			'in',
-			ctx.db.selectFrom('claim').select('claim.id').where('claim.client_id', '=', ctx.session.user.client_id)
+			ctx.db
+				.selectFrom('claim')
+				.select('claim.id')
+				.where('claim.client_id', '=', ctx.session.user.client_id)
 		)
 		.returningAll()
 		.executeTakeFirstOrThrow();
@@ -1851,7 +1901,10 @@ export async function archiveClaimParty(ctx: ProtectedContext, id: string) {
 		.where(
 			'claim_party.claim_id',
 			'in',
-			ctx.db.selectFrom('claim').select('claim.id').where('claim.client_id', '=', ctx.session.user.client_id)
+			ctx.db
+				.selectFrom('claim')
+				.select('claim.id')
+				.where('claim.client_id', '=', ctx.session.user.client_id)
 		)
 		.where('claim_party.deleted_at', 'is', null)
 		.execute();
@@ -1864,7 +1917,10 @@ export async function archiveClaimParty(ctx: ProtectedContext, id: string) {
  * Get all claim_party IDs including children recursively
  * Uses recursive CTE to find all nested facilitators
  */
-async function getClaimPartyIdsWithChildren(ctx: ProtectedContext, rootId: string): Promise<string[]> {
+async function getClaimPartyIdsWithChildren(
+	ctx: ProtectedContext,
+	rootId: string
+): Promise<string[]> {
 	const result = await sql<{ id: string }>`
 		WITH RECURSIVE claim_party_tree AS (
 			-- Base case: the root claim_party
@@ -1890,7 +1946,9 @@ export async function getClaimLiabilityPercentageTotal(ctx: ProtectedContext, cl
 	const result = await ctx.db
 		.selectFrom('claim_party')
 		.innerJoin('claim', 'claim.id', 'claim_party.claim_id')
-		.select(({ fn }) => fn.sum<string>('claim_party.liability_percentage').as('total_liability_percentage'))
+		.select(({ fn }) =>
+			fn.sum<string>('claim_party.liability_percentage').as('total_liability_percentage')
+		)
 		.where('claim.client_id', '=', ctx.session.user.client_id)
 		.where('claim_party.client_id', '=', ctx.session.user.client_id)
 		.where('claim_party.claim_id', '=', claimId)
@@ -1919,22 +1977,24 @@ export async function getPartyManagementStats(ctx: ProtectedContext) {
 				sql<number>`count(*) filter (where party_type = 'facilitator')`.as('facilitators'),
 			])
 			.executeTakeFirstOrThrow(),
-		ctx.db.selectNoFrom(({ selectFrom }) => [
-			selectFrom('party_address')
-				.innerJoin('party', 'party.id', 'party_address.party_id')
-				.where('party.client_id', '=', clientId)
-				.where('party.deleted_at', 'is', null)
-				.where('party_address.deleted_at', 'is', null)
-				.select(({ fn }) => fn.countAll<number>().as('c'))
-				.as('total_addresses'),
-			selectFrom('party_representative')
-				.innerJoin('party', 'party.id', 'party_representative.party_id')
-				.where('party.client_id', '=', clientId)
-				.where('party.deleted_at', 'is', null)
-				.where('party_representative.deleted_at', 'is', null)
-				.select(({ fn }) => fn.countAll<number>().as('c'))
-				.as('total_representatives'),
-		]).executeTakeFirstOrThrow(),
+		ctx.db
+			.selectNoFrom(({ selectFrom }) => [
+				selectFrom('party_address')
+					.innerJoin('party', 'party.id', 'party_address.party_id')
+					.where('party.client_id', '=', clientId)
+					.where('party.deleted_at', 'is', null)
+					.where('party_address.deleted_at', 'is', null)
+					.select(({ fn }) => fn.countAll<number>().as('c'))
+					.as('total_addresses'),
+				selectFrom('party_representative')
+					.innerJoin('party', 'party.id', 'party_representative.party_id')
+					.where('party.client_id', '=', clientId)
+					.where('party.deleted_at', 'is', null)
+					.where('party_representative.deleted_at', 'is', null)
+					.select(({ fn }) => fn.countAll<number>().as('c'))
+					.as('total_representatives'),
+			])
+			.executeTakeFirstOrThrow(),
 	]);
 	const counts = { ...partyCounts, ...addressRepCounts };
 

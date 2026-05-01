@@ -49,7 +49,11 @@ export const commentRouter = router({
 
 	getComments: protectedProcedure.input(getCommentsInput).query(async ({ input, ctx }) => {
 		// If querying comments for a specific claim, verify ownership/assignment
-		if (input.filters.claimId && input.filters.checklistId && !checkRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN])) {
+		if (
+			input.filters.claimId &&
+			input.filters.checklistId &&
+			!checkRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN])
+		) {
 			await requireOwnership(ctx, input.filters.checklistId, input.filters.claimId);
 		}
 		return getComments(ctx, input);
@@ -59,10 +63,12 @@ export const commentRouter = router({
 		return getCommentCount(ctx, input);
 	}),
 
-	getCommentsForPage: protectedProcedure.input(getCommentsForPageInput).query(async ({ input, ctx }) => {
-		if (!checkRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN])) {
-			await requireOwnership(ctx, input.checklistId, input.claimId);
-		}
-		return getCommentsForPage(ctx, input);
-	}),
+	getCommentsForPage: protectedProcedure
+		.input(getCommentsForPageInput)
+		.query(async ({ input, ctx }) => {
+			if (!checkRole(ctx, [config.ROLES.ADMIN, config.ROLES.SUPER_ADMIN])) {
+				await requireOwnership(ctx, input.checklistId, input.claimId);
+			}
+			return getCommentsForPage(ctx, input);
+		}),
 });

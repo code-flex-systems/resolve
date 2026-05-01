@@ -134,7 +134,7 @@ describe('docQueries integration', () => {
 				client_id: client.id,
 				created_by: user.id,
 				party_type: 'facilitator',
-					});
+			});
 			const claimParty = await createTestClaimParty(db, {
 				claim_id: claim.id,
 				party_id: party.id,
@@ -216,7 +216,10 @@ describe('docQueries integration', () => {
 		it('should create document with page_instance_id association', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const checklist = await createTestChecklist(db, { client_id: client.id, created_by: user.id });
+			const checklist = await createTestChecklist(db, {
+				client_id: client.id,
+				created_by: user.id,
+			});
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
 			const pageInstance = await createTestPageInstance(db, {
 				client_id: client.id,
@@ -248,8 +251,16 @@ describe('docQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
-			const question = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
-			const answer = await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id });
+			const question = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+			});
+			const answer = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question.id,
+				created_by: user.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -350,7 +361,11 @@ describe('docQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const group = await createTestDocGroup(db, { client_id: client.id, created_by: user.id });
-			await createTestDoc(db, { client_id: client.id, created_by: user.id, doc_group_id: group.id });
+			await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				doc_group_id: group.id,
+			});
 			await createTestDoc(db, { client_id: client.id, created_by: user.id, doc_group_id: null });
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -364,9 +379,23 @@ describe('docQueries integration', () => {
 		it('should filter by doc_group_id = null', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const group = await createTestDocGroup(db, { client_id: client.id, created_by: user.id, name: `Group ${Date.now()}` });
-			await createTestDoc(db, { client_id: client.id, created_by: user.id, doc_group_id: group.id, filename: `grouped-${Date.now()}.pdf` });
-			await createTestDoc(db, { client_id: client.id, created_by: user.id, doc_group_id: null, filename: `ungrouped-${Date.now()}.pdf` });
+			const group = await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Group ${Date.now()}`,
+			});
+			await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				doc_group_id: group.id,
+				filename: `grouped-${Date.now()}.pdf`,
+			});
+			await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				doc_group_id: null,
+				filename: `ungrouped-${Date.now()}.pdf`,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -380,8 +409,16 @@ describe('docQueries integration', () => {
 		it('should filter by doc_type', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			await createTestDoc(db, { client_id: client.id, created_by: user.id, doc_type: DocType.INVOICE });
-			await createTestDoc(db, { client_id: client.id, created_by: user.id, doc_type: DocType.PHOTO });
+			await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				doc_type: DocType.INVOICE,
+			});
+			await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				doc_type: DocType.PHOTO,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -394,8 +431,16 @@ describe('docQueries integration', () => {
 		it('should filter by doc_status', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			await createTestDoc(db, { client_id: client.id, created_by: user.id, doc_status: DocStatus.DRAFT });
-			await createTestDoc(db, { client_id: client.id, created_by: user.id, doc_status: DocStatus.APPROVED });
+			await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				doc_status: DocStatus.DRAFT,
+			});
+			await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				doc_status: DocStatus.APPROVED,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -408,8 +453,16 @@ describe('docQueries integration', () => {
 		it('should filter by is_current_version', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			await createTestDoc(db, { client_id: client.id, created_by: user.id, is_current_version: true });
-			await createTestDoc(db, { client_id: client.id, created_by: user.id, is_current_version: false });
+			await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				is_current_version: true,
+			});
+			await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				is_current_version: false,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -423,10 +476,26 @@ describe('docQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
-			const question1 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
-			const question2 = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
-			await createTestDoc(db, { client_id: client.id, created_by: user.id, question_id: question1.id });
-			await createTestDoc(db, { client_id: client.id, created_by: user.id, question_id: question2.id });
+			const question1 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+			});
+			const question2 = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+			});
+			await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				question_id: question1.id,
+			});
+			await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				question_id: question2.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -440,9 +509,21 @@ describe('docQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const page = await createTestPage(db, { client_id: client.id, created_by: user.id });
-			const question = await createTestQuestion(db, { client_id: client.id, page_id: page.id, created_by: user.id });
-			const answer1 = await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id });
-			const answer2 = await createTestAnswer(db, { client_id: client.id, question_id: question.id, created_by: user.id });
+			const question = await createTestQuestion(db, {
+				client_id: client.id,
+				page_id: page.id,
+				created_by: user.id,
+			});
+			const answer1 = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question.id,
+				created_by: user.id,
+			});
+			const answer2 = await createTestAnswer(db, {
+				client_id: client.id,
+				question_id: question.id,
+				created_by: user.id,
+			});
 			await createTestDoc(db, { client_id: client.id, created_by: user.id, answer_id: answer1.id });
 			await createTestDoc(db, { client_id: client.id, created_by: user.id, answer_id: answer2.id });
 
@@ -459,7 +540,11 @@ describe('docQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			// Create 5 docs
 			for (let i = 0; i < 5; i++) {
-				await createTestDoc(db, { client_id: client.id, created_by: user.id, filename: `pagination-${i}.pdf` });
+				await createTestDoc(db, {
+					client_id: client.id,
+					created_by: user.id,
+					filename: `pagination-${i}.pdf`,
+				});
 			}
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -532,9 +617,24 @@ describe('docQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 			const claim = await createTestClaim(db, { client_id: client.id });
 
-			await createTestDoc(db, { client_id: client.id, created_by: user.id, claim_id: claim.id, filename: 'count-1.pdf' });
-			await createTestDoc(db, { client_id: client.id, created_by: user.id, claim_id: claim.id, filename: 'count-2.pdf' });
-			await createTestDoc(db, { client_id: client.id, created_by: user.id, claim_id: claim.id, filename: 'count-3.pdf' });
+			await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				claim_id: claim.id,
+				filename: 'count-1.pdf',
+			});
+			await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				claim_id: claim.id,
+				filename: 'count-2.pdf',
+			});
+			await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				claim_id: claim.id,
+				filename: 'count-3.pdf',
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -612,7 +712,9 @@ describe('docQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(updateDoc(ctx, '00000000-0000-0000-0000-000000000000', { title: 'New' })).rejects.toThrow();
+			await expect(
+				updateDoc(ctx, '00000000-0000-0000-0000-000000000000', { title: 'New' })
+			).rejects.toThrow();
 		});
 
 		it('should enforce tenant isolation', async () => {
@@ -738,10 +840,20 @@ describe('docQueries integration', () => {
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
 			await expect(
-				createDocGroup(ctx, { name: 'Users', group_type: DocGroupType.CUSTOM, sort_order: 0, system: false })
+				createDocGroup(ctx, {
+					name: 'Users',
+					group_type: DocGroupType.CUSTOM,
+					sort_order: 0,
+					system: false,
+				})
 			).rejects.toThrow('"Users" is a reserved folder name');
 			await expect(
-				createDocGroup(ctx, { name: 'Shared', group_type: DocGroupType.CUSTOM, sort_order: 0, system: false })
+				createDocGroup(ctx, {
+					name: 'Shared',
+					group_type: DocGroupType.CUSTOM,
+					sort_order: 0,
+					system: false,
+				})
 			).rejects.toThrow('"Shared" is a reserved folder name');
 		});
 
@@ -822,8 +934,16 @@ describe('docQueries integration', () => {
 		it('should return all document groups for a client', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			await createTestDocGroup(db, { client_id: client.id, created_by: user.id, name: `Group A ${Date.now()}` });
-			await createTestDocGroup(db, { client_id: client.id, created_by: user.id, name: `Group B ${Date.now()}` });
+			await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Group A ${Date.now()}`,
+			});
+			await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Group B ${Date.now()}`,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -835,7 +955,12 @@ describe('docQueries integration', () => {
 
 		it('should include user info when user_id is set', async () => {
 			const client = await createTestClient(db);
-			const user = await createTestUser(db, { client_id: client.id, role: 'Admin', first: 'John', last: 'Doe' });
+			const user = await createTestUser(db, {
+				client_id: client.id,
+				role: 'Admin',
+				first: 'John',
+				last: 'Doe',
+			});
 			await createTestDocGroup(db, {
 				client_id: client.id,
 				created_by: user.id,
@@ -857,8 +982,18 @@ describe('docQueries integration', () => {
 		it('should order by sort_order then name', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			await createTestDocGroup(db, { client_id: client.id, created_by: user.id, name: 'ZZZ', sort_order: 1 });
-			await createTestDocGroup(db, { client_id: client.id, created_by: user.id, name: 'AAA', sort_order: 2 });
+			await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: 'ZZZ',
+				sort_order: 1,
+			});
+			await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: 'AAA',
+				sort_order: 2,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -894,7 +1029,11 @@ describe('docQueries integration', () => {
 		it('should return the same as getDocGroups (flat list)', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			await createTestDocGroup(db, { client_id: client.id, created_by: user.id, name: `Hierarchy Test ${Date.now()}` });
+			await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Hierarchy Test ${Date.now()}`,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -957,7 +1096,9 @@ describe('docQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(updateDocGroup(ctx, group.id, { name: 'Users' })).rejects.toThrow('"Users" is a reserved folder name');
+			await expect(updateDocGroup(ctx, group.id, { name: 'Users' })).rejects.toThrow(
+				'"Users" is a reserved folder name'
+			);
 		});
 
 		it('should throw for non-existent group', async () => {
@@ -966,7 +1107,9 @@ describe('docQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(updateDocGroup(ctx, '00000000-0000-0000-0000-000000000000', { name: 'New Name' })).rejects.toThrow();
+			await expect(
+				updateDocGroup(ctx, '00000000-0000-0000-0000-000000000000', { name: 'New Name' })
+			).rejects.toThrow();
 		});
 	});
 
@@ -974,7 +1117,11 @@ describe('docQueries integration', () => {
 		it('should return group details for logging', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const parent = await createTestDocGroup(db, { client_id: client.id, created_by: user.id, name: 'Parent' });
+			const parent = await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: 'Parent',
+			});
 			const group = await createTestDocGroup(db, {
 				client_id: client.id,
 				created_by: user.id,
@@ -1020,7 +1167,9 @@ describe('docQueries integration', () => {
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
-			await expect(deleteDocGroup(ctx, systemGroup.id)).rejects.toThrow('cannot delete system folders');
+			await expect(deleteDocGroup(ctx, systemGroup.id)).rejects.toThrow(
+				'cannot delete system folders'
+			);
 		});
 
 		it('should enforce tenant isolation', async () => {
@@ -1048,7 +1197,11 @@ describe('docQueries integration', () => {
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 
 			// Create hierarchy: Parent -> Child -> Grandchild
-			const parent = await createTestDocGroup(db, { client_id: client.id, created_by: user.id, name: `Parent ${Date.now()}` });
+			const parent = await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Parent ${Date.now()}`,
+			});
 			const child = await createTestDocGroup(db, {
 				client_id: client.id,
 				created_by: user.id,
@@ -1063,9 +1216,21 @@ describe('docQueries integration', () => {
 			});
 
 			// Create docs at each level
-			const docInParent = await createTestDoc(db, { client_id: client.id, created_by: user.id, doc_group_id: parent.id });
-			const docInChild = await createTestDoc(db, { client_id: client.id, created_by: user.id, doc_group_id: child.id });
-			const docInGrandchild = await createTestDoc(db, { client_id: client.id, created_by: user.id, doc_group_id: grandchild.id });
+			const docInParent = await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				doc_group_id: parent.id,
+			});
+			const docInChild = await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				doc_group_id: child.id,
+			});
+			const docInGrandchild = await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				doc_group_id: grandchild.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1223,7 +1388,11 @@ describe('docQueries integration', () => {
 				created_by: user1.id,
 				name: `Isolated Group ${Date.now()}`,
 			});
-			await createTestDoc(db, { client_id: client1.id, created_by: user1.id, doc_group_id: group.id });
+			await createTestDoc(db, {
+				client_id: client1.id,
+				created_by: user1.id,
+				doc_group_id: group.id,
+			});
 
 			// Client2 should not see client1's docs even if they somehow know the group ID
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
@@ -1239,7 +1408,11 @@ describe('docQueries integration', () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
 
-			const parent = await createTestDocGroup(db, { client_id: client.id, created_by: user.id, name: `Archive Parent ${Date.now()}` });
+			const parent = await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Archive Parent ${Date.now()}`,
+			});
 			const child = await createTestDocGroup(db, {
 				client_id: client.id,
 				created_by: user.id,
@@ -1253,9 +1426,21 @@ describe('docQueries integration', () => {
 				parent_group_id: child.id,
 			});
 
-			const docInParent = await createTestDoc(db, { client_id: client.id, created_by: user.id, doc_group_id: parent.id });
-			const docInChild = await createTestDoc(db, { client_id: client.id, created_by: user.id, doc_group_id: child.id });
-			const docInGrandchild = await createTestDoc(db, { client_id: client.id, created_by: user.id, doc_group_id: grandchild.id });
+			const docInParent = await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				doc_group_id: parent.id,
+			});
+			const docInChild = await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				doc_group_id: child.id,
+			});
+			const docInGrandchild = await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				doc_group_id: grandchild.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1558,9 +1743,21 @@ describe('docQueries integration', () => {
 		it('should return count of documents in a group', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const group = await createTestDocGroup(db, { client_id: client.id, created_by: user.id, name: `Count Group ${Date.now()}` });
-			await createTestDoc(db, { client_id: client.id, created_by: user.id, doc_group_id: group.id });
-			await createTestDoc(db, { client_id: client.id, created_by: user.id, doc_group_id: group.id });
+			const group = await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Count Group ${Date.now()}`,
+			});
+			await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				doc_group_id: group.id,
+			});
+			await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				doc_group_id: group.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 
@@ -1579,7 +1776,11 @@ describe('docQueries integration', () => {
 				created_by: user1.id,
 				name: `Isolated Count Group ${Date.now()}`,
 			});
-			await createTestDoc(db, { client_id: client1.id, created_by: user1.id, doc_group_id: group.id });
+			await createTestDoc(db, {
+				client_id: client1.id,
+				created_by: user1.id,
+				doc_group_id: group.id,
+			});
 
 			// Client2 should not count client1's docs
 			const ctx2 = createTestContext(db, { id: user2.id, client_id: client2.id, role: 'Admin' });
@@ -1594,13 +1795,37 @@ describe('docQueries integration', () => {
 		it('should return correct counts per group', async () => {
 			const client = await createTestClient(db);
 			const user = await createTestUser(db, { client_id: client.id, role: 'Admin' });
-			const groupA = await createTestDocGroup(db, { client_id: client.id, created_by: user.id, name: `Count A ${Date.now()}` });
-			const groupB = await createTestDocGroup(db, { client_id: client.id, created_by: user.id, name: `Count B ${Date.now()}` });
-			const groupC = await createTestDocGroup(db, { client_id: client.id, created_by: user.id, name: `Count C ${Date.now()}` });
+			const groupA = await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Count A ${Date.now()}`,
+			});
+			const groupB = await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Count B ${Date.now()}`,
+			});
+			const groupC = await createTestDocGroup(db, {
+				client_id: client.id,
+				created_by: user.id,
+				name: `Count C ${Date.now()}`,
+			});
 
-			await createTestDoc(db, { client_id: client.id, created_by: user.id, doc_group_id: groupA.id });
-			await createTestDoc(db, { client_id: client.id, created_by: user.id, doc_group_id: groupA.id });
-			await createTestDoc(db, { client_id: client.id, created_by: user.id, doc_group_id: groupB.id });
+			await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				doc_group_id: groupA.id,
+			});
+			await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				doc_group_id: groupA.id,
+			});
+			await createTestDoc(db, {
+				client_id: client.id,
+				created_by: user.id,
+				doc_group_id: groupB.id,
+			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
 

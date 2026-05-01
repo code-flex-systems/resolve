@@ -29,7 +29,8 @@ export default function SubstatusSelect({
 	];
 
 	return (
-		<Dropdown inlineLabel
+		<Dropdown
+			inlineLabel
 			label="Claim Substatus"
 			options={dropdownOptions}
 			value={substatus ?? ''}

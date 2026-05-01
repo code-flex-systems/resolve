@@ -36,7 +36,11 @@ export default function WorkflowsView() {
 	return (
 		<div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
 			{/* Left Panel - Workflow List */}
-			<Card variant="beveled" padding="none" style={{ width: 320, marginRight: 16, display: 'flex', flexDirection: 'column' }}>
+			<Card
+				variant="beveled"
+				padding="none"
+				style={{ width: 320, marginRight: 16, display: 'flex', flexDirection: 'column' }}
+			>
 				<div style={{ padding: 16, paddingBottom: 8 }}>
 					<span style={{ fontSize: 14, fontWeight: 600 }}>
 						Workflows ({definitions.length.toLocaleString()})
@@ -53,7 +57,15 @@ export default function WorkflowsView() {
 					/>
 				</div>
 
-				<div style={{ paddingInline: 16, paddingBottom: 12, display: 'flex', justifyContent: 'space-between', gap: 8 }}>
+				<div
+					style={{
+						paddingInline: 16,
+						paddingBottom: 12,
+						display: 'flex',
+						justifyContent: 'space-between',
+						gap: 8,
+					}}
+				>
 					<div style={{ minWidth: 100 }}>
 						<Dropdown
 							inlineLabel
@@ -127,9 +139,13 @@ export default function WorkflowsView() {
 						<IconRoute2 size={48} style={{ color: 'var(--text-muted)' }} />
 						<span className={styles.emptyTitle}>Select a workflow to view details</span>
 						<div className={styles.emptyDescription}>
-							<IconInfoCircle size={16} style={{ color: 'var(--text-muted)', flexShrink: 0, marginTop: 2 }} />
+							<IconInfoCircle
+								size={16}
+								style={{ color: 'var(--text-muted)', flexShrink: 0, marginTop: 2 }}
+							/>
 							<span>
-								Workflows define the stages claims move through. Each workflow can have thresholds for SLA monitoring and rules for automated routing.
+								Workflows define the stages claims move through. Each workflow can have thresholds
+								for SLA monitoring and rules for automated routing.
 							</span>
 						</div>
 					</div>

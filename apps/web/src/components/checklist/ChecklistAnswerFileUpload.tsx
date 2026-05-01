@@ -26,10 +26,7 @@ export default function ChecklistAnswerFileUpload(props: ChecklistAnswerFileUplo
 	const [showDocSelector, setShowDocSelector] = useState(false);
 	const [attachedDoc, setAttachedDoc] = useState<DocListItem | null>(null);
 
-	const { data: doc } = useDocTrpc().getDoc(
-		{ docId: field.value },
-		{ enabled: !!field.value }
-	);
+	const { data: doc } = useDocTrpc().getDoc({ docId: field.value }, { enabled: !!field.value });
 
 	// Sync attached document when doc is fetched or field value changes
 	useEffect(() => {
@@ -69,7 +66,14 @@ export default function ChecklistAnswerFileUpload(props: ChecklistAnswerFileUplo
 
 	return (
 		<>
-			<div     style={{ ...{ marginTop: '5px', padding: '0px 10px' }, display: 'flex', alignItems: 'center', gap: 8 }}>
+			<div
+				style={{
+					...{ marginTop: '5px', padding: '0px 10px' },
+					display: 'flex',
+					alignItems: 'center',
+					gap: 8,
+				}}
+			>
 				<Button
 					variant="outlined"
 					size="sm"
@@ -80,25 +84,16 @@ export default function ChecklistAnswerFileUpload(props: ChecklistAnswerFileUplo
 					{attachedDoc ? 'Change File' : 'Upload File...'}
 				</Button>
 				{attachedDoc && (
-					<div       style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 8 }}>
-						<span   style={{ fontSize: 12, color: 'text.secondary' }}>
+					<div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 8 }}>
+						<span style={{ fontSize: 12, color: 'text.secondary' }}>
 							{attachedDoc.title || attachedDoc.alias}
 						</span>
-						<Button
-							variant="icon"
-							size="sm"
-							onClick={handleRemoveDoc}
-							disabled={disabled}
-						>
+						<Button variant="icon" size="sm" onClick={handleRemoveDoc} disabled={disabled}>
 							<IconX size={16} />
 						</Button>
 					</div>
 				)}
-				{!attachedDoc && (
-					<span   style={{ fontSize: 12, color: 'error.main' }}>
-						Required
-					</span>
-				)}
+				{!attachedDoc && <span style={{ fontSize: 12, color: 'error.main' }}>Required</span>}
 			</div>
 
 			{showDocSelector && (

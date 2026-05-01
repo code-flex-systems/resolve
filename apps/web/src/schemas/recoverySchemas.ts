@@ -19,9 +19,7 @@ export const recoveryEventParams = z
 
 export type RecoveryEventParams = z.infer<typeof recoveryEventParams>;
 
-export const recoveryEventUpdateParams = recoveryEventParams
-	.omit({ claim_id: true })
-	.partial();
+export const recoveryEventUpdateParams = recoveryEventParams.omit({ claim_id: true }).partial();
 
 export type RecoveryEventUpdateParams = z.infer<typeof recoveryEventUpdateParams>;
 

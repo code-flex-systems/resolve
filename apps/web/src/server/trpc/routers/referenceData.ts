@@ -22,11 +22,9 @@ export const referenceDataRouter = router({
 	 * Get all reference lists for the client
 	 * Available to all authenticated users
 	 */
-	getReferenceLists: protectedProcedure
-		.input(getReferenceListsInput)
-		.query(async ({ ctx }) => {
-			return referenceDataController.getReferenceLists(ctx);
-		}),
+	getReferenceLists: protectedProcedure.input(getReferenceListsInput).query(async ({ ctx }) => {
+		return referenceDataController.getReferenceLists(ctx);
+	}),
 
 	/**
 	 * Get single reference list by entity name
@@ -51,7 +49,8 @@ export const referenceDataRouter = router({
 		.input(getReferenceOptionsInput)
 		.query(async ({ input, ctx }) => {
 			// Regular users can only see active, non-deleted options
-			const isAdmin = ctx.session.user.role === config.ROLES.ADMIN ||
+			const isAdmin =
+				ctx.session.user.role === config.ROLES.ADMIN ||
 				ctx.session.user.role === config.ROLES.SUPER_ADMIN;
 			const showInactive = isAdmin ? input.showInactive : false;
 			const showDeleted = isAdmin ? input.showDeleted : false;

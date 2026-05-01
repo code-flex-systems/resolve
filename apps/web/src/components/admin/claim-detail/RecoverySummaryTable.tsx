@@ -45,9 +45,8 @@ export default function RecoverySummaryTable({
 		{ amount: 0, expectedRecovery: 0, actualRecovery: 0, balance: 0 }
 	);
 
-	const totalRate = totals.expectedRecovery > 0
-		? (totals.actualRecovery / totals.expectedRecovery) * 100
-		: 0;
+	const totalRate =
+		totals.expectedRecovery > 0 ? (totals.actualRecovery / totals.expectedRecovery) * 100 : 0;
 
 	if (isLoading) {
 		return (
@@ -59,7 +58,16 @@ export default function RecoverySummaryTable({
 
 	if (data.length === 0) {
 		return (
-			<span style={{  fontSize: 12,  color: 'var(--text-secondary)',  fontStyle: 'italic', textAlign: 'center', paddingTop: 16, paddingBottom: 16  }}>
+			<span
+				style={{
+					fontSize: 12,
+					color: 'var(--text-secondary)',
+					fontStyle: 'italic',
+					textAlign: 'center',
+					paddingTop: 16,
+					paddingBottom: 16,
+				}}
+			>
 				No coverage data available
 			</span>
 		);
@@ -70,53 +78,215 @@ export default function RecoverySummaryTable({
 			<table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
 				<thead>
 					<tr>
-						<th style={{ textAlign: 'left', fontWeight: 600, fontSize: 12, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>Coverage</th>
-						<th style={{ textAlign: 'right', fontWeight: 600, fontSize: 12, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>Amount</th>
-						<th style={{ textAlign: 'right', fontWeight: 600, fontSize: 12, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>
-							Expected<br />Recovery
+						<th
+							style={{
+								textAlign: 'left',
+								fontWeight: 600,
+								fontSize: 12,
+								color: 'var(--text-secondary)',
+								textTransform: 'uppercase',
+								letterSpacing: '0.04em',
+								padding: '8px 12px',
+								borderBottom: '1px solid var(--border)',
+							}}
+						>
+							Coverage
 						</th>
-						<th style={{ textAlign: 'right', fontWeight: 600, fontSize: 12, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>
-							Actual<br />Recovery
+						<th
+							style={{
+								textAlign: 'right',
+								fontWeight: 600,
+								fontSize: 12,
+								color: 'var(--text-secondary)',
+								textTransform: 'uppercase',
+								letterSpacing: '0.04em',
+								padding: '8px 12px',
+								borderBottom: '1px solid var(--border)',
+							}}
+						>
+							Amount
 						</th>
-						<th style={{ textAlign: 'right', fontWeight: 600, fontSize: 12, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>
-							Expected<br />Recovery Balance
+						<th
+							style={{
+								textAlign: 'right',
+								fontWeight: 600,
+								fontSize: 12,
+								color: 'var(--text-secondary)',
+								textTransform: 'uppercase',
+								letterSpacing: '0.04em',
+								padding: '8px 12px',
+								borderBottom: '1px solid var(--border)',
+							}}
+						>
+							Expected
+							<br />
+							Recovery
 						</th>
-						<th style={{ textAlign: 'right', fontWeight: 600, fontSize: 12, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.04em', padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>
-							Recovery<br />Rate
+						<th
+							style={{
+								textAlign: 'right',
+								fontWeight: 600,
+								fontSize: 12,
+								color: 'var(--text-secondary)',
+								textTransform: 'uppercase',
+								letterSpacing: '0.04em',
+								padding: '8px 12px',
+								borderBottom: '1px solid var(--border)',
+							}}
+						>
+							Actual
+							<br />
+							Recovery
+						</th>
+						<th
+							style={{
+								textAlign: 'right',
+								fontWeight: 600,
+								fontSize: 12,
+								color: 'var(--text-secondary)',
+								textTransform: 'uppercase',
+								letterSpacing: '0.04em',
+								padding: '8px 12px',
+								borderBottom: '1px solid var(--border)',
+							}}
+						>
+							Expected
+							<br />
+							Recovery Balance
+						</th>
+						<th
+							style={{
+								textAlign: 'right',
+								fontWeight: 600,
+								fontSize: 12,
+								color: 'var(--text-secondary)',
+								textTransform: 'uppercase',
+								letterSpacing: '0.04em',
+								padding: '8px 12px',
+								borderBottom: '1px solid var(--border)',
+							}}
+						>
+							Recovery
+							<br />
+							Rate
 						</th>
 					</tr>
 				</thead>
 				<tbody>
 					{coverageRows.map((row) => (
 						<tr key={row.coverage_id}>
-							<td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>{formatCoverageType(row.loss_type)}</td>
-							<td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', textAlign: 'right' }}>{formatCurrencyExact(row.amount)}</td>
-							<td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', textAlign: 'right' }}>{formatCurrencyExact(row.expectedRecovery)}</td>
-							<td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', textAlign: 'right', color: 'var(--status-success)' }}>
+							<td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)' }}>
+								{formatCoverageType(row.loss_type)}
+							</td>
+							<td
+								style={{
+									padding: '8px 12px',
+									borderBottom: '1px solid var(--border)',
+									textAlign: 'right',
+								}}
+							>
+								{formatCurrencyExact(row.amount)}
+							</td>
+							<td
+								style={{
+									padding: '8px 12px',
+									borderBottom: '1px solid var(--border)',
+									textAlign: 'right',
+								}}
+							>
+								{formatCurrencyExact(row.expectedRecovery)}
+							</td>
+							<td
+								style={{
+									padding: '8px 12px',
+									borderBottom: '1px solid var(--border)',
+									textAlign: 'right',
+									color: 'var(--status-success)',
+								}}
+							>
 								{formatCurrencyExact(row.actualRecovery)}
 							</td>
-							<td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', textAlign: 'right' }}>{formatCurrencyExact(row.balance)}</td>
-							<td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', textAlign: 'right' }}>
+							<td
+								style={{
+									padding: '8px 12px',
+									borderBottom: '1px solid var(--border)',
+									textAlign: 'right',
+								}}
+							>
+								{formatCurrencyExact(row.balance)}
+							</td>
+							<td
+								style={{
+									padding: '8px 12px',
+									borderBottom: '1px solid var(--border)',
+									textAlign: 'right',
+								}}
+							>
 								{row.expectedRecovery > 0 ? `${Math.round(row.rate)}%` : '—'}
 							</td>
 						</tr>
 					))}
 					{/* Totals row */}
 					<tr>
-						<td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', fontWeight: 700, color: 'var(--text-accent)' }}>Totals</td>
-						<td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', textAlign: 'right', fontWeight: 700 }}>
+						<td
+							style={{
+								padding: '8px 12px',
+								borderBottom: '1px solid var(--border)',
+								fontWeight: 700,
+								color: 'var(--text-accent)',
+							}}
+						>
+							Totals
+						</td>
+						<td
+							style={{
+								padding: '8px 12px',
+								borderBottom: '1px solid var(--border)',
+								textAlign: 'right',
+								fontWeight: 700,
+							}}
+						>
 							{formatCurrencyExact(totals.amount)}
 						</td>
-						<td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', textAlign: 'right', fontWeight: 700 }}>
+						<td
+							style={{
+								padding: '8px 12px',
+								borderBottom: '1px solid var(--border)',
+								textAlign: 'right',
+								fontWeight: 700,
+							}}
+						>
 							{formatCurrencyExact(totals.expectedRecovery)}
 						</td>
-						<td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', textAlign: 'right', fontWeight: 700, color: 'var(--status-success)' }}>
+						<td
+							style={{
+								padding: '8px 12px',
+								borderBottom: '1px solid var(--border)',
+								textAlign: 'right',
+								fontWeight: 700,
+								color: 'var(--status-success)',
+							}}
+						>
 							{formatCurrencyExact(totals.actualRecovery)}
 						</td>
-						<td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', textAlign: 'right', fontWeight: 700 }}>
+						<td
+							style={{
+								padding: '8px 12px',
+								borderBottom: '1px solid var(--border)',
+								textAlign: 'right',
+								fontWeight: 700,
+							}}
+						>
 							{formatCurrencyExact(totals.balance)}
 						</td>
-						<td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border)', textAlign: 'right', fontWeight: 700 }}>
+						<td
+							style={{
+								padding: '8px 12px',
+								borderBottom: '1px solid var(--border)',
+								textAlign: 'right',
+								fontWeight: 700,
+							}}
+						>
 							{totals.expectedRecovery > 0 ? `${Math.round(totalRate)}%` : '—'}
 						</td>
 					</tr>

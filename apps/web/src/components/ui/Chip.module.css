@@ -55,7 +55,9 @@
 }
 
 .chip[data-interactive]:focus-visible {
-	box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px var(--text-accent);
+	box-shadow:
+		0 0 0 2px var(--bg-primary),
+		0 0 0 4px var(--text-accent);
 	outline: none;
 }
 

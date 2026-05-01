@@ -28,14 +28,30 @@ interface AddressesTabProps {
 const getStatusChip = (status: string) => {
 	switch (status) {
 		case AddressStatus.VALID:
-			return <Chip  color="success" size="sm">Valid</Chip>;
+			return (
+				<Chip color="success" size="sm">
+					Valid
+				</Chip>
+			);
 		case AddressStatus.MAILING:
-			return <Chip  color="info" size="sm">Mailing</Chip>;
+			return (
+				<Chip color="info" size="sm">
+					Mailing
+				</Chip>
+			);
 		case AddressStatus.UNDELIVERABLE:
-			return <Chip  color="error" size="sm">Undeliverable</Chip>;
+			return (
+				<Chip color="error" size="sm">
+					Undeliverable
+				</Chip>
+			);
 		case AddressStatus.UNKNOWN:
 		default:
-			return <Chip  color="neutral" size="sm">Unknown</Chip>;
+			return (
+				<Chip color="neutral" size="sm">
+					Unknown
+				</Chip>
+			);
 	}
 };
 
@@ -104,9 +120,16 @@ const getColumns = (isAdminContext: boolean, isManageMode: boolean): ColumnDef<a
 	{
 		header: '',
 		accessorKey: 'actions',
-		cell: (info: any) => { const params = { row: info.row.original, value: info.getValue() }; return (
-			<AddressActionsCell {...params} isAdminContext={isAdminContext} isManageMode={isManageMode} />
-		); },
+		cell: (info: any) => {
+			const params = { row: info.row.original, value: info.getValue() };
+			return (
+				<AddressActionsCell
+					{...params}
+					isAdminContext={isAdminContext}
+					isManageMode={isManageMode}
+				/>
+			);
+		},
 		size: isAdminContext ? 100 : 50,
 	},
 ];
@@ -162,7 +185,10 @@ export default function AddressesTab({ isAdminContext = true }: AddressesTabProp
 	};
 
 	// Memoize columns based on isAdminContext and isManageMode
-	const columns = useMemo(() => getColumns(isAdminContext, isManageMode), [isAdminContext, isManageMode]);
+	const columns = useMemo(
+		() => getColumns(isAdminContext, isManageMode),
+		[isAdminContext, isManageMode]
+	);
 	const pinnedColumns = useMemo<{ left?: string[]; right?: string[] }>(
 		() => (isManageMode ? { right: ['actions'] } : {}),
 		[isManageMode]
@@ -194,8 +220,16 @@ export default function AddressesTab({ isAdminContext = true }: AddressesTabProp
 		<PageTransitionWrapper criticalDataReady={true} loadingMessage="Loading addresses...">
 			<div style={styles.container}>
 				<Card variant="beveled" padding="md" style={styles.paper}>
-					<p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '0 0 12px', lineHeight: 1.5 }}>
-						Manage addresses associated with parties. Addresses are used for correspondence and location tracking.
+					<p
+						style={{
+							color: 'var(--text-secondary)',
+							fontSize: 13,
+							margin: '0 0 12px',
+							lineHeight: 1.5,
+						}}
+					>
+						Manage addresses associated with parties. Addresses are used for correspondence and
+						location tracking.
 					</p>
 					<Toolbar
 						left={
@@ -209,9 +243,7 @@ export default function AddressesTab({ isAdminContext = true }: AddressesTabProp
 											color="warning"
 											style={{ marginLeft: '10px' }}
 										/>
-										<span style={{ fontSize: 14, fontStyle: 'italic' }}>
-											Show Archived Only
-										</span>
+										<span style={{ fontSize: 14, fontStyle: 'italic' }}>Show Archived Only</span>
 									</>
 								)}
 							</>
@@ -239,11 +271,19 @@ export default function AddressesTab({ isAdminContext = true }: AddressesTabProp
 									Address
 								</Button>
 								<Tooltip content="Manage">
-									<Button variant="icon" size="sm"
+									<Button
+										variant="icon"
+										size="sm"
 										onClick={() => setIsManageMode(!isManageMode)}
-										style={{ marginLeft: 8, backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined }}
+										style={{
+											marginLeft: 8,
+											backgroundColor: isManageMode ? 'var(--bg-tertiary)' : undefined,
+										}}
 									>
-										<IconSettings size={20} style={{ color: isManageMode ? 'primary.main' : undefined }} />
+										<IconSettings
+											size={20}
+											style={{ color: isManageMode ? 'primary.main' : undefined }}
+										/>
 									</Button>
 								</Tooltip>
 							</>

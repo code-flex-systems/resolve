@@ -3,7 +3,11 @@ export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
 import { getClerkSession } from '@/lib/auth/clerk-session';
 import * as blobStorage from '@/lib/azure/blobStorage';
-import { validateFileType, getAllowedExtensions, getAllowedMimeTypes } from '@/config/allowedFileTypes';
+import {
+	validateFileType,
+	getAllowedExtensions,
+	getAllowedMimeTypes,
+} from '@/config/allowedFileTypes';
 
 /**
  * POST /api/upload
@@ -107,7 +111,10 @@ export async function POST(request: NextRequest) {
 	} catch (error) {
 		console.error('File upload error:', error);
 		return NextResponse.json(
-			{ error: 'Failed to upload file', details: error instanceof Error ? error.message : 'Unknown error' },
+			{
+				error: 'Failed to upload file',
+				details: error instanceof Error ? error.message : 'Unknown error',
+			},
 			{ status: 500 }
 		);
 	}

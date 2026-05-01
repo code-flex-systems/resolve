@@ -207,9 +207,7 @@ describe('getTaskCountsByStatus', () => {
 		});
 
 		it('should convert string counts to numbers', async () => {
-			const mockResults = [
-				{ derived_status: DerivedTaskStatus.AVAILABLE, count: '42' },
-			];
+			const mockResults = [{ derived_status: DerivedTaskStatus.AVAILABLE, count: '42' }];
 
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
 				return {
@@ -268,9 +266,7 @@ describe('getTaskCountsByStatus', () => {
 
 	describe('Edge Cases', () => {
 		it('should handle undefined count in result', async () => {
-			const mockResults = [
-				{ derived_status: DerivedTaskStatus.AVAILABLE, count: undefined },
-			];
+			const mockResults = [{ derived_status: DerivedTaskStatus.AVAILABLE, count: undefined }];
 
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
 				return {
@@ -288,9 +284,7 @@ describe('getTaskCountsByStatus', () => {
 		});
 
 		it('should handle null count in result', async () => {
-			const mockResults = [
-				{ derived_status: DerivedTaskStatus.AVAILABLE, count: null },
-			];
+			const mockResults = [{ derived_status: DerivedTaskStatus.AVAILABLE, count: null }];
 
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
 				return {
@@ -358,9 +352,7 @@ describe('getTaskCountsByStatus', () => {
 		});
 
 		it('should handle new desk location with only available tasks', async () => {
-			const mockResults = [
-				{ derived_status: DerivedTaskStatus.AVAILABLE, count: '10' },
-			];
+			const mockResults = [{ derived_status: DerivedTaskStatus.AVAILABLE, count: '10' }];
 
 			vi.spyOn(db, 'selectFrom').mockImplementation(() => {
 				return {

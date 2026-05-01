@@ -20,15 +20,25 @@ interface RuleCardProps {
 }
 
 const formatCondition = (cond: any) => {
-	const valueStr = cond.value !== null && cond.value !== undefined ? JSON.stringify(cond.value) : '';
+	const valueStr =
+		cond.value !== null && cond.value !== undefined ? JSON.stringify(cond.value) : '';
 	return `${cond.field} ${cond.operator} ${valueStr}`;
 };
 
-export default function RuleCard({ rule, onEdit, onArchive, onRun, isRunning, showDivider }: RuleCardProps) {
+export default function RuleCard({
+	rule,
+	onEdit,
+	onArchive,
+	onRun,
+	isRunning,
+	showDivider,
+}: RuleCardProps) {
 	const deskStore = useDeskLocationStore();
 
 	const targetLocationId =
-		rule.action_type === WorkflowActionType.MOVE_CLAIM ? (rule.action_config as any)?.targetLocationId : null;
+		rule.action_type === WorkflowActionType.MOVE_CLAIM
+			? (rule.action_config as any)?.targetLocationId
+			: null;
 	const targetLocationName = targetLocationId ? deskStore.getLocationName(targetLocationId) : null;
 
 	return (
@@ -44,7 +54,9 @@ export default function RuleCard({ rule, onEdit, onArchive, onRun, isRunning, sh
 		>
 			<div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
 				<div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-					<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{rule.name}</span>
+					<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>
+						{rule.name}
+					</span>
 					{rule.description && (
 						<span style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.4 }}>
 							{rule.description}
@@ -75,20 +87,22 @@ export default function RuleCard({ rule, onEdit, onArchive, onRun, isRunning, sh
 					</Chip>
 				</div>
 
-				{rule.conditions && typeof rule.conditions === 'object' && (rule.conditions as any).conditions && (
-					<div>
-						<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-							Conditions ({(rule.conditions as any).logic}):
-						</span>
-						<div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingLeft: 8 }}>
-							{((rule.conditions as any).conditions || []).map((cond: any, idx: number) => (
-								<span key={idx} style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-									• {formatCondition(cond)}
-								</span>
-							))}
+				{rule.conditions &&
+					typeof rule.conditions === 'object' &&
+					(rule.conditions as any).conditions && (
+						<div>
+							<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+								Conditions ({(rule.conditions as any).logic}):
+							</span>
+							<div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingLeft: 8 }}>
+								{((rule.conditions as any).conditions || []).map((cond: any, idx: number) => (
+									<span key={idx} style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+										• {formatCondition(cond)}
+									</span>
+								))}
+							</div>
 						</div>
-					</div>
-				)}
+					)}
 			</div>
 
 			<div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>

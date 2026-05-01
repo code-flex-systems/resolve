@@ -21,7 +21,12 @@ const ACTION_COLORS: Record<string, { bg: string; color: string }> = {
 };
 
 function getActionStyle(action: string) {
-	return ACTION_COLORS[action.toUpperCase()] ?? { bg: 'var(--bg-tertiary)', color: 'var(--text-secondary)' };
+	return (
+		ACTION_COLORS[action.toUpperCase()] ?? {
+			bg: 'var(--bg-tertiary)',
+			color: 'var(--text-secondary)',
+		}
+	);
 }
 
 export default function RecentAdminActivity({ userId }: RecentAdminActivityProps) {

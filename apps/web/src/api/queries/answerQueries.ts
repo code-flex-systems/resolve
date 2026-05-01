@@ -351,7 +351,12 @@ async function checkCyclesForPage(
 
 	// Check each checklist once (not each instance)
 	for (const [checklist_id, instanceIds] of checklistMap) {
-		const result = await wouldCreateCycleForChecklist(ctx, checklist_id, instanceIds, targetInstanceId);
+		const result = await wouldCreateCycleForChecklist(
+			ctx,
+			checklist_id,
+			instanceIds,
+			targetInstanceId
+		);
 
 		if (result.hasCycle) {
 			throw new Error(
@@ -385,7 +390,10 @@ export async function modifyAnswer(
 
 	// If updating calls_instance_id, check for cycles across all checklists
 	// Uses batched approach: one CTE per checklist instead of per instance
-	if (params.calls_instance_id !== undefined && params.calls_instance_id !== existingAnswer.calls_instance_id) {
+	if (
+		params.calls_instance_id !== undefined &&
+		params.calls_instance_id !== existingAnswer.calls_instance_id
+	) {
 		if (params.calls_instance_id !== null) {
 			await checkCyclesForPage(ctx, pageId, params.calls_instance_id);
 		}
@@ -398,16 +406,19 @@ export async function modifyAnswer(
 	if (params.grade !== undefined) updates.grade = params.grade;
 	if (params.text !== undefined) updates.text = params.text;
 	if (params.description_text !== undefined) updates.description_text = params.description_text;
-	if (params.description_image_url !== undefined) updates.description_image_url = params.description_image_url;
+	if (params.description_image_url !== undefined)
+		updates.description_image_url = params.description_image_url;
 	if (params.additional_info_num_lines !== undefined)
 		updates.additional_info_num_lines = params.additional_info_num_lines;
 	if (params.additional_info_placeholder !== undefined)
 		updates.additional_info_placeholder = params.additional_info_placeholder;
 	if (params.calls_instance_id !== undefined) updates.calls_instance_id = params.calls_instance_id;
-	if (params.has_additional_info !== undefined) updates.has_additional_info = params.has_additional_info;
+	if (params.has_additional_info !== undefined)
+		updates.has_additional_info = params.has_additional_info;
 	if (params.hidden !== undefined) updates.hidden = params.hidden;
 	if (params.requires_upload !== undefined) updates.requires_upload = params.requires_upload;
-	if (params.allowed_extensions !== undefined) updates.allowed_extensions = params.allowed_extensions;
+	if (params.allowed_extensions !== undefined)
+		updates.allowed_extensions = params.allowed_extensions;
 
 	// Use ROW_NUMBER() CTE to recalculate positions in a single query
 	// Subtract 1 from ROW_NUMBER() since positions are 0-based
@@ -450,7 +461,10 @@ export async function modifyAnswer(
 		.executeTakeFirstOrThrow();
 
 	// Maintain edges when calls_instance_id changes
-	if (params.calls_instance_id !== undefined && params.calls_instance_id !== existingAnswer.calls_instance_id) {
+	if (
+		params.calls_instance_id !== undefined &&
+		params.calls_instance_id !== existingAnswer.calls_instance_id
+	) {
 		// Delete old edges if there were any
 		if (existingAnswer.calls_instance_id !== null) {
 			await deleteCallEdges(ctx, answerId);
@@ -561,7 +575,9 @@ export async function insertCallEdges(
 				.where('client_id', '=', ctx.session.user.client_id)
 				.where('page_id', '=', pageId)
 		)
-		.onConflict((oc) => oc.columns(['checklist_id', 'from_instance_id', 'to_instance_id', 'answer_id']).doNothing())
+		.onConflict((oc) =>
+			oc.columns(['checklist_id', 'from_instance_id', 'to_instance_id', 'answer_id']).doNothing()
+		)
 		.execute();
 }
 
@@ -644,7 +660,9 @@ export async function insertCallEdgesForInstance(
 				.where('answer.client_id', '=', ctx.session.user.client_id)
 				.where('answer.calls_instance_id', 'is not', null)
 		)
-		.onConflict((oc) => oc.columns(['checklist_id', 'from_instance_id', 'to_instance_id', 'answer_id']).doNothing())
+		.onConflict((oc) =>
+			oc.columns(['checklist_id', 'from_instance_id', 'to_instance_id', 'answer_id']).doNothing()
+		)
 		.execute();
 }
 

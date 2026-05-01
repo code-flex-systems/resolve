@@ -2,14 +2,25 @@
 'use client';
 
 import { useState } from 'react';
-import { DehydratedState, HydrationBoundary, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+	DehydratedState,
+	HydrationBoundary,
+	QueryClient,
+	QueryClientProvider,
+} from '@tanstack/react-query';
 import { httpBatchLink } from '@trpc/client';
 import SuperJSON from 'superjson';
 import { trpc } from '@/lib/trpc';
 import { ClerkProvider } from '@clerk/nextjs';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
-export function Providers({ children, state }: { children: React.ReactNode; state?: DehydratedState }) {
+export function Providers({
+	children,
+	state,
+}: {
+	children: React.ReactNode;
+	state?: DehydratedState;
+}) {
 	// 1) Create one QueryClient, with your defaults
 	const [queryClient] = useState(
 		() =>
@@ -42,9 +53,7 @@ export function Providers({ children, state }: { children: React.ReactNode; stat
 		<ClerkProvider>
 			<QueryClientProvider client={queryClient}>
 				<trpc.Provider client={trpcClient} queryClient={queryClient}>
-					<HydrationBoundary state={state}>
-						{children}
-					</HydrationBoundary>
+					<HydrationBoundary state={state}>{children}</HydrationBoundary>
 				</trpc.Provider>
 				{process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
 			</QueryClientProvider>

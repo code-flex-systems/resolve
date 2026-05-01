@@ -89,9 +89,7 @@ describe('getAnswerCallGraph', () => {
 	});
 
 	it('should filter out null calls_instance_id values', async () => {
-		const mockExecute = vi.fn().mockResolvedValue([
-			{ from_instance_id: 1, to_instance_id: 2 },
-		]);
+		const mockExecute = vi.fn().mockResolvedValue([{ from_instance_id: 1, to_instance_id: 2 }]);
 
 		vi.spyOn(db, 'selectFrom').mockReturnValue({
 			select: vi.fn().mockReturnThis(),

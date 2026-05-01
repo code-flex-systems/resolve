@@ -141,7 +141,10 @@ export async function documentExists(storageKey: string): Promise<boolean> {
  * @param _expiresInMinutes - Number of minutes until the URL expires (default: 60) - currently unused
  * @returns Temporary URL with SAS token
  */
-export async function generateSasUrl(storageKey: string, _expiresInMinutes: number = 60): Promise<string> {
+export async function generateSasUrl(
+	storageKey: string,
+	_expiresInMinutes: number = 60
+): Promise<string> {
 	const containerClient = await getContainerClient();
 	const blockBlobClient = containerClient.getBlockBlobClient(storageKey);
 

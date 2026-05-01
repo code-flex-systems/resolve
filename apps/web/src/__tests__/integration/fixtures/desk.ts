@@ -18,7 +18,8 @@ export async function createTestDeskLocationType(
 ) {
 	const data = {
 		client_id: overrides.client_id,
-		name: overrides.name || `Test Desk Type ${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+		name:
+			overrides.name || `Test Desk Type ${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
 		created_by: overrides.created_by ?? null,
 	};
 
