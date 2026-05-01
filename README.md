@@ -66,7 +66,7 @@ resolve/
 │   │   └── config/                      # Constants and TypeScript enums
 │   └── scripts/                         # Dev seed and reset scripts
 ├── Dockerfile
-└── .github/workflows/                   # CI/CD (Azure-targeted; will be replaced for Supabase host)
+└── .github/workflows/                   # Semgrep security scanning (deployment workflow to be added when re-hosted)
 ```
 
 ## Local development
