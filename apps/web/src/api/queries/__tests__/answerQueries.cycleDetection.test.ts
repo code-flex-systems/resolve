@@ -62,7 +62,7 @@ describe('getAnswerCallGraph', () => {
 			execute: mockExecute,
 		} as any);
 
-		const result = await getAnswerCallGraph(mockContext, 1);
+		const result = await getAnswerCallGraph(mockContext, 'checklist-1');
 
 		expect(result).toEqual([]);
 		expect(mockExecute).toHaveBeenCalledOnce();
@@ -80,7 +80,7 @@ describe('getAnswerCallGraph', () => {
 			execute: mockExecute,
 		} as any);
 
-		const result = await getAnswerCallGraph(mockContext, 1);
+		const result = await getAnswerCallGraph(mockContext, 'checklist-1');
 
 		expect(result).toEqual([
 			{ from_instance_id: 1, to_instance_id: 2 },
@@ -99,7 +99,7 @@ describe('getAnswerCallGraph', () => {
 			execute: mockExecute,
 		} as any);
 
-		const result = await getAnswerCallGraph(mockContext, 1);
+		const result = await getAnswerCallGraph(mockContext, 'checklist-1');
 
 		expect(result).toEqual([{ from_instance_id: 1, to_instance_id: 2 }]);
 	});
@@ -116,7 +116,7 @@ describe('getAnswerCallGraph', () => {
 			execute: mockExecute,
 		} as any);
 
-		const result = await getAnswerCallGraph(mockContext, 1);
+		const result = await getAnswerCallGraph(mockContext, 'checklist-1');
 
 		expect(result).toEqual([
 			{ from_instance_id: 1, to_instance_id: 2 },
@@ -134,7 +134,7 @@ describe('getAnswerCallGraph', () => {
 			execute: mockExecute,
 		} as any);
 
-		await getAnswerCallGraph(mockContext, 1);
+		await getAnswerCallGraph(mockContext, 'checklist-1');
 
 		// Verify client_id filter was applied
 		expect(mockWhere).toHaveBeenCalledWith('client_id', '=', 'client-abc');
@@ -150,10 +150,10 @@ describe('getAnswerCallGraph', () => {
 			execute: mockExecute,
 		} as any);
 
-		await getAnswerCallGraph(mockContext, 42);
+		await getAnswerCallGraph(mockContext, 'checklist-42');
 
 		// Verify checklist_id filter was applied
-		expect(mockWhere).toHaveBeenCalledWith('checklist_id', '=', 42);
+		expect(mockWhere).toHaveBeenCalledWith('checklist_id', '=', 'checklist-42');
 	});
 });
 
@@ -213,7 +213,7 @@ describe('createAnswer - cycle detection', () => {
 			calls_instance_id: null,
 		};
 
-		const result = await createAnswer(mockContext, 100, 10, params);
+		const result = await createAnswer(mockContext, 'page-100', 'question-10', params);
 
 		expect(result).toBeDefined();
 		expect(result.id).toBe(1);
@@ -286,7 +286,7 @@ describe('modifyAnswer - cycle detection', () => {
 			text: 'Updated Text',
 		};
 
-		const result = await modifyAnswer(mockContext, 100, 1, params);
+		const result = await modifyAnswer(mockContext, 'page-100', 'answer-1', params);
 
 		expect(result).toBeDefined();
 	});
@@ -324,10 +324,10 @@ describe('modifyAnswer - cycle detection', () => {
 
 		const params = {
 			text: 'Updated Text',
-			calls_instance_id: 5, // Same as existing
+			calls_instance_id: 'instance-5', // Same as existing
 		};
 
-		const result = await modifyAnswer(mockContext, 100, 1, params);
+		const result = await modifyAnswer(mockContext, 'page-100', 'answer-1', params);
 
 		expect(result).toBeDefined();
 	});

@@ -44,7 +44,7 @@ const createMockContext = (clientId = 'client-abc'): ProtectedContext => ({
 
 // Helper to create mock doc
 const createMockDoc = (overrides: Record<string, unknown> = {}) => ({
-	id: 1,
+	id: 'doc-1',
 	filename: 'test.pdf',
 	alias: 'Test Document',
 	title: null,
@@ -55,7 +55,7 @@ const createMockDoc = (overrides: Record<string, unknown> = {}) => ({
 	file_size: 1024,
 	mime_type: 'application/pdf',
 	preview_url: null,
-	doc_group_id: 10,
+	doc_group_id: 'group-10',
 	claim_id: null,
 	recovery_event_id: null,
 	deadline_id: null,
@@ -74,7 +74,7 @@ const createMockDoc = (overrides: Record<string, unknown> = {}) => ({
 
 // Helper to create mock doc group
 const createMockDocGroup = (overrides: Record<string, unknown> = {}) => ({
-	id: 10,
+	id: 'group-10',
 	name: 'Test Folder',
 	description: null,
 	parent_group_id: null,
@@ -120,7 +120,7 @@ describe('getDocsInGroupRecursive', () => {
 				execute: vi.fn().mockResolvedValue(mockDocs),
 			}) as any);
 
-			const result = await getDocsInGroupRecursive(mockContext, 10);
+			const result = await getDocsInGroupRecursive(mockContext, 'group-10');
 
 			expect(result).toHaveLength(2);
 			expect(result[0].doc_group_id).toBe(10);
@@ -143,7 +143,7 @@ describe('getDocsInGroupRecursive', () => {
 				execute: vi.fn().mockResolvedValue(mockDocs),
 			}) as any);
 
-			const result = await getDocsInGroupRecursive(mockContext, 10);
+			const result = await getDocsInGroupRecursive(mockContext, 'group-10');
 
 			expect(result).toHaveLength(4);
 			// Should include docs from all nested groups
@@ -159,7 +159,7 @@ describe('getDocsInGroupRecursive', () => {
 				execute: vi.fn().mockResolvedValue([]),
 			}) as any);
 
-			const result = await getDocsInGroupRecursive(mockContext, 999);
+			const result = await getDocsInGroupRecursive(mockContext, 'group-999');
 
 			expect(result).toEqual([]);
 		});
@@ -176,7 +176,7 @@ describe('getDocsInGroupRecursive', () => {
 				execute: vi.fn().mockResolvedValue([]),
 			}) as any);
 
-			await getDocsInGroupRecursive(mockContext, 10);
+			await getDocsInGroupRecursive(mockContext, 'group-10');
 
 			// Should filter documents by client_id
 			expect(mockWhere).toHaveBeenCalledWith('doc.client_id', '=', 'client-abc');
@@ -194,7 +194,7 @@ describe('getDocsInGroupRecursive', () => {
 				execute: vi.fn().mockResolvedValue([mockDoc]),
 			}) as any);
 
-			const result = await getDocsInGroupRecursive(mockContext, 10);
+			const result = await getDocsInGroupRecursive(mockContext, 'group-10');
 
 			expect(result[0]).toHaveProperty('id');
 			expect(result[0]).toHaveProperty('filename');
@@ -218,7 +218,7 @@ describe('getDocsInGroupRecursive', () => {
 				execute: vi.fn().mockResolvedValue(mockDocs),
 			}) as any);
 
-			const result = await getDocsInGroupRecursive(mockContext, 10);
+			const result = await getDocsInGroupRecursive(mockContext, 'group-10');
 
 			expect(result).toHaveLength(10);
 		});
@@ -236,7 +236,7 @@ describe('getDocsInGroupRecursive', () => {
 				execute: vi.fn().mockResolvedValue(mockDocs),
 			}) as any);
 
-			const result = await getDocsInGroupRecursive(mockContext, 10);
+			const result = await getDocsInGroupRecursive(mockContext, 'group-10');
 
 			expect(result).toHaveLength(100);
 		});

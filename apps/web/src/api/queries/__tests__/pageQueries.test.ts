@@ -61,7 +61,7 @@ describe('getVisiblePageInstances', () => {
 				}) as any
 		);
 
-		const result = await getVisiblePageInstances(mockContext, 10, 100);
+		const result = await getVisiblePageInstances(mockContext, 'checklist-10', 'claim-100');
 
 		expect(result).toEqual([]);
 	});
@@ -92,7 +92,7 @@ describe('getPageInstancesForClaim', () => {
 				}) as any
 		);
 
-		const result = await getPageInstancesForClaim(mockContext, 999, 100);
+		const result = await getPageInstancesForClaim(mockContext, 'checklist-999', 'claim-100');
 
 		expect(result).toEqual([]);
 	});

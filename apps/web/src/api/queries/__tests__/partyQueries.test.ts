@@ -107,7 +107,7 @@ describe('getClaimParties', () => {
 				} as any;
 			});
 
-			const result = await getClaimParties(mockContext, 100);
+			const result = await getClaimParties(mockContext, 'claim-100');
 
 			expect(result[0].representative).toEqual({
 				id: 50,
@@ -178,7 +178,7 @@ describe('getClaimParties', () => {
 				} as any;
 			});
 
-			const result = await getClaimParties(mockContext, 100);
+			const result = await getClaimParties(mockContext, 'claim-100');
 
 			expect(result[0].representative).toBeNull();
 		});
@@ -244,7 +244,7 @@ describe('getClaimParties', () => {
 				} as any;
 			});
 
-			const result = await getClaimParties(mockContext, 100);
+			const result = await getClaimParties(mockContext, 'claim-100');
 
 			expect(result[0].address?.id).toBe(60);
 			expect(result[0].address?.name).toBe('Main Office');
@@ -313,7 +313,7 @@ describe('getClaimParties', () => {
 				} as any;
 			});
 
-			const result = await getClaimParties(mockContext, 100);
+			const result = await getClaimParties(mockContext, 'claim-100');
 
 			expect(result[0].address).toBeNull();
 		});
@@ -332,7 +332,7 @@ describe('getClaimParties', () => {
 				execute: vi.fn().mockResolvedValue([]),
 			} as any);
 
-			const result = await getClaimParties(mockContext, 999);
+			const result = await getClaimParties(mockContext, 'claim-999');
 
 			expect(result).toEqual([]);
 		});
@@ -396,7 +396,7 @@ describe('getClaimParties', () => {
 				} as any;
 			});
 
-			const result = await getClaimParties(mockContext, 100);
+			const result = await getClaimParties(mockContext, 'claim-100');
 
 			expect(result[0].party).toEqual({
 				id: 10,

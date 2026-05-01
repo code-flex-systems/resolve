@@ -170,7 +170,7 @@ describe('deadlineController integration tests', () => {
 
 				await expect(
 					deadlineController.updateDeadlineStatus(ctx, {
-						deadlineId: 999999,
+						deadlineId: '00000000-0000-0000-0000-000000000000',
 						status: DeadlineStatus.MET,
 					})
 				).rejects.toThrow();

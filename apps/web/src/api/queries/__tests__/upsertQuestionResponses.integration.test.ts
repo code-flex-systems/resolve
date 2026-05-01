@@ -61,7 +61,7 @@ describe('upsertQuestionResponses integration tests', () => {
 	}
 
 	// Helper to get response from DB
-	async function getResponse(checklistId: number, instanceId: number, claimId: number, questionId: number) {
+	async function getResponse(checklistId: string, instanceId: string, claimId: string, questionId: string) {
 		return db
 			.selectFrom('question_response')
 			.selectAll()
@@ -73,7 +73,7 @@ describe('upsertQuestionResponses integration tests', () => {
 	}
 
 	// Helper to get response answers from DB
-	async function getResponseAnswers(responseId: number) {
+	async function getResponseAnswers(responseId: string) {
 		return db
 			.selectFrom('question_response_answer')
 			.selectAll()
@@ -82,7 +82,7 @@ describe('upsertQuestionResponses integration tests', () => {
 	}
 
 	// Helper to get audit logs for a response
-	async function getAuditLogs(clientId: string, questionId: number) {
+	async function getAuditLogs(clientId: string, questionId: string) {
 		return db
 			.selectFrom('response_audit_logs')
 			.selectAll()

@@ -50,7 +50,7 @@ export function getDaysToEndOfFiscalQuarter() {
 	return qEnd.diff(dayjs(), 'days');
 }
 
-export function formatAmount(value?: number | string, currency = false) {
+export function formatAmount(value?: number | string | null, currency = false) {
 	if (value == null) return '';
 	const parsedValue = parseFloat(value.toString());
 

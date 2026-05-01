@@ -191,7 +191,7 @@ describe('commentQueries integration tests', () => {
 			const user = await createTestUser(db, { client_id: client.id });
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
 
-			await expect(deleteComment(ctx, 999999)).rejects.toThrow();
+			await expect(deleteComment(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow();
 		});
 	});
 
@@ -265,7 +265,7 @@ describe('commentQueries integration tests', () => {
 			const user = await createTestUser(db, { client_id: client.id });
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, email: user.email, role: 'user' });
 
-			await expect(getComment(ctx, 999999)).rejects.toThrow();
+			await expect(getComment(ctx, '00000000-0000-0000-0000-000000000000')).rejects.toThrow();
 		});
 	});
 

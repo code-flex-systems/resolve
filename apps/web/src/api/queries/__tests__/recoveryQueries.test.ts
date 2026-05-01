@@ -356,7 +356,7 @@ describe.skip('getRecoveryMetricsTimeSeries', () => {
 			vi.spyOn(db, 'executeQuery').mockResolvedValue({ rows: [] } as any);
 
 			await getRecoveryMetricsTimeSeries(mockContext, [new Date('2025-01-01'), new Date('2025-03-31')], {
-				checklistId: 5,
+				checklistId: 'checklist-5',
 			});
 
 			expect(db.executeQuery).toHaveBeenCalled();
@@ -368,7 +368,7 @@ describe.skip('getRecoveryMetricsTimeSeries', () => {
 			await getRecoveryMetricsTimeSeries(mockContext, [new Date('2025-01-01'), new Date('2025-03-31')], {
 				recoverySource: 'subrogation',
 				recoveryStatus: 'pending',
-				checklistId: 10,
+				checklistId: 'checklist-10',
 			});
 
 			expect(db.executeQuery).toHaveBeenCalled();

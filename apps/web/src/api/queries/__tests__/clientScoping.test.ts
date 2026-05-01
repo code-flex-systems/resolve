@@ -200,7 +200,7 @@ describe('Client-Scoping Security Tests', () => {
 				innerJoin: mockInnerJoin,
 			} as any); // Mock type incompatible with Kysely's SelectQueryBuilder
 
-			await getResponsesForPageInstance(mockContext, 1, 100, 1);
+			await getResponsesForPageInstance(mockContext, 'checklist-1', 'claim-100', 'instance-1');
 
 			// Verify the query chain was built
 			expect(db.selectFrom).toHaveBeenCalledWith('question_response');
@@ -233,7 +233,7 @@ describe('Client-Scoping Security Tests', () => {
 				}),
 			} as any);
 
-			const result = await getResponsesForPageInstance(mockContext, 999, 999, 1);
+			const result = await getResponsesForPageInstance(mockContext, 'checklist-999', 'claim-999', 'instance-1');
 
 			expect(result).toEqual({});
 		});
@@ -260,7 +260,7 @@ describe('Client-Scoping Security Tests', () => {
 				}),
 			} as any);
 
-			await getResponsesForPageInstance(mockContext, 42, 100, 1);
+			await getResponsesForPageInstance(mockContext, 'checklist-42', 'claim-100', 'instance-1');
 
 			// Verify client_id filter was applied first
 			expect(mockFirstWhere).toHaveBeenCalledWith('question_response.client_id', '=', 'client-abc');
@@ -414,7 +414,7 @@ describe('Client-Scoping Security Tests', () => {
 
 			vi.spyOn(db, 'insertInto').mockImplementation(mockInsertInto);
 
-			await assignClaim(mockContext, 1, 100, 'user-456');
+			await assignClaim(mockContext, 'checklist-1', 'claim-100', 'user-456');
 
 			// Verify insertInto was called with correct table
 			expect(mockInsertInto).toHaveBeenCalledWith('checklist_claim');
@@ -427,8 +427,8 @@ describe('Client-Scoping Security Tests', () => {
 
 			// CRITICAL: Verify client_id from context was included
 			expect(insertedValues.client_id).toBe('client-abc');
-			expect(insertedValues.checklist_id).toBe(1);
-			expect(insertedValues.claim_id).toBe(100);
+			expect(insertedValues.checklist_id).toBe('checklist-1');
+			expect(insertedValues.claim_id).toBe('claim-100');
 			expect(insertedValues.assignee).toBe('user-456');
 			expect(insertedValues.created_by).toBe('user-123');
 		});
@@ -476,7 +476,7 @@ describe('Client-Scoping Security Tests', () => {
 				values: mockValues,
 			} as any); // Mock type incompatible with Kysely's InsertQueryBuilder
 
-			await assignClaim(otherContext, 2, 200, 'user-888');
+			await assignClaim(otherContext, 'checklist-2', 'claim-200', 'user-888');
 
 			const insertedValues = mockValues.mock.calls[0][0];
 
@@ -507,7 +507,7 @@ describe('Client-Scoping Security Tests', () => {
 				values: mockValues,
 			} as any); // Mock type incompatible with Kysely's InsertQueryBuilder
 
-			await assignClaim(mockContext, 5, 500, 'assignee-user');
+			await assignClaim(mockContext, 'checklist-5', 'claim-500', 'assignee-user');
 
 			const insertedValues = mockValues.mock.calls[0][0];
 
@@ -563,7 +563,7 @@ describe('Client-Scoping Security Tests', () => {
 
 			vi.spyOn(db, 'with').mockImplementation(mockWith1);
 
-			await getNextClaimToAssign(mockContext, 1, 0);
+			await getNextClaimToAssign(mockContext, 'feed-1', 0);
 
 			// Verify the CTE chain was built
 			expect(db.with).toHaveBeenCalledWith('base', expect.any(Function));
@@ -593,7 +593,7 @@ describe('Client-Scoping Security Tests', () => {
 				}),
 			});
 
-			const result = await getNextClaimToAssign(mockContext, 1, 0);
+			const result = await getNextClaimToAssign(mockContext, 'feed-1', 0);
 
 			expect(result.claim).toBeNull();
 			expect(result.total).toBe(0);
@@ -620,7 +620,7 @@ describe('Client-Scoping Security Tests', () => {
 				}),
 			});
 
-			const result = await getNextClaimToAssign(mockContext, 1, 5);
+			const result = await getNextClaimToAssign(mockContext, 'feed-1', 5);
 
 			// Should still return a result with client scoping
 			expect(result.total).toBe(10);
@@ -673,7 +673,7 @@ describe('Client-Scoping Security Tests', () => {
 
 			// Even if we somehow passed 'client-evil' as a parameter,
 			// the function should use the session's client_id
-			await assignClaim(mockContext, 1, 100, 'user-456');
+			await assignClaim(mockContext, 'checklist-1', 'claim-100', 'user-456');
 
 			const insertedValues = mockValues.mock.calls[0][0];
 
@@ -740,7 +740,7 @@ describe('Client-Scoping Security Tests', () => {
 				leftJoin: mockLeftJoinAnswer,
 			} as any);
 
-			await getQuestions(mockContext, 1);
+			await getQuestions(mockContext, 'page-1');
 
 			// Verify leftJoin was called for answer table
 			expect(mockLeftJoinAnswer).toHaveBeenCalledWith('answer', 'answer.question_id', 'question.id');
@@ -787,7 +787,7 @@ describe('Client-Scoping Security Tests', () => {
 				}),
 			} as any);
 
-			const result = await getQuestions(mockContext, 1);
+			const result = await getQuestions(mockContext, 'page-1');
 
 			// With proper client_id filtering in EXISTS subquery, actions from other clients shouldn't appear
 			expect(result[0].answers[0].has_action).toBe(false);
@@ -832,7 +832,7 @@ describe('Client-Scoping Security Tests', () => {
 				}),
 			} as any);
 
-			const result = await getQuestions(mockContext, 1);
+			const result = await getQuestions(mockContext, 'page-1');
 
 			// Verify both true and false cases work correctly with EXISTS subquery
 			expect(result[0].answers[0].has_action).toBe(true);
@@ -1017,7 +1017,7 @@ describe('Client-Scoping Security Tests', () => {
 				innerJoin: mockInnerJoin,
 			} as any);
 
-			await getComment(mockContext, 1);
+			await getComment(mockContext, 'comment-1');
 
 			// Verify selectFrom was called with correct table
 			expect(db.selectFrom).toHaveBeenCalledWith('comment');
@@ -1029,7 +1029,7 @@ describe('Client-Scoping Security Tests', () => {
 			expect(mockWhere1).toHaveBeenCalledWith('comment.client_id', '=', 'client-abc');
 
 			// Verify second where clause filters by comment id
-			expect(mockWhere2).toHaveBeenCalledWith('comment.id', '=', 1);
+			expect(mockWhere2).toHaveBeenCalledWith('comment.id', '=', 'comment-1');
 		});
 
 		it('should NOT return comments from other clients in getComment()', async () => {
@@ -1053,7 +1053,7 @@ describe('Client-Scoping Security Tests', () => {
 			} as any);
 
 			// Should throw because comment belongs to different client
-			await expect(getComment(mockContext, 999)).rejects.toThrow();
+			await expect(getComment(mockContext, 'comment-999')).rejects.toThrow();
 		});
 
 		it('should include client_id filter in getCommentCount()', async () => {
@@ -1079,7 +1079,7 @@ describe('Client-Scoping Security Tests', () => {
 				innerJoin: mockInnerJoin,
 			} as any);
 
-			const result = await getCommentCount(mockContext, { checklistId: 1, claimId: 100 });
+			const result = await getCommentCount(mockContext, { checklistId: 'checklist-1', claimId: 'claim-100' });
 
 			// Verify client_id filter was applied
 			expect(mockWhere1).toHaveBeenCalledWith('comment.client_id', '=', 'client-abc');
@@ -1153,7 +1153,7 @@ describe('Client-Scoping Security Tests', () => {
 				innerJoin: mockInnerJoin,
 			} as any);
 
-			const result = await getComments(mockContext, { checklistId: 1, claimId: 100 }, 10, 0);
+			const result = await getComments(mockContext, { checklistId: 'checklist-1', claimId: 'claim-100' }, 10, 0);
 
 			// Verify client_id filter was applied
 			expect(mockWhere1).toHaveBeenCalledWith('comment.client_id', '=', 'client-abc');
@@ -1209,15 +1209,15 @@ describe('Client-Scoping Security Tests', () => {
 				innerJoin: mockInnerJoin,
 			} as any);
 
-			await getCommentsForPage(mockContext, 1, 100, 50);
+			await getCommentsForPage(mockContext, 'checklist-1', 'claim-100', 'instance-50');
 
 			// Verify client_id filter was applied first
 			expect(mockWhere1).toHaveBeenCalledWith('comment.client_id', '=', 'client-abc');
 
 			// Verify subsequent filters for checklist, claim, instance
-			expect(mockWhere2).toHaveBeenCalledWith('comment.checklist_id', '=', 1);
-			expect(mockWhere3).toHaveBeenCalledWith('comment.claim_id', '=', 100);
-			expect(mockWhere4).toHaveBeenCalledWith('comment.instance_id', '=', 50);
+			expect(mockWhere2).toHaveBeenCalledWith('comment.checklist_id', '=', 'checklist-1');
+			expect(mockWhere3).toHaveBeenCalledWith('comment.claim_id', '=', 'claim-100');
+			expect(mockWhere4).toHaveBeenCalledWith('comment.instance_id', '=', 'instance-50');
 
 			// Verify question_id IS NOT NULL filter
 			expect(mockWhere5).toHaveBeenCalledWith('comment.question_id', 'is not', null);
@@ -1263,7 +1263,7 @@ describe('Client-Scoping Security Tests', () => {
 				}),
 			} as any);
 
-			await getComment(otherClientContext, 2);
+			await getComment(otherClientContext, 'comment-2');
 
 			// Should use the other context's client_id
 			expect(mockWhere1).toHaveBeenCalledWith('comment.client_id', '=', 'client-xyz');
@@ -1300,7 +1300,7 @@ describe('Client-Scoping Security Tests', () => {
 				}),
 			} as any);
 
-			const result = await getComments(mockContext, { checklistId: 999 });
+			const result = await getComments(mockContext, { checklistId: 'checklist-999' });
 
 			expect(result.rows).toHaveLength(0);
 			expect(result.count).toBe(0);

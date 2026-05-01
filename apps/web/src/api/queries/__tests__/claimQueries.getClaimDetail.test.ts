@@ -86,7 +86,7 @@ describe('getClaimDetail', () => {
 				executeTakeFirst: vi.fn().mockResolvedValue(null),
 			} as any);
 
-			await expect(getClaimDetail(mockContext, 999)).rejects.toThrow('Claim not found.');
+			await expect(getClaimDetail(mockContext, 'claim-999')).rejects.toThrow('Claim not found.');
 		});
 
 		it('should throw FORBIDDEN when contributor has no access', async () => {
@@ -116,7 +116,7 @@ describe('getClaimDetail', () => {
 				} as any;
 			});
 
-			await expect(getClaimDetail(mockContext, 1)).rejects.toThrow(
+			await expect(getClaimDetail(mockContext, 'claim-1')).rejects.toThrow(
 				'You do not have access to this claim.'
 			);
 		});
@@ -153,7 +153,7 @@ describe('getClaimDetail', () => {
 				} as any;
 			});
 
-			const result = await getClaimDetail(mockContext, 1);
+			const result = await getClaimDetail(mockContext, 'claim-1');
 
 			// Verify null values are transformed to 0
 			expect(result.coverageSummary.count).toBe(0);

@@ -60,7 +60,7 @@ describe('getChecklist', () => {
 
 		// Attempt to get an unpublished checklist as contributor
 		await expect(
-			getChecklist(mockContributorContext as any, 123)
+			getChecklist(mockContributorContext as any, 'checklist-123')
 		).rejects.toThrow();
 
 		// Verify filters were applied (client_id, role-based filter, id)
@@ -104,7 +104,7 @@ describe('getChecklist', () => {
 
 		(db.selectFrom as any) = mockSelectFrom;
 
-		const result = await getChecklist(mockContributorContext as any, 123);
+		const result = await getChecklist(mockContributorContext as any, 'checklist-123');
 
 		expect(result).toEqual(mockChecklist);
 		expect(mockWhereChain).toHaveBeenCalledWith(
@@ -147,7 +147,7 @@ describe('getChecklist', () => {
 
 		(db.selectFrom as any) = mockSelectFrom;
 
-		const result = await getChecklist(mockAdminContext as any, 123);
+		const result = await getChecklist(mockAdminContext as any, 'checklist-123');
 
 		expect(result).toEqual(mockChecklist);
 		expect(mockWhereChain).toHaveBeenCalledWith(

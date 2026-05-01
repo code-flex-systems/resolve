@@ -109,7 +109,7 @@ describe('taskController integration tests', () => {
 			it('should throw when task does not exist', async () => {
 				const { ctx } = await setupTestFixtures();
 
-				await expect(taskController.startTask(ctx, { id: 999999 })).rejects.toThrow();
+				await expect(taskController.startTask(ctx, { id: '00000000-0000-0000-0000-000000000999' })).rejects.toThrow();
 			});
 		});
 
@@ -208,7 +208,7 @@ describe('taskController integration tests', () => {
 			it('should throw when task does not exist', async () => {
 				const { ctx } = await setupTestFixtures();
 
-				await expect(taskController.unassignTask(ctx, { id: 999999 })).rejects.toThrow();
+				await expect(taskController.unassignTask(ctx, { id: '00000000-0000-0000-0000-000000000999' })).rejects.toThrow();
 			});
 		});
 
@@ -346,7 +346,7 @@ describe('taskController integration tests', () => {
 			it('should throw when task does not exist', async () => {
 				const { ctx } = await setupTestFixtures();
 
-				await expect(taskController.completeTask(ctx, { id: 999999 })).rejects.toThrow();
+				await expect(taskController.completeTask(ctx, { id: '00000000-0000-0000-0000-000000000999' })).rejects.toThrow();
 			});
 		});
 

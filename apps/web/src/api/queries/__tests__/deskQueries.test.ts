@@ -101,7 +101,7 @@ describe('assignUserToDeskLocation', () => {
 			await expect(
 				assignUserToDeskLocation(mockContext, {
 					userId: 'user-456',
-					deskLocationId: 999,
+					deskLocationId: 'desk-999',
 					priority: 1,
 				})
 			).rejects.toThrow('Desk location not found');
@@ -137,7 +137,7 @@ describe('assignUserToDeskLocation', () => {
 
 			const result = await assignUserToDeskLocation(mockContext, {
 				userId: 'user-456',
-				deskLocationId: 10,
+				deskLocationId: 'desk-10',
 				priority: 1,
 			});
 
@@ -176,7 +176,7 @@ describe('assignUserToDeskLocation', () => {
 
 			await assignUserToDeskLocation(mockContext, {
 				userId: 'user-456',
-				deskLocationId: 10,
+				deskLocationId: 'desk-10',
 				priority: 2,
 			});
 
@@ -218,7 +218,7 @@ describe('assignUserToDeskLocation', () => {
 
 			await assignUserToDeskLocation(mockContext, {
 				userId: 'user-456',
-				deskLocationId: 10,
+				deskLocationId: 'desk-10',
 				priority: 1,
 			});
 
@@ -263,7 +263,7 @@ describe('assignUserToDeskLocation', () => {
 
 			const result = await assignUserToDeskLocation(mockContext, {
 				userId: 'user-456',
-				deskLocationId: 10,
+				deskLocationId: 'desk-10',
 				priority: 3,
 			});
 
@@ -305,7 +305,7 @@ describe('assignUserToDeskLocation', () => {
 
 			await assignUserToDeskLocation(mockContext, {
 				userId: 'user-456',
-				deskLocationId: 10,
+				deskLocationId: 'desk-10',
 				priority: 1,
 			});
 
@@ -348,7 +348,7 @@ describe('assignUserToDeskLocation', () => {
 
 			const result = await assignUserToDeskLocation(mockContext, {
 				userId: 'user-789',
-				deskLocationId: 10,
+				deskLocationId: 'desk-10',
 				priority: 1,
 			});
 
@@ -382,7 +382,7 @@ describe('bulkAssignUsersToDeskLocation', () => {
 			await expect(
 				bulkAssignUsersToDeskLocation(mockContext, {
 					userIds: ['user-1', 'user-2', 'user-3'],
-					deskLocationId: 999,
+					deskLocationId: 'desk-999',
 					priority: 1,
 				})
 			).rejects.toThrow('Desk location not found');
@@ -428,7 +428,7 @@ describe('bulkAssignUsersToDeskLocation', () => {
 
 			const result = await bulkAssignUsersToDeskLocation(mockContext, {
 				userIds,
-				deskLocationId: 10,
+				deskLocationId: 'desk-10',
 				priority: 1,
 			});
 
@@ -476,7 +476,7 @@ describe('bulkAssignUsersToDeskLocation', () => {
 
 			await bulkAssignUsersToDeskLocation(mockContext, {
 				userIds: ['user-1', 'user-2'],
-				deskLocationId: 10,
+				deskLocationId: 'desk-10',
 				priority: 5,
 			});
 
@@ -519,7 +519,7 @@ describe('bulkAssignUsersToDeskLocation', () => {
 
 			await bulkAssignUsersToDeskLocation(mockContext, {
 				userIds: ['user-1', 'user-2', 'user-3'],
-				deskLocationId: 10,
+				deskLocationId: 'desk-10',
 				priority: 1,
 			});
 
@@ -566,7 +566,7 @@ describe('bulkAssignUsersToDeskLocation', () => {
 
 			await bulkAssignUsersToDeskLocation(mockContext, {
 				userIds,
-				deskLocationId: 10,
+				deskLocationId: 'desk-10',
 				priority: 1,
 			});
 
@@ -611,7 +611,7 @@ describe('bulkAssignUsersToDeskLocation', () => {
 
 			const result = await bulkAssignUsersToDeskLocation(mockContext, {
 				userIds,
-				deskLocationId: 10,
+				deskLocationId: 'desk-10',
 				priority: 1,
 			});
 
@@ -626,7 +626,7 @@ describe('bulkAssignUsersToDeskLocation', () => {
 			// With empty array, should return early without validating desk location
 			const result = await bulkAssignUsersToDeskLocation(mockContext, {
 				userIds: [],
-				deskLocationId: 10,
+				deskLocationId: 'desk-10',
 				priority: 1,
 			});
 
@@ -670,7 +670,7 @@ describe('bulkAssignUsersToDeskLocation', () => {
 
 			const result = await bulkAssignUsersToDeskLocation(mockContext, {
 				userIds,
-				deskLocationId: 10,
+				deskLocationId: 'desk-10',
 				priority: 1,
 			});
 

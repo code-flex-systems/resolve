@@ -44,7 +44,7 @@ async function createSettlementDependencies(
 		created_by,
 	}: {
 		client_id: string;
-		claim_id: number;
+		claim_id: string;
 		created_by: string;
 	}
 ) {

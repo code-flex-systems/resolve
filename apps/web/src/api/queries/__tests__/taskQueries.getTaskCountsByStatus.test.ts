@@ -74,7 +74,7 @@ describe('getTaskCountsByStatus', () => {
 				} as any;
 			});
 
-			const result = await getTaskCountsByStatus(mockContext, 1);
+			const result = await getTaskCountsByStatus(mockContext, 'desk-1');
 
 			expect(result.available).toBe(5);
 			expect(result.in_progress).toBe(3);
@@ -99,7 +99,7 @@ describe('getTaskCountsByStatus', () => {
 				} as any;
 			});
 
-			const result = await getTaskCountsByStatus(mockContext, 1);
+			const result = await getTaskCountsByStatus(mockContext, 'desk-1');
 
 			expect(result.available).toBe(5);
 			expect(result.in_progress).toBe(3);
@@ -118,7 +118,7 @@ describe('getTaskCountsByStatus', () => {
 				} as any;
 			});
 
-			const result = await getTaskCountsByStatus(mockContext, 999);
+			const result = await getTaskCountsByStatus(mockContext, 'desk-999');
 
 			expect(result.available).toBe(0);
 			expect(result.in_progress).toBe(0);
@@ -140,7 +140,7 @@ describe('getTaskCountsByStatus', () => {
 				} as any;
 			});
 
-			await getTaskCountsByStatus(mockContext, 5);
+			await getTaskCountsByStatus(mockContext, 'desk-5');
 
 			expect(mockWhere).toHaveBeenCalledWith('task.desk_location_id', '=', 5);
 		});
@@ -159,7 +159,7 @@ describe('getTaskCountsByStatus', () => {
 				} as any;
 			});
 
-			await getTaskCountsByStatus(mockContext, 1);
+			await getTaskCountsByStatus(mockContext, 'desk-1');
 
 			expect(mockWhere).toHaveBeenCalledWith('task.client_id', '=', 'client-abc');
 		});
@@ -177,7 +177,7 @@ describe('getTaskCountsByStatus', () => {
 				} as any;
 			});
 
-			await getTaskCountsByStatus(otherContext, 1);
+			await getTaskCountsByStatus(otherContext, 'desk-1');
 
 			expect(mockWhere).toHaveBeenCalledWith('task.client_id', '=', 'client-xyz');
 		});
@@ -200,7 +200,7 @@ describe('getTaskCountsByStatus', () => {
 				} as any;
 			});
 
-			const result = await getTaskCountsByStatus(mockContext, 1);
+			const result = await getTaskCountsByStatus(mockContext, 'desk-1');
 
 			expect(result.available).toBe(1000000);
 			expect(result.completed_on_time).toBe(500000);
@@ -221,7 +221,7 @@ describe('getTaskCountsByStatus', () => {
 				} as any;
 			});
 
-			const result = await getTaskCountsByStatus(mockContext, 1);
+			const result = await getTaskCountsByStatus(mockContext, 'desk-1');
 
 			expect(typeof result.available).toBe('number');
 			expect(result.available).toBe(42);
@@ -240,7 +240,7 @@ describe('getTaskCountsByStatus', () => {
 				} as any;
 			});
 
-			const result = await getTaskCountsByStatus(mockContext, 1);
+			const result = await getTaskCountsByStatus(mockContext, 'desk-1');
 
 			expect(result).toHaveProperty('available');
 			expect(result).toHaveProperty('in_progress');
@@ -260,7 +260,7 @@ describe('getTaskCountsByStatus', () => {
 				} as any;
 			});
 
-			const result = await getTaskCountsByStatus(mockContext, 1);
+			const result = await getTaskCountsByStatus(mockContext, 'desk-1');
 
 			expect(result).not.toHaveProperty('cancelled');
 		});
@@ -282,7 +282,7 @@ describe('getTaskCountsByStatus', () => {
 				} as any;
 			});
 
-			const result = await getTaskCountsByStatus(mockContext, 1);
+			const result = await getTaskCountsByStatus(mockContext, 'desk-1');
 
 			expect(result.available).toBe(0);
 		});
@@ -302,7 +302,7 @@ describe('getTaskCountsByStatus', () => {
 				} as any;
 			});
 
-			const result = await getTaskCountsByStatus(mockContext, 1);
+			const result = await getTaskCountsByStatus(mockContext, 'desk-1');
 
 			expect(result.available).toBe(0);
 		});
@@ -323,7 +323,7 @@ describe('getTaskCountsByStatus', () => {
 				} as any;
 			});
 
-			const result = await getTaskCountsByStatus(mockContext, 1);
+			const result = await getTaskCountsByStatus(mockContext, 'desk-1');
 
 			// Unknown status is ignored, available is counted
 			expect(result.available).toBe(3);
@@ -349,7 +349,7 @@ describe('getTaskCountsByStatus', () => {
 				} as any;
 			});
 
-			const result = await getTaskCountsByStatus(mockContext, 1);
+			const result = await getTaskCountsByStatus(mockContext, 'desk-1');
 
 			// Total should be 68 tasks
 			const total =
@@ -372,7 +372,7 @@ describe('getTaskCountsByStatus', () => {
 				} as any;
 			});
 
-			const result = await getTaskCountsByStatus(mockContext, 1);
+			const result = await getTaskCountsByStatus(mockContext, 'desk-1');
 
 			expect(result.available).toBe(10);
 			expect(result.in_progress).toBe(0);

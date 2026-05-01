@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { TRPCError } from '@trpc/server';
 import type { Context } from '@/server/trpc/context';
 import config from '@/config/config';
@@ -1596,10 +1596,10 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 				const mockUpsertQuestionResponses = await import('@/api/controllers/responseController');
 				vi.mocked(mockUpsertQuestionResponses.upsertQuestionResponses).mockResolvedValue({
-					updatedInstanceId: 50,
+					updatedInstanceId: '00000000-0000-0000-0000-000000000050',
 					status: PageInstanceStatus.UNSTARTED,
 					claimStatus: ClaimStatus.UNWORKED,
-					visibleIds: [50],
+					visibleIds: ['00000000-0000-0000-0000-000000000050'],
 				});
 
 				const caller = createCaller(responseRouter, adminCtx);
@@ -1635,10 +1635,10 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 				const mockUpsertQuestionResponses = await import('@/api/controllers/responseController');
 				vi.mocked(mockUpsertQuestionResponses.upsertQuestionResponses).mockResolvedValue({
-					updatedInstanceId: 50,
+					updatedInstanceId: '00000000-0000-0000-0000-000000000050',
 					status: PageInstanceStatus.UNSTARTED,
 					claimStatus: ClaimStatus.UNWORKED,
-					visibleIds: [50],
+					visibleIds: ['00000000-0000-0000-0000-000000000050'],
 				});
 
 				const caller = createCaller(responseRouter, userCtx);
@@ -3065,11 +3065,14 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 					const mockStatuteController = await import('@/api/controllers/statuteController');
 					vi.mocked(mockStatuteController.updateStatuteRule).mockResolvedValue({
+						id: 1,
 						state_code: 'CA',
 						rules: { personal_injury: { default_years: 2, rules: [] } },
 						negligence_type: 'pure_comparative',
 						negligence_bar_percent: null,
 						negligence_notes: null,
+						updated_at: new Date('2025-01-01'),
+						updated_by: 'admin-user',
 					});
 
 					const caller = createCaller(statuteRouter, adminCtx);
@@ -3089,11 +3092,14 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 					const mockStatuteController = await import('@/api/controllers/statuteController');
 					vi.mocked(mockStatuteController.updateStatuteRule).mockResolvedValue({
+						id: 2,
 						state_code: 'TX',
 						rules: { personal_injury: { default_years: 2, rules: [] } },
 						negligence_type: 'modified_comparative',
 						negligence_bar_percent: 51,
 						negligence_notes: null,
+						updated_at: new Date('2025-01-01'),
+						updated_by: 'super-admin-user',
 					});
 
 					const caller = createCaller(statuteRouter, superAdminCtx);
@@ -3143,11 +3149,16 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 					const mockStatuteController = await import('@/api/controllers/statuteController');
 					vi.mocked(mockStatuteController.getStatuteRule).mockResolvedValue({
+						id: 1,
 						state_code: 'CA',
 						rules: {},
 						negligence_type: null,
 						negligence_bar_percent: null,
 						negligence_notes: null,
+						created_at: new Date('2025-01-01'),
+						created_by: null,
+						updated_at: null,
+						updated_by: null,
 					});
 
 					const caller = createCaller(statuteRouter, contributorCtx);
@@ -3162,9 +3173,11 @@ describe('Router Authorization - Comprehensive Security Tests', () => {
 
 					const mockStatuteController = await import('@/api/controllers/statuteController');
 					vi.mocked(mockStatuteController.calculateStatuteLimit).mockResolvedValue({
-						stateLimitYears: 2,
-						stateLimitDate: new Date('2026-01-01'),
-						source: 'default',
+						years: 2,
+						stateCode: 'CA',
+						tortType: 'personal_injury',
+						lob: undefined,
+						dateOfLoss: '2024-01-01',
 					});
 
 					const caller = createCaller(statuteRouter, contributorCtx);

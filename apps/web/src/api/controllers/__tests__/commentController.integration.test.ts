@@ -28,12 +28,12 @@ async function createTestComment(
 	db: Kysely<DB>,
 	overrides: {
 		client_id: string;
-		checklist_id: number;
-		claim_id: number;
+		checklist_id: string;
+		claim_id: string;
 		created_by: string;
 		body?: string;
-		instance_id?: number | null;
-		question_id?: number | null;
+		instance_id?: string | null;
+		question_id?: string | null;
 	}
 ) {
 	const data = {

@@ -82,7 +82,7 @@ describe('userQueries integration tests', () => {
 
 	// Helper to create desk location
 	let deskLocationCounter = 0;
-	async function createTestDeskLocation(clientId: string, userId: string, typeId: number) {
+	async function createTestDeskLocation(clientId: string, userId: string, typeId: string) {
 		deskLocationCounter++;
 		return await db
 			.insertInto('desk_location')
@@ -98,7 +98,7 @@ describe('userQueries integration tests', () => {
 
 	// Helper to assign user to desk
 	let deskPriorityCounter = 1;
-	async function assignUserToDesk(userId: string, deskLocationId: number, assignedBy: string) {
+	async function assignUserToDesk(userId: string, deskLocationId: string, assignedBy: string) {
 		const priority = deskPriorityCounter++;
 		return await db
 			.insertInto('user_desk_location')

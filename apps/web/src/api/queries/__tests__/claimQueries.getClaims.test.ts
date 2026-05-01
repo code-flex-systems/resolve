@@ -539,10 +539,10 @@ describe('claimQueries.getClaims', () => {
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
-			await getClaims(mockAdminContext, { feedId: 5 });
+			await getClaims(mockAdminContext, { feedId: 'feed-5' });
 
 			// Should filter by feed_id
-			expect(mockChain.where).toHaveBeenCalledWith('feed_id', '=', 5);
+			expect(mockChain.where).toHaveBeenCalledWith('feed_id', '=', 'feed-5');
 		});
 
 		it('should filter by feedId for contributor with visibility', async () => {
@@ -553,10 +553,10 @@ describe('claimQueries.getClaims', () => {
 
 			vi.mocked(db.selectFrom).mockReturnValue(mockChain as any);
 
-			await getClaims(mockContributorContext, { feedId: 5 });
+			await getClaims(mockContributorContext, { feedId: 'feed-5' });
 
 			// Should have both feed filter AND visibility filter via where clause
-			expect(mockChain.where).toHaveBeenCalledWith('feed_id', '=', 5);
+			expect(mockChain.where).toHaveBeenCalledWith('feed_id', '=', 'feed-5');
 			const whereCalls = mockChain.where.mock.calls;
 			// Visibility filter is a callback function passed to where()
 			const hasVisibilityFilter = whereCalls.some((call) => typeof call[0] === 'function');

@@ -32,6 +32,9 @@ import {
 	createTestChecklist,
 	createTestPage,
 	createTestPageInstance,
+	createTestQuestion as createTestQuestionFixture,
+	createTestAnswer as createTestAnswerFixture,
+	createTestQuestionResponse as createTestQuestionResponseFixture,
 } from '@/__tests__/integration/fixtures';
 
 describe('responseQueries integration tests', () => {
@@ -42,63 +45,49 @@ describe('responseQueries integration tests', () => {
 	});
 
 	// Helper to create question
-	async function createTestQuestion(clientId: string, pageId: number, userId: string, text?: string) {
-		return await db
-			.insertInto('question')
-			.values({
-				client_id: clientId,
-				page_id: pageId,
-				text: text || `Test Question ${Date.now()}`,
-				type: 'freeform',
-				position: 0,
-				created_by: userId,
-			})
-			.returningAll()
-			.executeTakeFirstOrThrow();
+	async function createTestQuestion(clientId: string, pageId: string, userId: string, text?: string) {
+		return await createTestQuestionFixture(db, {
+			client_id: clientId,
+			page_id: pageId,
+			created_by: userId,
+			text: text || `Test Question ${Date.now()}`,
+			type: 'freeform',
+		});
 	}
 
 	// Helper to create answer
-	async function createTestAnswer(clientId: string, questionId: number, userId: string, text?: string) {
-		return await db
-			.insertInto('answer')
-			.values({
-				client_id: clientId,
-				question_id: questionId,
-				text: text || `Answer ${Date.now()}`,
-				position: 0,
-				created_by: userId,
-			})
-			.returningAll()
-			.executeTakeFirstOrThrow();
+	async function createTestAnswer(clientId: string, questionId: string, userId: string, text?: string) {
+		return await createTestAnswerFixture(db, {
+			client_id: clientId,
+			question_id: questionId,
+			created_by: userId,
+			text: text || `Answer ${Date.now()}`,
+		});
 	}
 
 	// Helper to create question response
 	async function createTestQuestionResponse(
 		clientId: string,
 		params: {
-			checklist_id: number;
-			instance_id: number;
-			claim_id: number;
-			question_id: number;
+			checklist_id: string;
+			instance_id: string;
+			claim_id: string;
+			question_id: string;
 			response_text?: string;
-			response_doc_id?: number;
+			response_doc_id?: string;
 			created_by: string;
 		}
 	) {
-		return await db
-			.insertInto('question_response')
-			.values({
-				client_id: clientId,
-				checklist_id: params.checklist_id,
-				instance_id: params.instance_id,
-				claim_id: params.claim_id,
-				question_id: params.question_id,
-				response_text: params.response_text || null,
-				response_doc_id: params.response_doc_id || null,
-				created_by: params.created_by,
-			})
-			.returningAll()
-			.executeTakeFirstOrThrow();
+		return await createTestQuestionResponseFixture(db, {
+			client_id: clientId,
+			checklist_id: params.checklist_id,
+			instance_id: params.instance_id,
+			claim_id: params.claim_id,
+			question_id: params.question_id,
+			response_text: params.response_text ?? null,
+			response_doc_id: params.response_doc_id ?? null,
+			created_by: params.created_by,
+		});
 	}
 
 	// Helper to create response audit log
@@ -106,8 +95,8 @@ describe('responseQueries integration tests', () => {
 		clientId: string,
 		userId: string,
 		params: {
-			claim_id?: number;
-			checklist_id?: number;
+			claim_id?: string;
+			checklist_id?: string;
 			question_text?: string;
 		} = {}
 	) {
@@ -116,8 +105,8 @@ describe('responseQueries integration tests', () => {
 			.values({
 				client_id: clientId,
 				user_id: userId,
-				claim_id: params.claim_id || null,
-				checklist_id: params.checklist_id || null,
+				claim_id: params.claim_id ?? null,
+				checklist_id: params.checklist_id ?? null,
 				question_id: null,
 				question_text: params.question_text || 'Test Question',
 				page_label: 'Test Page',

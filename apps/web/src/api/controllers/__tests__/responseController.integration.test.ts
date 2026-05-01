@@ -422,9 +422,9 @@ describe('responseController integration tests', () => {
 			// The controller throws TRPCError with "Instance not found" but Kysely throws first
 			await expect(
 				responseController.evaluateResponses(ctx, {
-					checklistId: 1,
-					claimId: 1,
-					instanceId: 999999,
+					checklistId: '00000000-0000-0000-0000-000000000001',
+					claimId: '00000000-0000-0000-0000-000000000001',
+					instanceId: '00000000-0000-0000-0000-000000000999',
 				})
 			).rejects.toThrow();
 		});

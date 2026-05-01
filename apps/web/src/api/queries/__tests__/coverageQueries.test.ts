@@ -93,10 +93,10 @@ describe('coverageQueries', () => {
 
 			(db.selectFrom as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
 
-			const result = await getCoverages(mockAdminContext, 100);
+			const result = await getCoverages(mockAdminContext, 'claim-100');
 
 			expect(db.selectFrom).toHaveBeenCalledWith('claim_coverage');
-			expect(mockChain.where).toHaveBeenCalledWith('claim_id', '=', 100);
+			expect(mockChain.where).toHaveBeenCalledWith('claim_id', '=', 'claim-100');
 			expect(mockChain.where).toHaveBeenCalledWith('client_id', '=', 'client-abc');
 			expect(mockChain.where).toHaveBeenCalledWith('deleted_at', 'is', null);
 			expect(result).toHaveLength(2);
@@ -108,7 +108,7 @@ describe('coverageQueries', () => {
 
 			(db.selectFrom as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
 
-			await getCoverages(mockAdminContext, 100);
+			await getCoverages(mockAdminContext, 'claim-100');
 
 			// Verify deleted_at filter is applied
 			expect(mockChain.where).toHaveBeenCalledWith('deleted_at', 'is', null);
@@ -124,10 +124,10 @@ describe('coverageQueries', () => {
 
 			(db.selectFrom as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
 
-			const result = await getCoveragesByClaimParty(mockAdminContext, 50);
+			const result = await getCoveragesByClaimParty(mockAdminContext, 'party-50');
 
 			expect(db.selectFrom).toHaveBeenCalledWith('claim_coverage');
-			expect(mockChain.where).toHaveBeenCalledWith('claim_party_id', '=', 50);
+			expect(mockChain.where).toHaveBeenCalledWith('claim_party_id', '=', 'party-50');
 			expect(mockChain.where).toHaveBeenCalledWith('client_id', '=', 'client-abc');
 			expect(mockChain.where).toHaveBeenCalledWith('deleted_at', 'is', null);
 			expect(result).toHaveLength(1);
@@ -169,8 +169,8 @@ describe('coverageQueries', () => {
 			(db.updateTable as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
 
 			await createCoverage(mockAdminContext, {
-				claim_id: 100,
-				claim_party_id: 50,
+				claim_id: 'claim-100',
+				claim_party_id: 'party-50',
 				loss_type: 'dwelling',
 				coverage_amount: 50000,
 				deductible_status: DeductibleStatus.NOT_CONFIRMED,
@@ -179,8 +179,8 @@ describe('coverageQueries', () => {
 			expect(db.selectFrom).toHaveBeenCalledWith('claim');
 			expect(db.insertInto).toHaveBeenCalledWith('claim_coverage');
 			expect(mockChain.values).toHaveBeenCalledWith(expect.objectContaining({
-				claim_id: 100,
-				claim_party_id: 50,
+				claim_id: 'claim-100',
+				claim_party_id: 'party-50',
 				loss_type: 'dwelling',
 				coverage_amount: 50000,
 				amount_reserved: null,
@@ -211,14 +211,14 @@ describe('coverageQueries', () => {
 
 			// Verify claim_party_id is included in the values
 			await createCoverage(mockAdminContext, {
-				claim_id: 100,
-				claim_party_id: 50,
+				claim_id: 'claim-100',
+				claim_party_id: 'party-50',
 				loss_type: 'dwelling',
 				deductible_status: DeductibleStatus.NOT_CONFIRMED,
 			});
 
 			const valuesCall = mockChain.values.mock.calls[0][0];
-			expect(valuesCall.claim_party_id).toBe(50);
+			expect(valuesCall.claim_party_id).toBe('party-50');
 		});
 	});
 
@@ -247,13 +247,13 @@ describe('coverageQueries', () => {
 			(db.selectFrom as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
 			(db.updateTable as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
 
-			const result = await updateCoverage(mockAdminContext, 1, {
+			const result = await updateCoverage(mockAdminContext, 'cov-1', {
 				coverage_amount: 75000,
 			});
 
 			expect(db.selectFrom).toHaveBeenCalledWith('claim_coverage');
 			expect(db.updateTable).toHaveBeenCalledWith('claim_coverage');
-			expect(mockChain.where).toHaveBeenCalledWith('id', '=', 1);
+			expect(mockChain.where).toHaveBeenCalledWith('id', '=', 'cov-1');
 			expect(mockChain.where).toHaveBeenCalledWith('client_id', '=', 'client-abc');
 			expect(mockChain.where).toHaveBeenCalledWith('deleted_at', 'is', null);
 			expect(result.coverage).toEqual(updatedCoverage);
@@ -277,7 +277,7 @@ describe('coverageQueries', () => {
 			(db.updateTable as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
 			(db.selectFrom as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
 
-			const result = await archiveCoverage(mockAdminContext, 1);
+			const result = await archiveCoverage(mockAdminContext, 'cov-1');
 
 			expect(db.updateTable).toHaveBeenCalledWith('claim_coverage');
 			expect(mockChain.set).toHaveBeenCalledWith(expect.objectContaining({
@@ -293,7 +293,7 @@ describe('coverageQueries', () => {
 
 			(db.updateTable as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
 
-			await expect(archiveCoverage(mockAdminContext, 999)).rejects.toThrow('Coverage not found');
+			await expect(archiveCoverage(mockAdminContext, 'cov-999')).rejects.toThrow('Coverage not found');
 		});
 	});
 
@@ -304,10 +304,10 @@ describe('coverageQueries', () => {
 
 			(db.selectFrom as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
 
-			const result = await getCoverageReservedTotal(mockAdminContext, 100);
+			const result = await getCoverageReservedTotal(mockAdminContext, 'claim-100');
 
 			expect(db.selectFrom).toHaveBeenCalledWith('claim_coverage');
-			expect(mockChain.where).toHaveBeenCalledWith('claim_id', '=', 100);
+			expect(mockChain.where).toHaveBeenCalledWith('claim_id', '=', 'claim-100');
 			expect(mockChain.where).toHaveBeenCalledWith('client_id', '=', 'client-abc');
 			expect(mockChain.where).toHaveBeenCalledWith('deleted_at', 'is', null);
 			expect(result).toBe(15000);
@@ -319,7 +319,7 @@ describe('coverageQueries', () => {
 
 			(db.selectFrom as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
 
-			const result = await getCoverageReservedTotal(mockAdminContext, 100);
+			const result = await getCoverageReservedTotal(mockAdminContext, 'claim-100');
 
 			expect(result).toBe(0);
 		});
@@ -332,10 +332,10 @@ describe('coverageQueries', () => {
 
 			(db.updateTable as ReturnType<typeof vi.fn>).mockReturnValue(mockChain as any);
 
-			await archiveCoveragesByClaimParty(mockAdminContext, 50);
+			await archiveCoveragesByClaimParty(mockAdminContext, 'party-50');
 
 			expect(db.updateTable).toHaveBeenCalledWith('claim_coverage');
-			expect(mockChain.where).toHaveBeenCalledWith('claim_party_id', '=', 50);
+			expect(mockChain.where).toHaveBeenCalledWith('claim_party_id', '=', 'party-50');
 			expect(mockChain.where).toHaveBeenCalledWith('client_id', '=', 'client-abc');
 			expect(mockChain.where).toHaveBeenCalledWith('deleted_at', 'is', null);
 			expect(mockChain.set).toHaveBeenCalledWith(expect.objectContaining({
