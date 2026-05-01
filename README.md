@@ -9,7 +9,6 @@ _Screenshots coming soon._
 ## What it does
 
 - **Schema-driven checklists.** Adjusters work through claims using checklists composed of hierarchical pages, templated questions, and answer options. Selecting certain answers can unlock additional page instances, supporting branching workflows.
-- **AI-assisted checklist generation.** OpenAI is used to scaffold checklists and provide guidance.
 - **Document management.** Upload, download, and access-controlled retrieval of claim-related documents, with per-tenant blob organization.
 - **Tasks & deadlines.** Work items and time-sensitive requirements with assignment, claim/unclaim flows, and completion tracking.
 - **Recovery tracking.** Subrogation and recovery events linked to claims with amounts and statuses.
@@ -18,20 +17,19 @@ _Screenshots coming soon._
 
 ## Tech stack
 
-| Layer | Technology |
-| --- | --- |
-| Framework | Next.js 13+ (App Router) |
-| API | tRPC (end-to-end type safety) |
-| Database | PostgreSQL via Kysely (typed query builder) |
-| Auth | Clerk (orgs + role-based memberships) |
-| State (client) | Zustand with Immer |
-| UI | Material-UI (MUI), React Hook Form |
-| AI | OpenAI |
-| Email | Resend |
-| Object storage | Azure Blob Storage (Azurite emulator for local dev) |
-| Validation | Zod (shared client/server schemas) |
-| Testing | Vitest |
-| Type generation | kysely-codegen |
+| Layer               | Technology                                                     |
+| ------------------- | -------------------------------------------------------------- |
+| Framework           | Next.js 13+ (App Router)                                       |
+| API                 | tRPC (end-to-end type safety)                                  |
+| Database            | PostgreSQL via Kysely (typed query builder)                    |
+| Auth                | Clerk (orgs + role-based memberships)                          |
+| State (client)      | Zustand with Immer                                             |
+| UI                  | Material-UI (MUI), React Hook Form                             |
+| Email               | Resend                                                         |
+| Object storage      | Azure Blob Storage (Azurite emulator for local dev)            |
+| Validation          | Zod (shared client/server schemas)                             |
+| Testing             | Vitest                                                         |
+| Type generation     | kysely-codegen                                                 |
 | Deployment (former) | Azure Container Apps, Azure Container Registry, GitHub Actions |
 
 ## Architecture highlights
@@ -108,17 +106,17 @@ The app will be available at `http://localhost:3000`.
 
 ### Common commands
 
-| Command | What it does |
-| --- | --- |
-| `npm run dev` | Start the Next.js dev server with hot reload |
-| `npm run build` | Production build |
-| `npm run lint` | ESLint (Next.js config) |
-| `npm run typecheck` | TypeScript check across the workspace |
-| `npm --workspace apps/web test -- --run` | Run the test suite once |
-| `npm --workspace apps/web run db:migrate` | Apply pending migrations |
-| `npm --workspace apps/web run db:migration:create <name>` | Scaffold a new migration |
-| `npm --workspace apps/web run db:types` | Regenerate Kysely types |
-| `npm run format` / `npm run format:check` | Prettier write / check |
+| Command                                                   | What it does                                 |
+| --------------------------------------------------------- | -------------------------------------------- |
+| `npm run dev`                                             | Start the Next.js dev server with hot reload |
+| `npm run build`                                           | Production build                             |
+| `npm run lint`                                            | ESLint (Next.js config)                      |
+| `npm run typecheck`                                       | TypeScript check across the workspace        |
+| `npm --workspace apps/web test -- --run`                  | Run the test suite once                      |
+| `npm --workspace apps/web run db:migrate`                 | Apply pending migrations                     |
+| `npm --workspace apps/web run db:migration:create <name>` | Scaffold a new migration                     |
+| `npm --workspace apps/web run db:types`                   | Regenerate Kysely types                      |
+| `npm run format` / `npm run format:check`                 | Prettier write / check                       |
 
 ## Testing
 
