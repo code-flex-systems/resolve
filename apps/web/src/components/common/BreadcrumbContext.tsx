@@ -82,7 +82,6 @@ const ROUTE_LABELS: Record<string, string> = {
 	'reference-data': 'Reference Data',
 	'statute-rules': 'Statute Rules',
 	settings: 'Settings',
-	'component-showcase': 'Component Showcase',
 	edit: 'Edit',
 	breakdown: 'Breakdown',
 	summary: 'Summary',
