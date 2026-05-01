@@ -1,0 +1,8 @@
+# Commits listed here are skipped by `git blame` when --ignore-revs-file is
+# active. GitHub respects this file automatically.
+#
+# To enable locally:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# Apply Prettier across the entire codebase
+95428b8
