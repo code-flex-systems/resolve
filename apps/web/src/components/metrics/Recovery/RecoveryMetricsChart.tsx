@@ -1,5 +1,13 @@
 'use client';
-import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import {
+	LineChart,
+	Line,
+	XAxis,
+	YAxis,
+	Tooltip as RechartsTooltip,
+	Legend,
+	ResponsiveContainer,
+} from 'recharts';
 import Card from '@/components/ui/Card';
 import KpiCard from '@/components/ui/KpiCard';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
@@ -11,6 +19,7 @@ import type { DateRange } from '@/types/dateTypes';
 import Skeleton from '@/components/ui/Skeleton';
 import { IconBug } from '@tabler/icons-react';
 import Button from '@/components/ui/Button';
+import Tooltip from '@/components/ui/Tooltip';
 
 export default function RecoveryMetricsChart({
 	range,
@@ -202,7 +211,7 @@ export default function RecoveryMetricsChart({
 										tick={{ fontSize: isBreakdown ? 11 : 10, fill: 'var(--text-muted)' }}
 										stroke="var(--border)"
 									/>
-									<Tooltip
+									<RechartsTooltip
 										formatter={(value: any, name: any) => [
 											formatTooltipValue(value as number),
 											name,

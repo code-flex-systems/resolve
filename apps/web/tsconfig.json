@@ -4,8 +4,6 @@
     "types": [
       "node"
     ],
-    "composite": true,
-    "noEmit": false,
     "baseUrl": "src",
     "paths": {
       "@/*": [
