@@ -36,7 +36,7 @@ The application is built with React, Next.js, tRPC, Kysely, and PostgreSQL, enab
 ### Backend
 - **Database**: PostgreSQL with Kysely ORM for type-safe queries
 - **API**: TRPC for end-to-end type safety
-- **Authentication**: NextAuth with Azure AD B2C
+- **Authentication**: Clerk
 - **Server**: Next.js API routes
 - **AI Integration**: OpenAI for checklist generation and guidance
 

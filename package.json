@@ -5,7 +5,7 @@
 		"apps/*"
 	],
 	"scripts": {
-		"dev": "npm --workspace apps/web run dev && npm run azurite",
+		"dev": "npm --workspace apps/web run dev",
 		"build": "npm --workspace apps/web run build",
 		"lint": "npm --workspace apps/web run lint",
 		"typecheck": "npm --workspace apps/web run typecheck"
