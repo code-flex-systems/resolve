@@ -30,7 +30,7 @@ const createMockContext = (clientId = 'client-abc'): ProtectedContext => ({
 	session: {
 		user: {
 			id: 'user-123',
-			clerkId: 'clerk_user_123',
+			authUserId: 'auth-user-123',
 			name: 'Test User',
 			email: 'test@example.com',
 			phone: null,

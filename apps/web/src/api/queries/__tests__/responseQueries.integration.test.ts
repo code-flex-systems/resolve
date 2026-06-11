@@ -274,7 +274,9 @@ describe('responseQueries integration tests', () => {
 				.execute();
 
 			// Use a wider range to ensure the response is within range
-			const now = new Date();
+			// Pad 1s: created_at is set by Postgres now() with microsecond precision,
+			// which can exceed a same-millisecond JS Date and fall outside the range
+			const now = new Date(Date.now() + 1000);
 			now.setHours(23, 59, 59, 999); // End of today
 			const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 			weekAgo.setHours(0, 0, 0, 0); // Start of that day
@@ -325,7 +327,9 @@ describe('responseQueries integration tests', () => {
 				})
 				.execute();
 
-			const now = new Date();
+			// Pad 1s: created_at is set by Postgres now() with microsecond precision,
+			// which can exceed a same-millisecond JS Date and fall outside the range
+			const now = new Date(Date.now() + 1000);
 			const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 			const results = await getResponsesForAnswer(
 				ctxA,
@@ -392,7 +396,9 @@ describe('responseQueries integration tests', () => {
 				])
 				.execute();
 
-			const now = new Date();
+			// Pad 1s: created_at is set by Postgres now() with microsecond precision,
+			// which can exceed a same-millisecond JS Date and fall outside the range
+			const now = new Date(Date.now() + 1000);
 			const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 			const results = await getResponsesForAnswer(
 				ctx,
@@ -454,7 +460,9 @@ describe('responseQueries integration tests', () => {
 				])
 				.execute();
 
-			const now = new Date();
+			// Pad 1s: created_at is set by Postgres now() with microsecond precision,
+			// which can exceed a same-millisecond JS Date and fall outside the range
+			const now = new Date(Date.now() + 1000);
 			const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 			const results = await getResponsesForAnswer(
 				ctx,
@@ -803,7 +811,9 @@ describe('responseQueries integration tests', () => {
 
 			await createTestResponseAuditLog(client.id, user.id);
 
-			const now = new Date();
+			// Pad 1s: created_at is set by Postgres now() with microsecond precision,
+			// which can exceed a same-millisecond JS Date and fall outside the range
+			const now = new Date(Date.now() + 1000);
 			const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 			const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
@@ -826,7 +836,9 @@ describe('responseQueries integration tests', () => {
 
 			await createTestResponseAuditLog(client.id, user.id);
 
-			const now = new Date();
+			// Pad 1s: created_at is set by Postgres now() with microsecond precision,
+			// which can exceed a same-millisecond JS Date and fall outside the range
+			const now = new Date(Date.now() + 1000);
 			const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
 			const stats = await getResponseAuditLogStats(ctx, { range: [weekAgo, now] });
@@ -850,7 +862,9 @@ describe('responseQueries integration tests', () => {
 
 			await createTestResponseAuditLog(clientB.id, userB.id);
 
-			const now = new Date();
+			// Pad 1s: created_at is set by Postgres now() with microsecond precision,
+			// which can exceed a same-millisecond JS Date and fall outside the range
+			const now = new Date(Date.now() + 1000);
 			const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
 			const stats = await getResponseAuditLogStats(ctxA, { range: [weekAgo, now] });

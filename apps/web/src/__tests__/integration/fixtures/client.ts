@@ -11,12 +11,11 @@ import type { DB } from '@/api/database/types';
  */
 export async function createTestClient(
 	db: Kysely<DB>,
-	overrides: { id?: string; name?: string; clerk_org_id?: string | null } = {}
+	overrides: { id?: string; name?: string } = {}
 ) {
 	const data = {
 		id: overrides.id || randomUUID(),
 		name: overrides.name || 'Test Client',
-		clerk_org_id: overrides.clerk_org_id ?? null,
 	};
 
 	return db.insertInto('client').values(data).returningAll().executeTakeFirstOrThrow();

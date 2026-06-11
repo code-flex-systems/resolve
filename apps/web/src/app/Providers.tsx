@@ -11,7 +11,6 @@ import {
 import { httpBatchLink } from '@trpc/client';
 import SuperJSON from 'superjson';
 import { trpc } from '@/lib/trpc';
-import { ClerkProvider } from '@clerk/nextjs';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 export function Providers({
@@ -50,13 +49,11 @@ export function Providers({
 	);
 
 	return (
-		<ClerkProvider>
-			<QueryClientProvider client={queryClient}>
-				<trpc.Provider client={trpcClient} queryClient={queryClient}>
-					<HydrationBoundary state={state}>{children}</HydrationBoundary>
-				</trpc.Provider>
-				{process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
-			</QueryClientProvider>
-		</ClerkProvider>
+		<QueryClientProvider client={queryClient}>
+			<trpc.Provider client={trpcClient} queryClient={queryClient}>
+				<HydrationBoundary state={state}>{children}</HydrationBoundary>
+			</trpc.Provider>
+			{process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
+		</QueryClientProvider>
 	);
 }

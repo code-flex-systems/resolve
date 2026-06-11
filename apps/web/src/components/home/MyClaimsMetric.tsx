@@ -1,14 +1,14 @@
 'use client';
 
 import Chip from '@/components/ui/Chip';
-import { useClerkSession } from '@/lib/auth/use-clerk-session';
+import { useSession } from '@/lib/auth/use-session';
 import { useChecklistTrpc } from '@/hooks/trpc/useChecklistTrpc';
 import { ClaimStatus } from '@/config/enums';
 import Card from '@/components/ui/Card';
 import Skeleton from '@/components/ui/Skeleton';
 
 export default function MyClaimsMetric() {
-	const { data: session } = useClerkSession();
+	const { data: session } = useSession();
 	const { data: stats = {} as Record<ClaimStatus, number>, isLoading } = useChecklistTrpc().stats(
 		{ users: session?.user?.id ? [session.user.id] : [] },
 		{ enabled: !!session?.user?.id }

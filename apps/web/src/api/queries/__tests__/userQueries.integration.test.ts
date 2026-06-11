@@ -13,11 +13,12 @@
  * - getUser: Get single user by id
  * - updateUser: Update user profile
  * - deleteUser: Delete user
- * - upsertUserFromClerk: Upsert user from webhook
+ * - createInvitedUser: Create local user row at invite time
  * - Tenant isolation on all operations
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';
+import { randomUUID } from 'crypto';
 import type { Kysely } from 'kysely';
 import type { DB } from '@/api/database/types';
 import { getTestDb, createTestContext } from '@/__tests__/integration/testDb';
@@ -33,7 +34,7 @@ import {
 	getUser,
 	updateUser,
 	deleteUser,
-	upsertUserFromClerk,
+	createInvitedUser,
 } from '../userQueries';
 import { createTestClient, createTestUser } from '@/__tests__/integration/fixtures';
 
@@ -827,69 +828,44 @@ describe('userQueries integration tests', () => {
 		});
 	});
 
-	describe('upsertUserFromClerk', () => {
-		it('should create new user', async () => {
+	describe('createInvitedUser', () => {
+		it('should create new user linked to auth user', async () => {
 			const client = await createTestClient(db);
-			const email = `clerk_new_${Date.now()}@test.com`;
+			const email = `invited_new_${Date.now()}@test.com`;
+			const authUserId = randomUUID();
 
-			const result = await upsertUserFromClerk(db, {
-				first: 'Clerk',
-				last: 'User',
+			const result = await createInvitedUser(db, {
 				email,
-				role: 'user',
+				role: 'Contributor',
 				client_id: client.id,
-				email_verified: true,
+				auth_user_id: authUserId,
 			});
 
 			expect(result).toBeDefined();
 			expect(result!.email).toBe(email);
-			expect(result!.first).toBe('Clerk');
-			expect(result!.email_verified).not.toBeNull();
+			expect(result!.auth_user_id).toBe(authUserId);
+			expect(result!.role).toBe('Contributor');
+			expect(result!.client_id).toBe(client.id);
 		});
 
-		it('should update existing user on conflict', async () => {
+		it('should relink existing user on email conflict', async () => {
 			const client = await createTestClient(db);
 			const existingUser = await createTestUser(db, { client_id: client.id });
+			const authUserId = randomUUID();
 
-			const result = await upsertUserFromClerk(db, {
-				first: 'Updated',
-				last: 'Webhook',
+			const result = await createInvitedUser(db, {
 				email: existingUser.email,
 				role: 'Admin',
 				client_id: client.id,
+				auth_user_id: authUserId,
 			});
 
 			expect(result).toBeDefined();
 			expect(result!.id).toBe(existingUser.id);
-			expect(result!.first).toBe('Updated');
-			expect(result!.last).toBe('Webhook');
-		});
-
-		it('should preserve email_verified if already set', async () => {
-			const client = await createTestClient(db);
-			const verifiedDate = new Date('2024-01-01');
-			const existingUser = await createTestUser(db, {
-				client_id: client.id,
-			});
-			// Manually set email_verified since it's not part of createTestUser params
-			await db
-				.updateTable('users')
-				.set({ email_verified: verifiedDate })
-				.where('id', '=', existingUser.id)
-				.execute();
-
-			const result = await upsertUserFromClerk(db, {
-				first: 'Updated',
-				last: 'User',
-				email: existingUser.email,
-				role: 'user',
-				client_id: client.id,
-				email_verified: true,
-			});
-
-			expect(result).toBeDefined();
-			// Should preserve the original verification date, not update to now
-			expect(result!.email_verified).toBeDefined();
+			expect(result!.auth_user_id).toBe(authUserId);
+			expect(result!.role).toBe('Admin');
+			// Existing profile data is preserved
+			expect(result!.first).toBe(existingUser.first);
 		});
 	});
 });

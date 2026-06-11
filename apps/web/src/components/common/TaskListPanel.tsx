@@ -17,7 +17,7 @@ import { useMemo, useState } from 'react';
 import { useTaskTrpc, Task } from '@/hooks/trpc/useTaskTrpc';
 import { TaskStatus, TaskType } from '@/config/enums';
 import { useAlertStore } from '@/stores/useAlertStore';
-import { useClerkSession } from '@/lib/auth/use-clerk-session';
+import { useSession } from '@/lib/auth/use-session';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import { TASK_TYPE_CONFIG } from '@/lib/utils/taskUtils';
 import Button from '@/components/ui/Button';
@@ -57,7 +57,7 @@ export default function TaskListPanel({
 	const [isManageMode, setIsManageMode] = useState(false);
 
 	const showAlert = useAlertStore((state) => state.showAlert);
-	const { data: session } = useClerkSession();
+	const { data: session } = useSession();
 	const isAdmin = useIsAdmin();
 
 	const { data, isLoading, refetch } = useTaskTrpc().listByClaim({

@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button';
 import BasicDialog from '../common/BasicDialog';
 import { useForm, Controller } from 'react-hook-form';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
+import { uploadFileToStorage } from '@/lib/storage/uploadClient';
 import { DocType, DocStatus } from '@/config/enums';
 import { useState } from 'react';
 import {
@@ -80,21 +81,8 @@ export default function UploadDocumentDialog({
 		}
 
 		try {
-			// Step 1: Upload file to Azure Blob Storage via API route
-			const formData = new FormData();
-			formData.append('file', selectedFile);
-
-			const uploadResponse = await fetch('/api/upload', {
-				method: 'POST',
-				body: formData,
-			});
-
-			if (!uploadResponse.ok) {
-				const error = await uploadResponse.json();
-				throw new Error(error.error || 'Upload failed');
-			}
-
-			const uploadResult = await uploadResponse.json();
+			// Step 1: Upload file directly to storage via signed URL
+			const uploadResult = await uploadFileToStorage(selectedFile);
 
 			// Step 2: Create document record in database with storage key
 			// Sanitize filename to remove problematic Unicode characters (like U+202F narrow no-break space from macOS screenshots)

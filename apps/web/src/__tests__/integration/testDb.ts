@@ -10,21 +10,26 @@
  * - Real Kysely instance for actual query execution
  */
 
+// Load .env so machine-specific TEST_DB_* overrides apply (vitest does not
+// load .env on its own)
+import 'dotenv/config';
 import { Kysely, PostgresDialect, sql } from 'kysely';
 import { Pool } from 'pg';
 import { randomUUID } from 'crypto';
 import type { DB } from '@/api/database/types';
 import type { ProtectedContext } from '@/server/trpc/trpc';
 
+// Dedicated TEST_DB_* variables (never the app's DB_* values, which may
+// point at the real Supabase database)
 const TEST_DB_CONFIG = {
-	user: process.env.DB_USER || 'postgres',
-	password: process.env.DB_PASSWORD || 'password',
-	database: process.env.DB_DATABASE || 'resolve_test',
-	host: process.env.DB_HOST || 'localhost',
-	port: parseInt(process.env.DB_PORT || '5432', 10),
+	user: process.env.TEST_DB_USER || 'postgres',
+	password: process.env.TEST_DB_PASSWORD || 'password',
+	database: process.env.TEST_DB_DATABASE || 'resolve_test',
+	host: process.env.TEST_DB_HOST || 'localhost',
+	port: parseInt(process.env.TEST_DB_PORT || '5432', 10),
 };
 
-const TEST_SCHEMA = process.env.DB_SCHEMA || 'test';
+const TEST_SCHEMA = 'test';
 
 let testPool: Pool | null = null;
 let testDb: Kysely<DB> | null = null;
@@ -108,7 +113,7 @@ export function createTestContext(
 	db: Kysely<DB>,
 	userOverrides: {
 		id?: string;
-		clerkId?: string;
+		authUserId?: string;
 		name?: string;
 		email?: string;
 		phone?: string | null;
@@ -120,7 +125,7 @@ export function createTestContext(
 		session: {
 			user: {
 				id: userOverrides.id || randomUUID(),
-				clerkId: userOverrides.clerkId || `clerk_${randomUUID()}`,
+				authUserId: userOverrides.authUserId || randomUUID(),
 				name: userOverrides.name || 'Test User',
 				email: userOverrides.email || 'test@example.com',
 				phone: userOverrides.phone ?? null,

@@ -11,7 +11,7 @@ import { formatMDY } from '@/lib/utils/utils';
 import PhoneCell from './PhoneCell';
 import RoleCell from './RoleCell';
 import EmailCell from './EmailCell';
-import { useClerkSession } from '@/lib/auth/use-clerk-session';
+import { useSession } from '@/lib/auth/use-session';
 import { useEffect, useMemo, useState } from 'react';
 import UserActionsCell from './UserActionsCell';
 import useDebounce from '@/lib/utils/useDebounce';
@@ -97,7 +97,7 @@ function NoRows() {
 }
 
 export default function UsersTab() {
-	const { data: session } = useClerkSession();
+	const { data: session } = useSession();
 	const userConstraints = useAdminStore((state) => state.userConstraints);
 	const toggleInviteUserDialog = useAdminStore((state) => state.toggleNewUserDialog);
 	const updateUserConstraints = useAdminStore((state) => state.updateUserConstraints);

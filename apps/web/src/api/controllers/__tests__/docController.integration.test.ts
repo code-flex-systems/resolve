@@ -4,7 +4,7 @@
  * Tests the orchestrative functions that coordinate multiple queries
  * and have complex business logic beyond simple CRUD operations.
  *
- * Note: Azure Blob Storage calls will fail in test environment but the
+ * Note: storage calls will fail in test environment but the
  * controller is designed to continue with DB operations even if blob
  * deletion fails. These tests verify the DB orchestration logic.
  */

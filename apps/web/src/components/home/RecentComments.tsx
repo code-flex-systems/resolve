@@ -1,7 +1,7 @@
 'use client';
 import Card from '@/components/ui/Card';
 import Comments from '../common/Comments';
-import { useClerkSession } from '@/lib/auth/use-clerk-session';
+import { useSession } from '@/lib/auth/use-session';
 import './styles.css';
 import { buildChecklistUrl } from '@/lib/utils/buildChecklistUrl';
 import { useRouter } from 'next/navigation';
@@ -10,7 +10,7 @@ import { IconMessage } from '@tabler/icons-react';
 
 export default function RecentComments() {
 	const router = useRouter();
-	const { data: session } = useClerkSession();
+	const { data: session } = useSession();
 	const userId = session?.user.id;
 
 	const { data: comments = { rows: [], count: 0 } } = useCommentTrpc().list({

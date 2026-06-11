@@ -13,12 +13,12 @@ import { DocType, DocStatus, DocGroupType } from '@/config/enums';
 // =====================================================================
 
 /**
- * Create a document record with Azure Blob Storage integration.
+ * Create a document record for a file uploaded to storage.
  * Note: File upload happens before calling this function.
  *
  * @param ctx - request context
- * @param params - document fields including storage_key from Azure upload
- * @param storageKey - Azure Blob Storage key from upload
+ * @param params - document fields
+ * @param storageKey - storage key from the upload
  * @returns created document
  */
 export async function createDoc(ctx: ProtectedContext, params: DocParams, storageKey: string) {
@@ -288,7 +288,7 @@ export async function getDocForDeletion(ctx: ProtectedContext, docId: string) {
 
 /**
  * Delete a document record from database.
- * Note: Azure blob deletion happens in controller.
+ * Note: stored file deletion happens in controller.
  *
  * @param ctx - request context
  * @param docId - document identifier
@@ -491,7 +491,7 @@ export async function deleteDocGroup(ctx: ProtectedContext, groupId: string) {
 
 /**
  * Get all documents in a group recursively (including documents in child groups).
- * This is needed when deleting a group to clean up all Azure blobs.
+ * This is needed when deleting a group to clean up all stored files.
  *
  * @param ctx - request context
  * @param groupId - parent group id

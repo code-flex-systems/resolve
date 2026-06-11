@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import DocumentSelectorDialog from '../admin/DocumentSelectorDialog';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
-import { useClerkSession } from '@/lib/auth/use-clerk-session';
+import { useSession } from '@/lib/auth/use-session';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import useIsSuperAdmin from '@/hooks/useIsSuperAdmin';
 import { IconUpload, IconX } from '@tabler/icons-react';
@@ -20,7 +20,7 @@ interface ChecklistAnswerFileUploadProps {
 
 export default function ChecklistAnswerFileUpload(props: ChecklistAnswerFileUploadProps) {
 	const { field, answer, disabled, allowedExtensions } = props;
-	const { data: session } = useClerkSession();
+	const { data: session } = useSession();
 	const isAdmin = useIsAdmin();
 	const isSuperAdmin = useIsSuperAdmin();
 	const [showDocSelector, setShowDocSelector] = useState(false);

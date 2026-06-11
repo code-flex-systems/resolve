@@ -4,9 +4,10 @@ import Card from '@/components/ui/Card';
 import { useRecoveryTrpc } from '@/hooks/trpc/useRecoveryTrpc';
 import { useMemo } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
-import { DateRange } from '@mui/x-date-pickers-pro';
 import { formatCurrency } from '@/lib/utils/recoveryUtils';
 import Skeleton from '@/components/ui/Skeleton';
+
+type DateRange<T> = [T | null, T | null];
 
 export default function TopPerformersSection({
 	range,

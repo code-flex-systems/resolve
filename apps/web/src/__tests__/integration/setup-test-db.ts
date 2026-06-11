@@ -1,27 +1,38 @@
 /**
  * Setup Test Database
  *
- * This script creates the resolve_test database and test schema,
- * then runs all migrations to set up the schema structure.
+ * Creates the resolve_test database and `test` schema, building the schema
+ * from the repo (baseline SQL + all Kysely migrations).
+ *
+ * Uses dedicated TEST_DB_* environment variables (defaulting to local
+ * postgres) and never reads the app's DB_* values, so it cannot target the
+ * real (Supabase) database by accident.
+ *
+ * Strategy: migrations only run correctly against the `public` schema
+ * (e.g. serial_to_uuid introspects table_schema = 'public'), so the schema
+ * is built in `public` of the resolve_test database and then renamed to
+ * `test`, which is what the integration tests use.
  *
  * Run with: npx tsx src/__tests__/integration/setup-test-db.ts
  */
 
+// Load .env so machine-specific TEST_DB_* overrides apply
+import 'dotenv/config';
 import { Pool } from 'pg';
-import { promises as fs } from 'fs';
+import { promises as fs, readFileSync } from 'fs';
 import path from 'path';
 import { Kysely, PostgresDialect, Migrator, FileMigrationProvider } from 'kysely';
 
 const POSTGRES_CONFIG = {
-	user: process.env.DB_USER || 'postgres',
-	password: process.env.DB_PASSWORD || 'password',
-	host: process.env.DB_HOST || 'localhost',
-	port: parseInt(process.env.DB_PORT || '5432', 10),
+	user: process.env.TEST_DB_USER || 'postgres',
+	password: process.env.TEST_DB_PASSWORD || 'password',
+	host: process.env.TEST_DB_HOST || 'localhost',
+	port: parseInt(process.env.TEST_DB_PORT || '5432', 10),
 };
 
-const TEST_DB_NAME = 'resolve_test';
-const SOURCE_DB_NAME = process.env.DB_DATABASE || 'resolve';
+const TEST_DB_NAME = process.env.TEST_DB_DATABASE || 'resolve_test';
 const TEST_SCHEMA = 'test';
+const BASELINE_MIGRATION = '2025-11-12_baseline';
 
 async function createTestDatabase(): Promise<void> {
 	const adminPool = new Pool({
@@ -46,74 +57,39 @@ async function createTestDatabase(): Promise<void> {
 	}
 }
 
-async function setupSchema(): Promise<void> {
+async function buildSchema(): Promise<void> {
 	const testPool = new Pool({
 		...POSTGRES_CONFIG,
 		database: TEST_DB_NAME,
 	});
 
 	try {
-		// Drop existing test schema if it exists
-		console.log(`Dropping schema if exists: ${TEST_SCHEMA}`);
+		// Start from a clean slate
+		console.log('Resetting schemas...');
 		await testPool.query(`DROP SCHEMA IF EXISTS ${TEST_SCHEMA} CASCADE`);
-
-		// Drop analytics schema too — the dump from the source DB will recreate it,
-		// and CREATE SCHEMA without IF NOT EXISTS will fail if it already exists.
-		console.log('Dropping schema if exists: analytics');
 		await testPool.query(`DROP SCHEMA IF EXISTS analytics CASCADE`);
+		await testPool.query(`DROP SCHEMA IF EXISTS public CASCADE`);
+		await testPool.query(`CREATE SCHEMA public`);
 
-		// Create fresh test schema
-		console.log(`Creating schema: ${TEST_SCHEMA}`);
-		await testPool.query(`CREATE SCHEMA ${TEST_SCHEMA}`);
-		console.log(`Schema ${TEST_SCHEMA} created successfully`);
+		// Apply the baseline schema (same path as a fresh production database)
+		console.log('Applying baseline SQL...');
+		const baselineSql = readFileSync(
+			path.join(__dirname, '../../api/sql/initial_tables_and_sql.sql'),
+			'utf8'
+		);
+		await testPool.query(baselineSql);
 
-		// Clone schema from the source database
-		console.log(`Cloning schema from ${SOURCE_DB_NAME} database...`);
-		const { execSync } = await import('child_process');
-
-		// Dump schema only from the source database
-		const pgDumpCmd = `pg_dump -h ${POSTGRES_CONFIG.host} -p ${POSTGRES_CONFIG.port} -U ${POSTGRES_CONFIG.user} -d ${SOURCE_DB_NAME} --schema-only --no-owner --no-privileges 2>&1`;
-		let schemaSql: string;
-		try {
-			schemaSql = execSync(pgDumpCmd, {
-				env: { ...process.env, PGPASSWORD: POSTGRES_CONFIG.password },
-				maxBuffer: 10 * 1024 * 1024, // 10MB
-			}).toString();
-		} catch (err: any) {
-			console.error('pg_dump failed:', err.stderr?.toString() || err.message);
-			throw err;
-		}
-
-		// Replace public schema references with test schema
-		schemaSql = schemaSql
-			.replace(/CREATE SCHEMA public;/g, '') // Remove public schema creation
-			.replace(/COMMENT ON SCHEMA public/g, '-- COMMENT ON SCHEMA public')
-			.replace(/SET search_path = public/g, `SET search_path = ${TEST_SCHEMA}`)
-			.replace(/public\./g, `${TEST_SCHEMA}.`)
-			.replace(/SCHEMA public/g, `SCHEMA ${TEST_SCHEMA}`);
-
-		// Set search path and run schema SQL
-		await testPool.query(`SET search_path TO ${TEST_SCHEMA}`);
-		await testPool.query(schemaSql);
-		console.log('Schema cloned successfully');
-
-		// Mark all migrations as executed (since schema is already at latest)
-		const migrationFiles = await fs.readdir(path.join(__dirname, '../../api/database/migrations'));
-		const migrations = migrationFiles
-			.filter((f) => f.endsWith('.ts'))
-			.map((f) => f.replace('.ts', ''));
-
-		for (const migration of migrations) {
-			await testPool.query(
-				`
-				INSERT INTO ${TEST_SCHEMA}.kysely_migration (name, timestamp)
-				VALUES ($1, $2)
-				ON CONFLICT (name) DO NOTHING
-			`,
-				[migration, new Date().toISOString()]
-			);
-		}
-		console.log(`Marked ${migrations.length} migrations as executed`);
+		// Mark the baseline migration as executed
+		await testPool.query(`
+			CREATE TABLE IF NOT EXISTS kysely_migration (
+				name VARCHAR(255) PRIMARY KEY,
+				timestamp TIMESTAMP NOT NULL DEFAULT NOW()
+			)
+		`);
+		await testPool.query(
+			`INSERT INTO kysely_migration (name, timestamp) VALUES ($1, NOW()) ON CONFLICT (name) DO NOTHING`,
+			[BASELINE_MIGRATION]
+		);
 	} finally {
 		await testPool.end();
 	}
@@ -125,14 +101,9 @@ async function runMigrations(): Promise<void> {
 		database: TEST_DB_NAME,
 	});
 
-	// Set search path for the pool
-	testPool.on('connect', (client) => {
-		client.query(`SET search_path TO ${TEST_SCHEMA}, public`);
-	});
-
 	const db = new Kysely<any>({
 		dialect: new PostgresDialect({ pool: testPool }),
-	}).withSchema(TEST_SCHEMA);
+	});
 
 	const migrator = new Migrator({
 		db,
@@ -148,9 +119,7 @@ async function runMigrations(): Promise<void> {
 		const { error, results } = await migrator.migrateToLatest();
 
 		results?.forEach((result) => {
-			if (result.status === 'Success') {
-				console.log(`  ✓ ${result.migrationName}`);
-			} else if (result.status === 'Error') {
+			if (result.status === 'Error') {
 				console.error(`  ✗ ${result.migrationName}`);
 			}
 		});
@@ -160,19 +129,37 @@ async function runMigrations(): Promise<void> {
 			throw error;
 		}
 
-		console.log('Migrations completed successfully');
+		console.log(`Migrations completed successfully (${results?.length ?? 0} executed)`);
 	} finally {
 		await db.destroy();
 	}
 }
 
+async function renameToTestSchema(): Promise<void> {
+	const testPool = new Pool({
+		...POSTGRES_CONFIG,
+		database: TEST_DB_NAME,
+	});
+
+	try {
+		// Tests run against the `test` schema; move the built schema there
+		// and leave a fresh empty `public` behind.
+		console.log(`Renaming public schema to ${TEST_SCHEMA}...`);
+		await testPool.query(`ALTER SCHEMA public RENAME TO ${TEST_SCHEMA}`);
+		await testPool.query(`CREATE SCHEMA public`);
+	} finally {
+		await testPool.end();
+	}
+}
+
 async function main(): Promise<void> {
 	console.log('=== Setting up Integration Test Database ===\n');
+	console.log(`Target: ${POSTGRES_CONFIG.host}:${POSTGRES_CONFIG.port}/${TEST_DB_NAME}\n`);
 
 	await createTestDatabase();
-	await setupSchema();
-	// Note: runMigrations() is not needed since we clone the schema from the source DB
-	// and mark all migrations as executed
+	await buildSchema();
+	await runMigrations();
+	await renameToTestSchema();
 
 	console.log('\n=== Test database setup complete ===');
 	console.log(`Database: ${TEST_DB_NAME}`);

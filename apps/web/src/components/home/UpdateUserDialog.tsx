@@ -1,6 +1,6 @@
 'use client';
 
-import { useClerkSession } from '@/lib/auth/use-clerk-session';
+import { useSession } from '@/lib/auth/use-session';
 import { formatPhoneNumber, getInitials, parsePhoneNumber } from '@/lib/utils/utils';
 import BasicDialog from '../common/BasicDialog';
 import Input from '@/components/ui/Input';
@@ -38,7 +38,7 @@ export default function UpdateUserDialog({
 	user?: GetUserOutput;
 	onClose: () => void;
 }) {
-	const { data: session } = useClerkSession();
+	const { data: session } = useSession();
 	const [confirmingRoleChange, setConfirmingRoleChange] = useState(false);
 	const userData = user ?? session?.user;
 	const isAdmin = useIsAdmin();

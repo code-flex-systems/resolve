@@ -1,8 +1,8 @@
 export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getClerkSession } from '@/lib/auth/clerk-session';
-import * as blobStorage from '@/lib/azure/blobStorage';
+import { getSession } from '@/lib/auth/session';
+import * as documentStorage from '@/lib/storage/documentStorage';
 import {
 	validateFileType,
 	getAllowedExtensions,
@@ -12,13 +12,16 @@ import {
 /**
  * POST /api/upload
  *
- * Uploads a file to Azure Blob Storage and returns the storage key.
+ * Validates file metadata and issues a signed URL for uploading the file
+ * directly to Supabase Storage from the browser (see uploadClient.ts).
  * Requires authentication.
+ *
+ * Body: { filename, mimeType, size, allowedExtensions? }
  */
 export async function POST(request: NextRequest) {
 	try {
 		// Check authentication
-		const session = await getClerkSession();
+		const session = await getSession();
 		if (!session?.user) {
 			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 		}
@@ -34,23 +37,20 @@ export async function POST(request: NextRequest) {
 			return NextResponse.json({ error: 'Client ID not found' }, { status: 400 });
 		}
 
-		// Parse the multipart form data
-		const formData = await request.formData();
-		const file = formData.get('file') as File;
-
-		if (!file) {
-			return NextResponse.json({ error: 'No file provided' }, { status: 400 });
-		}
-
-		// Get optional allowed extensions from query params (comma-separated)
-		const url = new URL(request.url);
-		const allowedExtensionsParam = url.searchParams.get('allowedExtensions');
-		const allowedExtensions = allowedExtensionsParam
-			? allowedExtensionsParam.split(',').map((ext) => ext.trim().toLowerCase())
+		const body = await request.json().catch(() => null);
+		const filename: string | undefined = body?.filename;
+		const mimeType: string = body?.mimeType || 'application/octet-stream';
+		const size: number = Number(body?.size) || 0;
+		const allowedExtensions: string[] | null = Array.isArray(body?.allowedExtensions)
+			? body.allowedExtensions.map((ext: string) => ext.trim().toLowerCase())
 			: null;
 
+		if (!filename) {
+			return NextResponse.json({ error: 'No filename provided' }, { status: 400 });
+		}
+
 		// Validate file type (SECURITY: whitelist approach)
-		const fileValidation = validateFileType(file.name, file.type);
+		const fileValidation = validateFileType(filename, mimeType);
 		if (!fileValidation.valid) {
 			return NextResponse.json(
 				{
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
 
 		// Additional validation: check against allowed extensions if specified
 		if (allowedExtensions && allowedExtensions.length > 0) {
-			const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+			const fileExtension = filename.substring(filename.lastIndexOf('.')).toLowerCase();
 			if (!allowedExtensions.includes(fileExtension)) {
 				return NextResponse.json(
 					{
@@ -76,37 +76,28 @@ export async function POST(request: NextRequest) {
 			}
 		}
 
-		// Enforce file size limit (100MB)
-		const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB in bytes
-		if (file.size > MAX_FILE_SIZE) {
+		// Enforce file size limit (also enforced by the storage bucket)
+		if (size > documentStorage.MAX_FILE_SIZE) {
 			return NextResponse.json(
 				{
-					error: `File size exceeds maximum allowed size of 100MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)}MB`,
+					error: `File size exceeds maximum allowed size of 100MB. Your file is ${(size / 1024 / 1024).toFixed(1)}MB`,
 				},
 				{ status: 413 } // 413 Payload Too Large
 			);
 		}
 
-		// Convert File to Buffer
-		const bytes = await file.arrayBuffer();
-		const buffer = Buffer.from(bytes);
-
-		// Generate unique blob name
-		const blobName = blobStorage.generateBlobName(clientId, file.name);
-
-		// Upload to Azure Blob Storage
-		const { storageKey } = await blobStorage.uploadDocument(
-			blobName,
-			buffer,
-			file.type || 'application/octet-stream'
-		);
+		// Generate unique storage key and a signed URL for direct upload
+		const storageKey = documentStorage.generateStorageKey(clientId, filename);
+		const { signedUrl, token } = await documentStorage.createSignedUploadUrl(storageKey);
 
 		return NextResponse.json({
 			success: true,
 			storageKey,
-			filename: file.name,
-			size: file.size,
-			mimeType: file.type,
+			signedUrl,
+			token,
+			filename,
+			size,
+			mimeType,
 		});
 	} catch (error) {
 		console.error('File upload error:', error);

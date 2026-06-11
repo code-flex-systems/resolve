@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext } from 'react';
-import type { AppSession } from '@/lib/auth/clerk-session';
+import type { AppSession } from '@/lib/auth/session';
 
 export type SessionStatus = 'loading' | 'authenticated' | 'unauthenticated';
 

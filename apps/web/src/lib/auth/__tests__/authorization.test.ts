@@ -17,7 +17,7 @@ vi.mock('@/api/database/kysely', () => ({
 // Reusable mock user with all required fields
 const createMockUser = (overrides?: Partial<NonNullable<Context['session']>['user']>) => ({
 	id: 'user-123',
-	clerkId: 'clerk_user_123',
+	authUserId: 'auth-user-123',
 	name: 'Test User',
 	email: 'test@example.com',
 	phone: null,
@@ -722,7 +722,7 @@ describe('Authorization Functions', () => {
 				session: {
 					user: {
 						id: undefined as any, // Edge case: undefined id
-						clerkId: 'clerk_user_123',
+						authUserId: 'auth-user-123',
 						name: 'Test User',
 						email: 'test@example.com',
 						phone: null,

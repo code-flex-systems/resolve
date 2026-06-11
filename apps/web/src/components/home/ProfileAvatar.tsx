@@ -1,8 +1,8 @@
 'use client';
 import { useState } from 'react';
 import BasicPopper from '../common/BasicPopper';
-import { useClerk } from '@clerk/nextjs';
-import { useClerkSession } from '@/lib/auth/use-clerk-session';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
+import { useSession } from '@/lib/auth/use-session';
 import { getInitials } from '@/lib/utils/utils';
 import parsePhoneNumberFromString from 'libphonenumber-js';
 import UpdateUserDialog from './UpdateUserDialog';
@@ -16,8 +16,13 @@ import Tooltip from '@/components/ui/Tooltip';
 export default function ProfileAvatar() {
 	const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 	const [dialogOpen, setDialogOpen] = useState(false);
-	const { data: session } = useClerkSession();
-	const { signOut } = useClerk();
+	const { data: session } = useSession();
+
+	const handleSignOut = async () => {
+		const supabase = createSupabaseBrowserClient();
+		await supabase.auth.signOut();
+		window.location.href = '/login';
+	};
 
 	return (
 		<>
@@ -117,7 +122,7 @@ export default function ProfileAvatar() {
 								</Tooltip>
 							</div>
 							<Tooltip content="Sign out">
-								<Button variant="icon" size="sm" color="neutral">
+								<Button variant="icon" size="sm" color="neutral" onClick={handleSignOut}>
 									<IconLogout size={16} />
 								</Button>
 							</Tooltip>

@@ -17,7 +17,7 @@ describe('claimQueries.getClaims', () => {
 		session: {
 			user: {
 				id: 'admin-123',
-				clerkId: 'clerk_admin_123',
+				authUserId: 'auth-admin-123',
 				name: 'Admin User',
 				email: 'admin@example.com',
 				phone: null,
@@ -32,7 +32,7 @@ describe('claimQueries.getClaims', () => {
 		session: {
 			user: {
 				id: 'user-456',
-				clerkId: 'clerk_user_456',
+				authUserId: 'auth-user-456',
 				name: 'Regular User',
 				email: 'user@example.com',
 				phone: null,

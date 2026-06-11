@@ -2,7 +2,7 @@
 
 A claims management application for property insurance adjusters. Resolve combines AI-assisted, schema-driven checklists with document handling, task and deadline tracking, recovery/subrogation tracking, and party and coverage management — all behind a multi-tenant, role-based API.
 
-> **Status.** Portfolio / showcase project. The application was originally built for a client engagement targeting SOC 2; the cloud environment (Azure VNet + Front Door + Container Apps + Postgres Flexible Server) has since been torn down for cost reasons. The codebase is intact and runnable locally, and a migration to a free Supabase + Vercel stack is planned so a live demo can be re-hosted.
+> **Status.** Portfolio / showcase project. The application was originally built for a client engagement targeting SOC 2; the original Azure cloud environment has since been torn down for cost reasons. The codebase has been migrated to a Supabase (auth, database, storage) + Vercel stack so a live demo can be re-hosted cheaply.
 
 _Screenshots coming soon._
 
@@ -22,15 +22,15 @@ _Screenshots coming soon._
 | Framework           | Next.js 13+ (App Router)                                       |
 | API                 | tRPC (end-to-end type safety)                                  |
 | Database            | PostgreSQL via Kysely (typed query builder)                    |
-| Auth                | Clerk (orgs + role-based memberships)                          |
+| Auth                | Supabase Auth (invite-only, roles in local DB)                 |
 | State (client)      | Zustand with Immer                                             |
-| UI                  | Material-UI (MUI), React Hook Form                             |
+| UI                  | Custom component library (CSS Modules), React Hook Form       |
 | Email               | Resend                                                         |
-| Object storage      | Azure Blob Storage (Azurite emulator for local dev)            |
+| Object storage      | Supabase Storage (private bucket, signed URLs)                 |
 | Validation          | Zod (shared client/server schemas)                             |
 | Testing             | Vitest                                                         |
 | Type generation     | kysely-codegen                                                 |
-| Deployment (former) | Azure Container Apps, Azure Container Registry, GitHub Actions |
+| Deployment          | Vercel                                                         |
 
 ## Architecture highlights
 
@@ -39,7 +39,7 @@ _Screenshots coming soon._
 - **Shared validation.** Zod schemas live in `apps/web/src/schemas/` and are reused by both the tRPC routers and the React Hook Form components.
 - **Performance-first query patterns.** Standardized patterns include `RETURNING` over re-fetching, `Promise.all()` for independent reads, batched `WHERE IN` over loops, and `jsonb_agg` + `GROUP BY` for one-to-many aggregation. See `CLAUDE.md` for the full pattern catalog.
 - **Kysely migrations.** Schema changes go through versioned, type-safe migration files in `apps/web/src/api/database/migrations/` rather than raw SQL.
-- **Hybrid auth/session.** Sessions merge Clerk identity (user ID, org ID, role) with a local `users` row so per-tenant `client_id` and app role can be served from the database, kept in sync via Clerk webhooks.
+- **Hybrid auth/session.** Supabase Auth handles identity (email/password, invites, bans); the local `users` row is the source of truth for app role and per-tenant `client_id`, linked by `auth_user_id`.
 
 ## Repository layout
 
@@ -63,8 +63,7 @@ resolve/
 │   │   ├── lib/                         # Client-side and shared utilities
 │   │   └── config/                      # Constants and TypeScript enums
 │   └── scripts/                         # Dev seed and reset scripts
-├── Dockerfile
-└── .github/workflows/                   # Semgrep security scanning (deployment workflow to be added when re-hosted)
+└── .github/workflows/                   # Semgrep security scanning
 ```
 
 ## Local development
@@ -73,8 +72,7 @@ resolve/
 
 - Node.js 20+
 - PostgreSQL 14+ running locally (or accessible at `DB_HOST`/`DB_PORT`)
-- A Clerk account (free tier is sufficient for local development)
-- Optional: Azurite for local Azure Blob emulation, or skip blob features
+- A Supabase project (free tier is sufficient for local development - provides auth and document storage)
 
 ### Setup
 
@@ -87,7 +85,7 @@ createdb resolve
 
 # 3. Configure environment
 cp apps/web/.env.example apps/web/.env
-# Then fill in CLERK_*, DB_*, and any other required values
+# Then fill in SUPABASE_*/NEXT_PUBLIC_SUPABASE_*, DB_*, and any other required values
 
 # 4. Run migrations
 npm --workspace apps/web run db:migrate
