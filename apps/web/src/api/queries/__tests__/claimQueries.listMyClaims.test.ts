@@ -27,7 +27,7 @@ const createMockContext = (userId = 'user-123', clientId = 'client-abc'): Protec
 		session: {
 			user: {
 				id: userId,
-				clerkId: 'clerk_user_123',
+				authUserId: 'auth-user-123',
 				name: 'Test User',
 				email: 'test@example.com',
 				phone: null,

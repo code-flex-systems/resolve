@@ -34,7 +34,7 @@ describe('coverageQueries', () => {
 		session: {
 			user: {
 				id: 'admin-123',
-				clerkId: 'clerk_admin_123',
+				authUserId: 'auth-admin-123',
 				name: 'Admin User',
 				email: 'admin@example.com',
 				phone: null,

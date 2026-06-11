@@ -6,13 +6,13 @@ import { useCommentTrpc } from '@/hooks/trpc/useCommentTrpc';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 import { useChecklistParams } from '@/hooks/useChecklistParams';
 import { formatMDY, formatUser } from '@/lib/utils/utils';
-import { useClerkSession } from '@/lib/auth/use-clerk-session';
+import { useSession } from '@/lib/auth/use-session';
 import { IconCirclePlus, IconTrash } from '@tabler/icons-react';
 import Button from '@/components/ui/Button';
 import Tooltip from '@/components/ui/Tooltip';
 
 export default function CommentDialog() {
-	const { data: session } = useClerkSession();
+	const { data: session } = useSession();
 	const { instanceId, questionId, existingComment } = useChecklistStore(
 		(state) => state.questionCommentDialog
 	);

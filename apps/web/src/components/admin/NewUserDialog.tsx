@@ -45,7 +45,7 @@ export default function NewUserDialog() {
 		>
 			<span style={{ fontStyle: 'italic' }}>
 				Enter the email address of the user you want to invite. They will receive an invitation
-				email from Clerk to join your organization.
+				email to join your organization.
 			</span>
 			<span style={{ padding: '10px 0px', fontSize: 13, fontStyle: 'italic' }}>
 				Once they accept the invitation, they will create their own account with their name and

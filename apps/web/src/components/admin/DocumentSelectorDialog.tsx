@@ -7,6 +7,7 @@ import BasicDialog from '../common/BasicDialog';
 import CompactDocumentBrowser from './CompactDocumentBrowser';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
 import { validateFileType, IMAGE_MIME_TYPES } from '@/config/allowedFileTypes';
+import { uploadFileToStorage } from '@/lib/storage/uploadClient';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
 
 interface DocumentSelectorDialogProps {
@@ -133,27 +134,10 @@ export default function DocumentSelectorDialog({
 
 		setIsUploading(true);
 		try {
-			// Step 1: Upload to Azure
-			const formData = new FormData();
-			formData.append('file', selectedFile);
-
-			// Build upload URL with optional allowedExtensions query parameter
-			let uploadUrl = '/api/upload';
-			if (allowedExtensions && allowedExtensions.length > 0) {
-				uploadUrl += `?allowedExtensions=${encodeURIComponent(allowedExtensions.join(','))}`;
-			}
-
-			const uploadResponse = await fetch(uploadUrl, {
-				method: 'POST',
-				body: formData,
+			// Step 1: Upload directly to storage via signed URL
+			const uploadResult = await uploadFileToStorage(selectedFile, {
+				allowedExtensions: allowedExtensions ?? undefined,
 			});
-
-			if (!uploadResponse.ok) {
-				const error = await uploadResponse.json();
-				throw new Error(error.error || 'Upload failed');
-			}
-
-			const uploadResult = await uploadResponse.json();
 
 			// Step 2: Create document record with relationship data
 			// Sanitize filename to remove problematic Unicode characters (like U+202F narrow no-break space from macOS screenshots)

@@ -9,11 +9,11 @@ import MyClaimsMetric from '../home/MyClaimsMetric';
 import MyDeadlinesMetric from '../home/MyDeadlinesMetric';
 import TeamRecoveryMetric from '../home/TeamRecoveryMetric';
 import MyDeskAssignments from '../home/MyDeskAssignments';
-import { useClerkSession } from '@/lib/auth/use-clerk-session';
+import { useSession } from '@/lib/auth/use-session';
 import { useBreadcrumbs } from '../common/BreadcrumbContext';
 
 export default function Home() {
-	const { data: session } = useClerkSession();
+	const { data: session } = useSession();
 	const resetChecklistsStore = useChecklistsStore((state) => state.reset);
 	const { setDynamicSegments } = useBreadcrumbs();
 

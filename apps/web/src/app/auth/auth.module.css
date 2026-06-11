@@ -1,0 +1,54 @@
+.page {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-height: 100vh;
+	background-color: var(--bg-secondary);
+}
+
+.card {
+	width: 400px;
+	max-width: 90vw;
+	padding: 32px;
+	background-color: var(--bg-primary);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-md);
+}
+
+.title {
+	margin: 0 0 4px;
+	font-size: 22px;
+	font-weight: 600;
+	color: var(--text-primary);
+}
+
+.subtitle {
+	margin: 0 0 20px;
+	font-size: 14px;
+	color: var(--text-secondary);
+}
+
+.form {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	margin-bottom: 8px;
+}
+
+.errorMessage,
+.successMessage {
+	padding: 10px 12px;
+	margin-bottom: 16px;
+	font-size: 13px;
+	border-radius: var(--radius-md, 8px);
+}
+
+.errorMessage {
+	color: var(--status-error);
+	background-color: var(--status-error-bg);
+}
+
+.successMessage {
+	color: var(--status-success);
+	background-color: var(--status-success-bg);
+}

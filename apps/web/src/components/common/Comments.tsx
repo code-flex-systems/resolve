@@ -6,7 +6,7 @@ import { IconArrowRight } from '@tabler/icons-react';
 import { formatMD, formatUser } from '@/lib/utils/utils';
 import { CommentFilters } from '@/types/types';
 import { useMemo } from 'react';
-import { useClerkSession } from '@/lib/auth/use-clerk-session';
+import { useSession } from '@/lib/auth/use-session';
 import { useRouter } from 'next/navigation';
 import { useChecklistStore } from '@/stores/useChecklistStore';
 
@@ -35,7 +35,7 @@ export default function Comments({
 	}) => void;
 }) {
 	const router = useRouter();
-	const { data: session } = useClerkSession();
+	const { data: session } = useSession();
 	const toggleComments = useChecklistStore((state) => state.toggleComments);
 
 	const { data: comments = { rows: [], count: 0 } } = useCommentTrpc().list(

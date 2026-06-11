@@ -1,11 +1,11 @@
 'use client';
 
 import { useSessionContext } from '@/app/(protected)/SessionProvider';
-import type { AppSession } from './clerk-session';
+import type { AppSession } from './session';
 
 type SessionStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
-interface UseClerkSessionReturn {
+interface UseSessionReturn {
 	data: AppSession | null;
 	status: SessionStatus;
 	update: () => Promise<void>;
@@ -15,10 +15,10 @@ interface UseClerkSessionReturn {
  * Client-side hook to get the current session
  * Provides API compatibility with the previous useSession() from next-auth
  *
- * This hook now reads from the server-provided SessionProvider instead of
+ * This hook reads from the server-provided SessionProvider instead of
  * making a client-side request.
  */
-export function useClerkSession(): UseClerkSessionReturn {
+export function useSession(): UseSessionReturn {
 	const { session, status } = useSessionContext();
 
 	return {

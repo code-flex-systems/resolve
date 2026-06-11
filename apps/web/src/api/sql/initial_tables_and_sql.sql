@@ -215,16 +215,9 @@ CREATE TABLE page_instance_status (
 CREATE INDEX idx_status_lookup ON page_instance_status (claim_id, page_instance_id);
 CREATE INDEX idx_status_template_version ON page_instance_status (template_version);
 
-create table doc(
-        id serial not null primary key,
-    client_id uuid not null references client(id),
-        filename text not null,
-	alias text not null,
-    created_by uuid not null references users(id),
-    created_at timestamp not null default now()
-);
-
-create index idx_doc_client on doc (client_id);
+-- Note: the doc table is created in the DOCUMENT SYSTEM (Phase 2) section
+-- below (an earlier minimal definition was removed - it shadowed the real
+-- one and broke single-transaction execution of this file).
 
 create table question(
         id serial not null primary key,
@@ -275,6 +268,9 @@ CREATE TABLE question_response (
     claim_id INTEGER NOT NULL REFERENCES claim(id) ON DELETE CASCADE,
     question_id INTEGER REFERENCES question(id) ON DELETE SET NULL,
     response_text TEXT,
+    -- Added out-of-band in the original environment; required by later
+    -- migrations (2026-04-28 retypes it to uuid)
+    response_doc_id INTEGER,
     created_by uuid not null references users(id),
     created_at timestamp not null DEFAULT NOW(),
     updated_by uuid references users(id),
@@ -585,6 +581,9 @@ CREATE TABLE doc (
     -- Version tracking
     version             INTEGER DEFAULT 1,
     replaces_doc_id     INTEGER REFERENCES doc(id) ON DELETE SET NULL,
+    -- Added out-of-band in the original environment; required by later
+    -- migrations (2026-03-21 retypes it to uuid)
+    response_doc_id     INTEGER,
     is_current_version  BOOLEAN DEFAULT true,
 
     -- Audit fields

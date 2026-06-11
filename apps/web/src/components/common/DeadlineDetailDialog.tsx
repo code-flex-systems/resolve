@@ -28,7 +28,7 @@ import { formatDeadlineType } from './DeadlineListItem';
 import { TASK_TYPE_CONFIG } from '@/lib/utils/taskUtils';
 import useIsAdmin from '@/hooks/useIsAdmin';
 import { useAlertStore } from '@/stores/useAlertStore';
-import { useClerkSession } from '@/lib/auth/use-clerk-session';
+import { useSession } from '@/lib/auth/use-session';
 
 interface DeadlineDetailDialogProps {
 	deadline: Deadline;
@@ -102,7 +102,7 @@ function ClaimLink({ claimId, claimNumber }: { claimId: string; claimNumber: str
 }
 
 export default function DeadlineDetailDialog({ deadline, onClose }: DeadlineDetailDialogProps) {
-	const { data: session } = useClerkSession();
+	const { data: session } = useSession();
 	const isAdmin = useIsAdmin();
 	const showAlert = useAlertStore((state) => state.showAlert);
 	const [showCompletionDialog, setShowCompletionDialog] = useState(false);

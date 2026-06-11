@@ -10,7 +10,7 @@ import { DocGroupType } from '@/config/enums';
  * getDocsInGroupRecursive:
  * - Uses recursive CTE (withRecursive) to traverse folder hierarchy
  * - Collects all documents from a group and all its descendant groups
- * - Used for cleanup when deleting a group (to delete Azure blobs)
+ * - Used for cleanup when deleting a group (to delete stored files)
  *
  * getSharedFolderContents:
  * - Uses recursive CTE to get Shared folder and all child folders
@@ -31,7 +31,7 @@ const createMockContext = (clientId = 'client-abc'): ProtectedContext => ({
 	session: {
 		user: {
 			id: 'user-123',
-			clerkId: 'clerk_user_123',
+			authUserId: 'auth-user-123',
 			name: 'Test User',
 			email: 'test@example.com',
 			phone: null,

@@ -3,7 +3,7 @@
 import { IconEdit, IconLogout } from '@tabler/icons-react';
 import Button from '@/components/ui/Button';
 import { useUserTrpc } from '@/hooks/trpc/useUserTrpc';
-import { useClerkSession } from '@/lib/auth/use-clerk-session';
+import { useSession } from '@/lib/auth/use-session';
 import { useState } from 'react';
 import BasicDialog from '../common/BasicDialog';
 import UpdateUserDialog from '../home/UpdateUserDialog';
@@ -20,7 +20,7 @@ export default function UserActionsCell(params: UserActionsCellProps) {
 	const { row, isManageMode = true } = params;
 	if (!isManageMode) return null;
 	const { mutate, isPending } = useUserTrpc().update;
-	const { data: session } = useClerkSession();
+	const { data: session } = useSession();
 	const [onOffboarding, setOnOffboarding] = useState(false);
 	const [updating, setUpdating] = useState(false);
 	return (

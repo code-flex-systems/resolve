@@ -14,7 +14,7 @@ import Card from '@/components/ui/Card';
 import ExportButton from '@/components/common/ExportButton';
 import { CsvColumn } from '@/lib/utils/exportUtils';
 import { trpc } from '@/lib/trpc';
-import { useClerkSession } from '@/lib/auth/use-clerk-session';
+import { useSession } from '@/lib/auth/use-session';
 import { formatUser } from '@/lib/utils/utils';
 import styles from './ChecklistActivityView.module.css';
 
@@ -34,7 +34,7 @@ export default function ChecklistActivityView() {
 	);
 
 	const trpcUtils = trpc.useUtils();
-	const { data: session } = useClerkSession();
+	const { data: session } = useSession();
 
 	const exportFilters = useMemo(
 		() => ({

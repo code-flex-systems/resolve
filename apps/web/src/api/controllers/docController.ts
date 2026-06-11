@@ -6,7 +6,7 @@ import type {
 	DocGroupParams,
 	UpdateDocGroupParams,
 } from '@/schemas/docSchemas';
-import * as blobStorage from '@/lib/azure/blobStorage';
+import * as documentStorage from '@/lib/storage/documentStorage';
 import { logAdminAction, logAdminActions, AdminAction } from '@/api/utils/adminActionLogger';
 import { EntityName } from '@/api/utils/activityLogger';
 import { TRPCError } from '@trpc/server';
@@ -16,11 +16,12 @@ import { TRPCError } from '@trpc/server';
 // =====================================================================
 
 /**
- * Create a document record with Azure Blob Storage integration.
- * Note: File upload to Azure happens before calling this function.
+ * Create a document record for an uploaded file.
+ * Note: File upload to storage happens before calling this function
+ * (browser uploads directly via signed upload URL).
  *
  * @param ctx - request context
- * @param input - document parameters and storage key from Azure upload
+ * @param input - document parameters and storage key from the upload
  * @returns the newly created document
  */
 export async function createDoc(
@@ -150,7 +151,7 @@ export async function updateDoc(
 
 /**
  * Archive (soft delete) a document record.
- * Azure blob is preserved for audit trail.
+ * The stored file is preserved for audit trail.
  *
  * @param ctx - request context
  * @param input - document id
@@ -186,21 +187,23 @@ export async function deleteDoc(ctx: ProtectedContext, { docId }: { docId: strin
 }
 
 /**
- * Download a document from Azure Blob Storage.
+ * Get a short-lived signed download URL for a document.
+ * Returns a URL instead of file bytes so large files never pass through
+ * the server (Vercel response size limits).
  *
  * @param ctx - request context
  * @param input - document id
- * @returns file buffer and metadata
+ * @returns signed URL and metadata
  */
 export async function downloadDoc(ctx: ProtectedContext, { docId }: { docId: string }) {
 	// Get document metadata
 	const doc = await docQueries.getDoc(ctx, docId);
 
-	// Download from Azure Blob Storage
-	const fileBuffer = await blobStorage.downloadDocument(doc.storage_key);
+	// Generate a signed URL that forces download with the original filename
+	const url = await documentStorage.createSignedDownloadUrl(doc.storage_key, 3600, doc.filename);
 
 	return {
-		fileBuffer,
+		url,
 		filename: doc.filename,
 		mimeType: doc.mime_type,
 	};
@@ -319,7 +322,7 @@ export async function updateDocGroup(
 /**
  * Archive (soft delete) a document group and all documents within it.
  * Uses batch operations for efficiency - single UPDATE for all docs, single UPDATE for all groups.
- * Azure blobs are preserved for audit trail.
+ * Stored files are preserved for audit trail.
  *
  * @param ctx - request context
  * @param input - group id

@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import config from '@/config/config';
-import { getClerkSession } from '@/lib/auth/clerk-session';
-import type { AppSession } from '@/lib/auth/clerk-session';
+import { getSession } from '@/lib/auth/session';
+import type { AppSession } from '@/lib/auth/session';
 
 export interface ProtectedSessionData {
 	session: AppSession;
@@ -10,7 +10,7 @@ export interface ProtectedSessionData {
 }
 
 export async function getProtectedSession(): Promise<ProtectedSessionData> {
-	const session = await getClerkSession();
+	const session = await getSession();
 	if (!session) {
 		redirect('/login');
 	}

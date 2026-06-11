@@ -39,24 +39,24 @@ The application is built with React, Next.js, tRPC, Kysely, and PostgreSQL, enab
 
 - **Database**: PostgreSQL with Kysely ORM for type-safe queries
 - **API**: TRPC for end-to-end type safety
-- **Authentication**: Clerk
+- **Authentication**: Supabase Auth (invite-only; local `users` table is the source of truth for role/client_id)
 - **Server**: Next.js API routes
 - **AI Integration**: OpenAI for checklist generation and guidance
 
 ### Frontend
 
 - **Framework**: Next.js 13+ with App Router
-- **UI Library**: Material-UI (MUI)
+- **UI Library**: Custom component library in `src/components/ui/` (Button, Input, Dialog, DataTable, etc.) - do NOT use MUI; it has been fully removed from the codebase
 - **State Management**: Zustand stores (domain-based, individual stores per feature)
 - **Form Handling**: React Hook Form
-- **Styling**: MUI theming + custom CSS
+- **Styling**: CSS Modules + design tokens in `src/styles/tokens.css` (CSS variables like `--bg-primary`, `--status-error`)
 - **Data fetching**: TRPC hooks via React Query
 
 ### DevOps
 
-- **Deployment**: Azure Container Apps
-- **Database**: Azure Database for PostgreSQL
-- **Storage**: Azure Blob Storage for documents
+- **Deployment**: Vercel
+- **Database**: Supabase (PostgreSQL)
+- **Storage**: Supabase Storage for documents (private bucket, signed upload/download URLs)
 - **CI/CD**: GitHub Actions
 
 ## Workspace Structure
@@ -130,7 +130,7 @@ This is an npm workspaces monorepo with the main application in `apps/web/`. Roo
 
 **Authentication:**
 
-- Uses NextAuth with session-based auth
+- Uses Supabase Auth (cookie sessions via `@supabase/ssr`); `getSession()` in `apps/web/src/lib/auth/session.ts` builds the `AppSession` from the Supabase user + local `users` row
 - `protectedProcedure` enforces authentication and provides typed `ProtectedContext`
 - Context includes `session.user` with user details including `client_id`
 
@@ -353,13 +353,13 @@ When developing features, avoid duplicating code across components. Follow these
 2. **Server-Side Pagination:** All data tables should use server-side pagination
    - Pattern: `{ rows: [], count: number }` return type from queries
    - Use `limit` and `offset` parameters in tRPC endpoints
-   - DataGridPro with `paginationMode="server"` and `CustomPagination` slot
+   - Custom `DataTable` component (`src/components/ui/DataTable.tsx`) with `CustomPagination`
    - Track row count with `useRef` to prevent flashing during refetch
    - Example: `ChecklistClaims`, `RecoveryEventsTable`
 
 3. **Component Reusability:**
    - Extract repeated rendering logic to shared components
-   - Use `IconHeaderCell` for consistent DataGrid headers
+   - Use `IconHeaderCell` for consistent table headers
    - Share filter components across breakdown pages (e.g., `RecoveryStatusSelect`, `UserFilter`)
    - **CRITICAL**: If you find yourself copying dialog/form code between files, create a reusable component
    - Example: `SettlementFormDialog` and `RecoveryFormDialog` are reusable dialogs in the Settlement & Recovery tab
@@ -728,8 +728,9 @@ Required environment variables (in `apps/web/.env`):
 - `DB_*` - Individual database connection parameters
 - `DB_SCHEMA` - Schema name for multi-schema support
 - `BASE_URL` - Application base URL
-- `AWS_*` - S3 configuration for document storage
-- NextAuth configuration (not shown in .env)
+- `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase project (auth + storage)
+- `SUPABASE_SERVICE_ROLE_KEY` - server-only Supabase admin key (auth admin API, storage)
+- `SUPABASE_STORAGE_BUCKET` - private documents bucket name
 - `FEATURE_*` - Feature flags
 
 ## Important Files & Directories

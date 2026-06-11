@@ -11,14 +11,12 @@ import { DateRangeStrict } from '@/types/types';
 import { logAdminAction, logAdminActions, AdminAction } from '@/api/utils/adminActionLogger';
 import { EntityName } from '@/api/utils/activityLogger';
 import {
-	updateClerkUser,
-	updateUserRole,
-	disableClerkUser,
-	enableClerkUser,
-	deleteClerkUser,
-	inviteUserToOrganization,
-	getClerkUserIdByEmail,
-} from '@/lib/clerk/clerk-admin';
+	inviteAuthUser,
+	updateAuthUserEmail,
+	disableAuthUser,
+	enableAuthUser,
+	deleteAuthUser,
+} from '@/lib/auth/auth-admin';
 
 export async function getUsers(
 	ctx: ProtectedContext,
@@ -130,9 +128,9 @@ export async function getUser(ctx: ProtectedContext, { id }: { id: string }) {
 }
 
 /**
- * Invite users to the organization via Clerk.
- * Sends invitation emails - users will be created in local DB via webhook
- * when they accept the invitation and complete signup.
+ * Invite users via Supabase auth.
+ * Sends invitation emails and creates the local user row immediately,
+ * linked to the new auth user. Role and client_id live on the local row.
  *
  * @param ctx - request context
  * @param input - array of user objects with email and optional role
@@ -153,25 +151,20 @@ export async function createUsers(
 		throw new Error('Client ID not found in session');
 	}
 
-	// Look up Clerk org ID from our client table
-	const client = await ctx.db
-		.selectFrom('client')
-		.select('clerk_org_id')
-		.where('id', '=', clientId)
-		.executeTakeFirst();
-
-	if (!client?.clerk_org_id) {
-		throw new Error('Clerk organization ID not found for client');
-	}
-
 	const invitedUsers: { email: string; role: string }[] = [];
 
 	for (const user of users) {
 		const role = user.role || config.ROLES.CONTRIBUTOR;
 
-		// Send invitation via Clerk (user will receive email to complete signup)
-		// The local user record will be created by the webhook when they accept
-		await inviteUserToOrganization(client.clerk_org_id, user.email, role);
+		// Send invitation email via Supabase auth, then create the local
+		// user row linked to the new auth user
+		const authUserId = await inviteAuthUser(user.email);
+		await userQueries.createInvitedUser(ctx.db, {
+			email: user.email,
+			role,
+			client_id: clientId,
+			auth_user_id: authUserId,
+		});
 
 		invitedUsers.push({
 			email: user.email,
@@ -213,7 +206,8 @@ export async function createUsers(
 
 /**
  * Update a user account.
- * Syncs profile changes to Clerk and updates local DB.
+ * Syncs identity changes (email, disabled status) to Supabase auth and
+ * updates the local DB. Name, phone, and role live only in the local DB.
  *
  * @param ctx - request context
  * @param input - user id and fields to modify
@@ -235,55 +229,27 @@ export async function updateUser(
 		}>;
 	}
 ) {
-	const clientId = ctx.session.user.client_id;
-
-	// Sync profile changes to Clerk (if not a placeholder user)
+	// Sync identity changes to Supabase auth (if not a placeholder user)
 	if (!id.startsWith('pending_')) {
-		// First, look up the user to get their email for Clerk API lookup
 		const user = await userQueries.getUser(ctx, id);
 		if (!user) {
 			throw new Error('User not found');
 		}
 
-		// Get the Clerk user ID by email
-		const clerkUserId = await getClerkUserIdByEmail(user.email);
-		if (!clerkUserId) {
-			console.warn(`No Clerk user found for email ${user.email}, skipping Clerk sync`);
+		if (!user.auth_user_id) {
+			console.warn(`No auth user linked for ${user.email}, skipping auth sync`);
 		} else {
-			// Update name/phone in Clerk
-			if (params.first !== undefined || params.last !== undefined || params.phone !== undefined) {
-				await updateClerkUser({
-					userId: clerkUserId,
-					firstName: params.first,
-					lastName: params.last,
-					phone: params.phone,
-				});
+			// Email is the sign-in identifier - keep Supabase auth in sync
+			if (params.email !== undefined && params.email !== user.email) {
+				await updateAuthUserEmail(user.auth_user_id, params.email);
 			}
 
-			// Update role in Clerk organization
-			if (params.role !== undefined && clientId) {
-				// Look up Clerk org ID from our client table
-				const client = await ctx.db
-					.selectFrom('client')
-					.select('clerk_org_id')
-					.where('id', '=', clientId)
-					.executeTakeFirst();
-
-				if (client?.clerk_org_id) {
-					await updateUserRole({
-						userId: clerkUserId,
-						organizationId: client.clerk_org_id,
-						role: params.role,
-					});
-				}
-			}
-
-			// Handle disable/enable via Clerk ban/unban
+			// Handle disable/enable via Supabase ban/unban
 			if (params.disabled !== undefined) {
 				if (params.disabled) {
-					await disableClerkUser(clerkUserId);
+					await disableAuthUser(user.auth_user_id);
 				} else {
-					await enableClerkUser(clerkUserId);
+					await enableAuthUser(user.auth_user_id);
 				}
 			}
 		}
@@ -311,7 +277,7 @@ export async function updateUser(
 
 /**
  * Remove a user account.
- * Deletes from Clerk first, then local DB.
+ * Deletes from Supabase auth first, then local DB.
  *
  * @param ctx - request context
  * @param input - user id
@@ -319,20 +285,19 @@ export async function updateUser(
 export async function deleteUser(ctx: ProtectedContext, { id }: { id: string }) {
 	// Delete user from local DB and log admin action
 	await ctx.db.transaction().execute(async (trx) => {
-		// Fetch user data BEFORE deletion for logging and Clerk lookup
+		// Fetch user data BEFORE deletion for logging and auth user lookup
 		const user = await userQueries.getUser({ ...ctx, db: trx }, id);
 
 		if (!user) {
 			throw new Error('User not found');
 		}
 
-		// Delete from Clerk first (if not a placeholder user)
+		// Delete from Supabase auth first (if linked)
 		if (!id.startsWith('pending_')) {
-			const clerkUserId = await getClerkUserIdByEmail(user.email);
-			if (clerkUserId) {
-				await deleteClerkUser(clerkUserId);
+			if (user.auth_user_id) {
+				await deleteAuthUser(user.auth_user_id);
 			} else {
-				console.warn(`No Clerk user found for email ${user.email}, skipping Clerk deletion`);
+				console.warn(`No auth user linked for ${user.email}, skipping auth deletion`);
 			}
 		}
 

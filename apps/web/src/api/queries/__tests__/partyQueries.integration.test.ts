@@ -213,7 +213,7 @@ describe('partyQueries integration', () => {
 				created_by: user.id,
 				name: 'Archived Party',
 				deleted_at: new Date(),
-				deleted_by: user.email!,
+				deleted_by: user.id,
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -239,7 +239,7 @@ describe('partyQueries integration', () => {
 				created_by: user.id,
 				name: 'Archived Party Show',
 				deleted_at: new Date(),
-				deleted_by: user.email!,
+				deleted_by: user.id,
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -345,7 +345,7 @@ describe('partyQueries integration', () => {
 				created_by: user.id,
 				name: 'SearchArchived Party',
 				deleted_at: new Date(),
-				deleted_by: user.email!,
+				deleted_by: user.id,
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -597,7 +597,7 @@ describe('partyQueries integration', () => {
 				created_by: user.id,
 				name: 'To Restore',
 				deleted_at: new Date(),
-				deleted_by: user.email!,
+				deleted_by: user.id,
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -615,19 +615,19 @@ describe('partyQueries integration', () => {
 				client_id: client.id,
 				created_by: user.id,
 				deleted_at: new Date(),
-				deleted_by: user.email!,
+				deleted_by: user.id,
 			});
 			await createTestPartyAddress(db, {
 				party_id: party.id,
 				created_by: user.id,
 				deleted_at: new Date(),
-				deleted_by: user.email!,
+				deleted_by: user.id,
 			});
 			await createTestPartyRepresentative(db, {
 				party_id: party.id,
 				created_by: user.id,
 				deleted_at: new Date(),
-				deleted_by: user.email!,
+				deleted_by: user.id,
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -717,7 +717,7 @@ describe('partyQueries integration', () => {
 				created_by: user.id,
 				name: 'Archived Office',
 				deleted_at: new Date(),
-				deleted_by: user.email!,
+				deleted_by: user.id,
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -743,7 +743,7 @@ describe('partyQueries integration', () => {
 				created_by: user.id,
 				name: 'Archived Office Show',
 				deleted_at: new Date(),
-				deleted_by: user.email!,
+				deleted_by: user.id,
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -870,7 +870,7 @@ describe('partyQueries integration', () => {
 				created_by: user.id,
 				name: 'AllArchived Office',
 				deleted_at: new Date(),
-				deleted_by: user.email!,
+				deleted_by: user.id,
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -896,7 +896,7 @@ describe('partyQueries integration', () => {
 				created_by: user.id,
 				name: 'AllArchivedShow Office',
 				deleted_at: new Date(),
-				deleted_by: user.email!,
+				deleted_by: user.id,
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -1289,7 +1289,7 @@ describe('partyQueries integration', () => {
 				first_name: 'AllArchivedRep',
 				last_name: 'Test',
 				deleted_at: new Date(),
-				deleted_by: user.email!,
+				deleted_by: user.id,
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -1317,7 +1317,7 @@ describe('partyQueries integration', () => {
 				first_name: 'AllArchivedShowRep',
 				last_name: 'Test',
 				deleted_at: new Date(),
-				deleted_by: user.email!,
+				deleted_by: user.id,
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -1856,7 +1856,7 @@ describe('partyQueries integration', () => {
 				created_by: user.id,
 				is_primary: true,
 				deleted_at: new Date(),
-				deleted_by: user.email!,
+				deleted_by: user.id,
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -1922,7 +1922,7 @@ describe('partyQueries integration', () => {
 				created_by: user.id,
 				liability_percentage: '10',
 				deleted_at: new Date(),
-				deleted_by: user.email!,
+				deleted_by: user.id,
 			});
 
 			const ctx = createTestContext(db, { id: user.id, client_id: client.id, role: 'Admin' });
@@ -2020,7 +2020,7 @@ describe('partyQueries integration', () => {
 			// Soft delete the claim party directly
 			await db
 				.updateTable('claim_party')
-				.set({ deleted_at: new Date(), deleted_by: user.email })
+				.set({ deleted_at: new Date(), deleted_by: user.id })
 				.where('id', '=', deletedClaimParty.id)
 				.execute();
 
@@ -4260,7 +4260,7 @@ describe('partyQueries integration', () => {
 				client_id: client1.id,
 				created_by: user1.id,
 				deleted_at: new Date(),
-				deleted_by: user1.email!,
+				deleted_by: user1.id,
 			});
 
 			// User from client2 should not be able to restore client1's party

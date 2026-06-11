@@ -1,8 +1,8 @@
-import { getClerkSession } from '@/lib/auth/clerk-session';
+import { getSession } from '@/lib/auth/session';
 import { db } from '@/api/database/kysely';
 
 export async function createContext() {
-	const session = await getClerkSession();
+	const session = await getSession();
 	return { session, db };
 }
 

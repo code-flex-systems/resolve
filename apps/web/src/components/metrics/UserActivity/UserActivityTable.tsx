@@ -7,11 +7,11 @@ import { useResponseTrpc } from '@/hooks/trpc/useResponseTrpc';
 import { GetUserOutput } from '@/hooks/trpc/useUserTrpc';
 import type { DateRange } from '@/types/dateTypes';
 import { formatUser } from '@/lib/utils/utils';
-import { useClerkSession } from '@/lib/auth/use-clerk-session';
+import { useSession } from '@/lib/auth/use-session';
 import DataTable, { type ColumnDef } from '@/components/ui/DataTable';
 
 function DescriptionCell({ row, compact }: { row: any; value?: any } & { compact: boolean }) {
-	const { data: session } = useClerkSession();
+	const { data: session } = useSession();
 	const getLogText = () => {
 		switch (row.action) {
 			case 'insert':

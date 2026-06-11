@@ -379,7 +379,7 @@ export async function archiveParty(ctx: ProtectedContext, id: string) {
 	}
 
 	const deletedAt = new Date();
-	const deletedBy = ctx.session.user.email!;
+	const deletedBy = ctx.session.user.id;
 
 	// Archive party (existence check implicit in executeTakeFirstOrThrow - Phase 5.1 optimization)
 	const party = await ctx.db
@@ -721,7 +721,7 @@ export async function updatePartyAddress(
  */
 export async function archivePartyAddress(ctx: ProtectedContext, id: string) {
 	const deletedAt = new Date();
-	const deletedBy = ctx.session.user.email!;
+	const deletedBy = ctx.session.user.id;
 
 	// Archive address (existence check implicit in executeTakeFirstOrThrow - Phase 5.2 optimization)
 	const address = await ctx.db
@@ -895,7 +895,7 @@ export async function archivePartyPhone(ctx: ProtectedContext, id: string) {
 	// Archive phone (existence check implicit in executeTakeFirstOrThrow - Phase 5.2 optimization)
 	const phone = await ctx.db
 		.updateTable('party_phone')
-		.set({ deleted_at: new Date(), deleted_by: ctx.session.user.email! })
+		.set({ deleted_at: new Date(), deleted_by: ctx.session.user.id })
 		.where('party_phone.id', '=', id)
 		.where('party_phone.client_id', '=', ctx.session.user.client_id)
 		.where('party_phone.deleted_at', 'is', null)
@@ -1034,7 +1034,7 @@ export async function archivePartyEmail(ctx: ProtectedContext, id: string) {
 	// Archive email (existence check implicit in executeTakeFirstOrThrow - Phase 5.2 optimization)
 	const email = await ctx.db
 		.updateTable('party_email')
-		.set({ deleted_at: new Date(), deleted_by: ctx.session.user.email! })
+		.set({ deleted_at: new Date(), deleted_by: ctx.session.user.id })
 		.where('party_email.id', '=', id)
 		.where('party_email.client_id', '=', ctx.session.user.client_id)
 		.where('party_email.deleted_at', 'is', null)
@@ -1207,7 +1207,7 @@ export async function archivePartyRepresentative(ctx: ProtectedContext, id: stri
 	}
 
 	const deletedAt = new Date();
-	const deletedBy = ctx.session.user.email!;
+	const deletedBy = ctx.session.user.id;
 
 	await ctx.db
 		.updateTable('party_representative')
