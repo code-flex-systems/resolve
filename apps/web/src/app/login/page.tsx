@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
+import { trpc } from '@/lib/trpc';
 import styles from '../auth/auth.module.css';
 
 function LoginForm() {
@@ -19,6 +20,7 @@ function LoginForm() {
 	);
 	const [info, setInfo] = useState<string | null>(null);
 	const [submitting, setSubmitting] = useState(false);
+	const recordLogin = trpc.user.recordLogin.useMutation();
 
 	const handleSignIn = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -38,6 +40,9 @@ function LoginForm() {
 			setSubmitting(false);
 			return;
 		}
+
+		// Record last_login + auth event (best effort - never block sign-in)
+		await recordLogin.mutateAsync().catch(() => {});
 
 		router.replace('/');
 		router.refresh();

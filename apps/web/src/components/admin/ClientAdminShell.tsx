@@ -35,7 +35,6 @@ import NewUserDialog from '@/components/admin/NewUserDialog';
 import { useAdminStore } from '@/stores/useAdminStore';
 import { useDeskLocationStore } from '@/stores/useDeskLocationStore';
 import { useDeskTrpc } from '@/hooks/trpc/useDeskTrpc';
-import config from '@/config/config';
 
 // Icons
 
@@ -123,35 +122,31 @@ const adminNavCategories: AdminNavCategory[] = [
 				route: '/admin/workflow-management/overview',
 				icon: <IconLayoutDashboard size={20} />,
 			},
-			...(config.FEATURES.DESK_HIERARCHY
-				? [
-						{
-							label: 'Workflows',
-							route: '/admin/workflow-management/workflows',
-							icon: <IconBinaryTree size={20} />,
-						},
-						{
-							label: 'Desk Locations',
-							route: '/admin/workflow-management/desk-locations',
-							icon: <IconDesk size={20} />,
-						},
-						{
-							label: 'Desk Assignments',
-							route: '/admin/workflow-management/desk-assignments',
-							icon: <IconClipboard size={20} />,
-						},
-						{
-							label: 'Tasks',
-							route: '/admin/workflow-management/tasks',
-							icon: <IconSubtask size={20} />,
-						},
-						{
-							label: 'Execution History',
-							route: '/admin/workflow-management/execution-history',
-							icon: <IconHistory size={20} />,
-						},
-					]
-				: []),
+			{
+				label: 'Workflows',
+				route: '/admin/workflow-management/workflows',
+				icon: <IconBinaryTree size={20} />,
+			},
+			{
+				label: 'Desk Locations',
+				route: '/admin/workflow-management/desk-locations',
+				icon: <IconDesk size={20} />,
+			},
+			{
+				label: 'Desk Assignments',
+				route: '/admin/workflow-management/desk-assignments',
+				icon: <IconClipboard size={20} />,
+			},
+			{
+				label: 'Tasks',
+				route: '/admin/workflow-management/tasks',
+				icon: <IconSubtask size={20} />,
+			},
+			{
+				label: 'Execution History',
+				route: '/admin/workflow-management/execution-history',
+				icon: <IconHistory size={20} />,
+			},
 		],
 		defaultExpanded: false,
 	},

@@ -3,6 +3,7 @@ import { ProtectedContext } from '@/server/trpc/trpc';
 import { DateRangeStrict } from '@/types/types';
 import { CompiledQuery, sql } from 'kysely';
 import { sqlFilters } from '@/api/utils/utils';
+import { AuthEventType } from '@/config/enums';
 
 /** Build a user name/email search filter for prefix matching */
 function buildUserSearchFilter(eb: any, searchTerm: string, tablePrefix: string = 'users') {
@@ -406,6 +407,29 @@ export async function updateUser(
  * @param ctx - request context
  * @param id - user identifier to delete
  */
+/**
+ * Record a successful sign-in: bump last_login and write an auth event.
+ * Called from the login and set-password success paths - Supabase has no
+ * server-side session hook, so the app records logins itself. Powers
+ * getUserActivity and getInactiveUserCount.
+ */
+export async function recordLogin(ctx: ProtectedContext) {
+	await Promise.all([
+		ctx.db
+			.updateTable('users')
+			.set({ last_login: sql`now()` })
+			.where('id', '=', ctx.session.user.id)
+			.execute(),
+		ctx.db
+			.insertInto('auth_events')
+			.values({
+				user_id: ctx.session.user.id,
+				event_type: AuthEventType.Login,
+			})
+			.execute(),
+	]);
+}
+
 export async function deleteUser(ctx: ProtectedContext, id: string) {
 	await ctx.db
 		.deleteFrom('users')

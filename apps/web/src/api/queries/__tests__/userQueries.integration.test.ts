@@ -35,6 +35,7 @@ import {
 	updateUser,
 	deleteUser,
 	createInvitedUser,
+	recordLogin,
 } from '../userQueries';
 import { createTestClient, createTestUser } from '@/__tests__/integration/fixtures';
 
@@ -825,6 +826,33 @@ describe('userQueries integration tests', () => {
 			});
 			const result = await getUser(ctxB, userB.id);
 			expect(result).toBeDefined();
+		});
+	});
+
+	describe('recordLogin', () => {
+		it('should set last_login and write a login auth event', async () => {
+			const client = await createTestClient(db);
+			const user = await createTestUser(db, { client_id: client.id });
+			const ctx = createTestContext(db, { id: user.id, client_id: client.id });
+
+			expect(user.last_login).toBeNull();
+
+			await recordLogin(ctx);
+
+			const updated = await db
+				.selectFrom('users')
+				.select('last_login')
+				.where('id', '=', user.id)
+				.executeTakeFirstOrThrow();
+			expect(updated.last_login).not.toBeNull();
+
+			const event = await db
+				.selectFrom('auth_events')
+				.selectAll()
+				.where('user_id', '=', user.id)
+				.executeTakeFirst();
+			expect(event).toBeDefined();
+			expect(event!.event_type).toBe('login');
 		});
 	});
 

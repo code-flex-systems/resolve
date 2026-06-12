@@ -34,8 +34,6 @@ yarn-error.log*
 .env*
 !.env.example
 
-# azurite local storage
-/azurite-data
 
 # vercel
 .vercel

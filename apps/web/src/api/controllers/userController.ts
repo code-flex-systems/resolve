@@ -89,6 +89,14 @@ export async function getUsersWithDeskAssignments(
 	});
 }
 
+/**
+ * Record a successful sign-in for the current user (last_login + auth event).
+ */
+export async function recordLogin(ctx: ProtectedContext) {
+	await userQueries.recordLogin(ctx);
+	return { success: true };
+}
+
 export async function getUserActivity(
 	ctx: ProtectedContext,
 	{

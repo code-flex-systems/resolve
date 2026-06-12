@@ -5,7 +5,9 @@ export default defineConfig({
 	test: {
 		globals: true,
 		environment: 'node',
-		setupFiles: ['./src/__tests__/integration/setup.ts'],
+		// setup-env must run first: it pins DB_* env vars to the local test
+		// database at module scope, before any app module is imported
+		setupFiles: ['./src/__tests__/integration/setup-env.ts', './src/__tests__/integration/setup.ts'],
 		include: ['**/*.integration.test.ts'],
 		testTimeout: 30000, // 30 seconds for database operations
 		hookTimeout: 30000,

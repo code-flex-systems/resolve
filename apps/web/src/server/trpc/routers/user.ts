@@ -30,6 +30,14 @@ export const userRouter = router({
 		return ctx.session.user;
 	}),
 
+	/**
+	 * Record a successful sign-in (last_login + auth event).
+	 * Called from the login/set-password success paths.
+	 */
+	recordLogin: protectedProcedure.mutation(async ({ ctx }) => {
+		return userController.recordLogin(ctx);
+	}),
+
 	getUsers: protectedProcedure.input(getUsersInput).query(async ({ input, ctx }) => {
 		return userController.getUsers(ctx, input);
 	}),
