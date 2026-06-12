@@ -9,7 +9,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { useDocTrpc } from '@/hooks/trpc/useDocTrpc';
 import { uploadFileToStorage } from '@/lib/storage/uploadClient';
 import { DocType, DocStatus } from '@/config/enums';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
 	IMAGE_EXTENSIONS,
 	IMAGE_MIME_TYPES,
@@ -35,6 +35,7 @@ export default function UploadDocumentDialog({
 	currentFolderId = null,
 }: UploadDocumentDialogProps) {
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
+	const fileInputRef = useRef<HTMLInputElement>(null);
 	const { mutateAsync: createDoc, isPending } = useDocTrpc().createDoc;
 	const {
 		register,
@@ -127,17 +128,18 @@ export default function UploadDocumentDialog({
 			</span>
 			<form>
 				<div style={{ marginBottom: 16 }}>
-					<label style={{ display: 'block' }}>
-						<Button variant="outlined" fullWidth>
-							{selectedFile ? selectedFile.name : 'Choose File'}
-						</Button>
-						<input
-							type="file"
-							hidden
-							onChange={handleFileChange}
-							accept={fileAccept || getAllowedExtensions().join(',')}
-						/>
-					</label>
+					{/* Programmatic click: a label can't activate its input when the
+					    click lands on an interactive element like a button */}
+					<Button variant="outlined" fullWidth onClick={() => fileInputRef.current?.click()}>
+						{selectedFile ? selectedFile.name : 'Choose File'}
+					</Button>
+					<input
+						ref={fileInputRef}
+						type="file"
+						hidden
+						onChange={handleFileChange}
+						accept={fileAccept || getAllowedExtensions().join(',')}
+					/>
 					{selectedFile && (
 						<span style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 8 }}>
 							Size: {(selectedFile.size / 1024).toFixed(1)} KB

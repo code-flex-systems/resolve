@@ -17,7 +17,7 @@ SELECT
   ),
   '/admin/claims?selected=' || id
 FROM claim
-WHERE client_id = '1c118f90-3153-4dfb-b350-953e42f0d1aa';
+WHERE client_id = '00000000-0000-4000-8000-000000000001';
 
 -- Parties
 INSERT INTO resource_index (client_id, resource_type, resource_id, linked_resource_type, linked_resource_id, label, secondary_label, metadata, url)
@@ -31,7 +31,7 @@ SELECT
   ),
   '/admin/party-management/parties?selected=' || id
 FROM party
-WHERE client_id = '1c118f90-3153-4dfb-b350-953e42f0d1aa';
+WHERE client_id = '00000000-0000-4000-8000-000000000001';
 
 -- Checklists
 INSERT INTO resource_index (client_id, resource_type, resource_id, linked_resource_type, linked_resource_id, label, secondary_label, metadata, url)
@@ -45,7 +45,7 @@ SELECT
   ),
   '/checklists/' || id
 FROM checklist
-WHERE client_id = '1c118f90-3153-4dfb-b350-953e42f0d1aa';
+WHERE client_id = '00000000-0000-4000-8000-000000000001';
 
 -- Checklist+Claim linked entries
 INSERT INTO resource_index (client_id, resource_type, resource_id, linked_resource_type, linked_resource_id, label, secondary_label, metadata, url)
@@ -59,7 +59,7 @@ SELECT
 FROM checklist_claim cc
 JOIN checklist ch ON ch.id = cc.checklist_id
 JOIN claim c ON c.id = cc.claim_id
-WHERE cc.client_id = '1c118f90-3153-4dfb-b350-953e42f0d1aa';
+WHERE cc.client_id = '00000000-0000-4000-8000-000000000001';
 
 -- Verification
 SELECT resource_type, COUNT(*) as count FROM resource_index GROUP BY resource_type ORDER BY resource_type;

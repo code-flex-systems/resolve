@@ -1,7 +1,7 @@
 -- Seed parties, claim-party links, and coverage
 DO $$
 DECLARE
-    v_client_id uuid := '1c118f90-3153-4dfb-b350-953e42f0d1aa';
+    v_client_id uuid := '00000000-0000-4000-8000-000000000001';
     v_admin_id uuid;
     v_party_id uuid;
     v_address_id uuid;

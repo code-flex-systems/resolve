@@ -11,7 +11,7 @@ import { getSupabaseAdminClient } from '@/lib/supabase/admin';
 
 const BUCKET = process.env.SUPABASE_STORAGE_BUCKET || 'documents';
 
-export const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+export const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
 let bucketEnsured = false;
 

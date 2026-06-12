@@ -29,6 +29,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 			disabled,
 			className,
 			children,
+			// Native <button> defaults to type="submit" inside a form, which
+			// triggers a full-page form submission - opt in via type="submit"
+			type = 'button',
 			...props
 		},
 		ref
@@ -47,7 +50,13 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 			.join(' ');
 
 		return (
-			<button ref={ref} className={classNames} disabled={disabled || loading} {...props}>
+			<button
+				ref={ref}
+				type={type}
+				className={classNames}
+				disabled={disabled || loading}
+				{...props}
+			>
 				{loading && <span className={styles.spinner} />}
 				{!loading && startIcon && <span className={styles.iconSlot}>{startIcon}</span>}
 				{variant !== 'icon' && children && <span className={styles.label}>{children}</span>}

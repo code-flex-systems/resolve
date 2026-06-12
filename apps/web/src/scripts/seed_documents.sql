@@ -4,7 +4,7 @@
 
 DO $$
 DECLARE
-  v_client_id CONSTANT uuid := '1c118f90-3153-4dfb-b350-953e42f0d1aa';
+  v_client_id CONSTANT uuid := '00000000-0000-4000-8000-000000000001';
   v_user_ids uuid[];
   v_claim_rec RECORD;
   v_doc_group_id uuid;

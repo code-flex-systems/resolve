@@ -6,12 +6,18 @@ import * as documentStorage from '@/lib/storage/documentStorage';
 import { db } from '@/api/database/kysely';
 
 /**
- * GET /api/download?docId=123
+ * GET /api/download?docId=123[&download=1]
  *
  * Verifies the user has access to the document, then redirects to a
  * short-lived signed Supabase Storage URL. Serving via redirect keeps
  * file bytes off the Next.js server (Vercel response size limits) and
  * works transparently for <img src> and link consumers.
+ *
+ * By default the file is served inline (previews, images). Pass
+ * download=1 to force a file-system download - the signed URL then
+ * carries Content-Disposition: attachment with the original filename.
+ * (An anchor's `download` attribute can't do this client-side: it is
+ * ignored for cross-origin URLs like the storage redirect target.)
  */
 export async function GET(request: NextRequest) {
 	try {
@@ -34,10 +40,12 @@ export async function GET(request: NextRequest) {
 			return NextResponse.json({ error: 'Document ID is required' }, { status: 400 });
 		}
 
+		const forceDownload = searchParams.get('download') === '1';
+
 		// Get document from database and verify access
 		const doc = await db
 			.selectFrom('doc')
-			.select(['id', 'storage_key'])
+			.select(['id', 'storage_key', 'filename'])
 			.where('id', '=', docId)
 			.where('client_id', '=', clientId)
 			.executeTakeFirst();
@@ -49,8 +57,13 @@ export async function GET(request: NextRequest) {
 		// Sanitize storage key to remove any non-ASCII characters that might have slipped through
 		const sanitizedStorageKey = doc.storage_key.replace(/[^\x00-\x7F]/g, '_');
 
-		// Redirect to a short-lived signed URL (served inline by storage)
-		const signedUrl = await documentStorage.createSignedDownloadUrl(sanitizedStorageKey);
+		// Redirect to a short-lived signed URL (inline by default; attachment
+		// with the original filename when download=1)
+		const signedUrl = await documentStorage.createSignedDownloadUrl(
+			sanitizedStorageKey,
+			3600,
+			forceDownload ? doc.filename : undefined
+		);
 
 		return NextResponse.redirect(signedUrl, {
 			headers: {
