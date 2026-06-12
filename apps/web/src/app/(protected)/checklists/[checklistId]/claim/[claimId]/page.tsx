@@ -7,10 +7,9 @@ const COMMENT_LIMIT = 30;
 export default async function ChecklistPage({
 	params,
 }: {
-	params: { checklistId: string; claimId: string };
+	params: Promise<{ checklistId: string; claimId: string }>;
 }) {
-	const checklistId = params.checklistId;
-	const claimId = params.claimId;
+	const { checklistId, claimId } = await params;
 	const helpers = await createServerHelpers();
 
 	await Promise.all([

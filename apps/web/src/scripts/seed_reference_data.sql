@@ -1,7 +1,7 @@
 -- Seed reference data and feeds
 DO $$
 DECLARE
-    v_client_id uuid := '1c118f90-3153-4dfb-b350-953e42f0d1aa';
+    v_client_id uuid := '00000000-0000-4000-8000-000000000001';
     v_admin_id uuid;
 BEGIN
     SELECT id INTO v_admin_id FROM users WHERE role IN ('Super Admin', 'Admin') AND client_id = v_client_id LIMIT 1;

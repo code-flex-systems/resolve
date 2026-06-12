@@ -94,7 +94,6 @@ This is an npm workspaces monorepo with the main application in `apps/web/`. Roo
 │   │   ├── lib/                       # Client-side utilities
 │   │   └── config/                    # Constants & enums
 │   └── .env                           # Environment variables
-├── project_files/                     # Documentation
 └── CLAUDE.md                          # This file
 ```
 
@@ -542,7 +541,6 @@ The desk hierarchy system manages workflow routing for claims through different 
 - Backend: Full CRUD operations in `deskQueries.ts`, `deskController.ts`
 - tRPC router: `desk.ts` with admin-only access
 - Frontend: Admin UI at `/admin/workflow-configuration/desk-locations`
-- Feature flag: `FEATURE_DESK_HIERARCHY` in `.env`
 
 **Key Files:**
 
@@ -694,8 +692,6 @@ Define enums in TypeScript, not SQL:
 - Auth tests: `apps/web/src/lib/auth/__tests__/*.test.ts`
 - Router tests: `apps/web/src/server/trpc/routers/__tests__/*.test.ts`
 
-See `project_files/TESTING_PROGRESS.md` for current coverage and detailed standards.
-
 ## Development Commands
 
 **Database:**
@@ -731,7 +727,6 @@ Required environment variables (in `apps/web/.env`):
 - `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase project (auth + storage)
 - `SUPABASE_SERVICE_ROLE_KEY` - server-only Supabase admin key (auth admin API, storage)
 - `SUPABASE_STORAGE_BUCKET` - private documents bucket name
-- `FEATURE_*` - Feature flags
 
 ## Important Files & Directories
 
@@ -822,7 +817,6 @@ When performing large refactors or migrations (affecting 20+ files), optimize to
 **Before Starting:**
 
 - Review existing architecture and patterns
-- Document current state in `project_files/MIGRATION_LOG.md`
 - Identify all affected files (use agents for large searches)
 - Test migration pattern on 2-3 files before bulk operations
 
@@ -836,9 +830,6 @@ When performing large refactors or migrations (affecting 20+ files), optimize to
 **After Completion:**
 
 - Run full type check and linting
-- Document changes chronologically in MIGRATION_LOG.md
-- Include: date, motivation, files changed, issues encountered, verification steps
-- Update TESTING_PROGRESS.md if test files affected
 
 ## Notes for AI Assistants
 

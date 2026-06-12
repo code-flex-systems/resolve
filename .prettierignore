@@ -23,9 +23,6 @@ apps/web/tsconfig.tsbuildinfo
 .env.local
 .env.*.local
 
-# Local storage / runtime data
-azurite-data/
-apps/web/azurite-data/
 
 # Coverage reports
 coverage/

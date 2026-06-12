@@ -1,7 +1,19 @@
 #!/bin/bash
 set -e
-DB_URL="${1:-postgres://postgres:password@localhost/resolve}"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# Connection string: first argument, or DATABASE_URL from the environment /
+# apps/web/.env. Never hardcode credentials here - this file is committed.
+if [ -z "${1:-}" ] && [ -z "${DATABASE_URL:-}" ] && [ -f "$SCRIPT_DIR/../../.env" ]; then
+  DATABASE_URL="$(grep '^DATABASE_URL=' "$SCRIPT_DIR/../../.env" | cut -d= -f2-)"
+fi
+DB_URL="${1:-${DATABASE_URL:-}}"
+
+if [ -z "$DB_URL" ]; then
+  echo "Usage: $0 <postgres-connection-string>"
+  echo "(or set DATABASE_URL in the environment / apps/web/.env)"
+  exit 1
+fi
 
 echo "Seeding database..."
 for script in \

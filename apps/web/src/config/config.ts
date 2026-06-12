@@ -35,10 +35,6 @@ const config = {
 		CONTRIBUTOR: 'Contributor',
 		SUPER_ADMIN: 'Super Admin',
 	},
-	FEATURES: {
-		// DESK_HIERARCHY: process.env.FEATURE_DESK_HIERARCHY === 'true',
-		DESK_HIERARCHY: true,
-	},
 } as const;
 
 export default Object.freeze(config);

@@ -62,7 +62,7 @@ resolve/
 │   │   ├── schemas/                     # Zod validation schemas
 │   │   ├── lib/                         # Client-side and shared utilities
 │   │   └── config/                      # Constants and TypeScript enums
-│   └── scripts/                         # Dev seed and reset scripts
+│   │   └── scripts/                     # Data seeding (seed_all.sh)
 └── .github/workflows/                   # Semgrep security scanning
 ```
 
@@ -94,7 +94,7 @@ npm --workspace apps/web run db:migrate
 npm --workspace apps/web run db:types
 
 # 6. (Optional) Seed dev data
-./apps/web/scripts/dev-data-reset/run-all.sh
+./apps/web/src/scripts/seed_all.sh
 
 # 7. Start the dev server
 npm run dev

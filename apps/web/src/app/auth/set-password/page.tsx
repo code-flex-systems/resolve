@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
+import { trpc } from '@/lib/trpc';
 import styles from '../auth.module.css';
 
 /**
@@ -17,6 +18,7 @@ export default function SetPasswordPage() {
 	const [confirm, setConfirm] = useState('');
 	const [error, setError] = useState<string | null>(null);
 	const [submitting, setSubmitting] = useState(false);
+	const recordLogin = trpc.user.recordLogin.useMutation();
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -40,6 +42,9 @@ export default function SetPasswordPage() {
 			setSubmitting(false);
 			return;
 		}
+
+		// Record last_login + auth event (best effort - never block the flow)
+		await recordLogin.mutateAsync().catch(() => {});
 
 		router.replace('/');
 		router.refresh();

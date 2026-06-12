@@ -2,7 +2,7 @@
 
 import { IconArrowLeft, IconFileUpload, IconFolderOpen } from '@tabler/icons-react';
 import Button from '@/components/ui/Button';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import BasicDialog from '../common/BasicDialog';
 import CompactDocumentBrowser from './CompactDocumentBrowser';
 import type { DocListItem } from '@/hooks/trpc/useDocTrpc';
@@ -46,6 +46,7 @@ export default function DocumentSelectorDialog({
 	}
 	const [mode, setMode] = useState<'choice' | 'library' | 'upload'>('choice');
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
+	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [isUploading, setIsUploading] = useState(false);
 	const [isLinking, setIsLinking] = useState(false);
 	const { mutateAsync: createDoc } = useDocTrpc().createDoc;
@@ -265,18 +266,26 @@ export default function DocumentSelectorDialog({
 							: `Select ${filterByType === 'image' ? 'an image' : 'a file'} from your device to upload:`}
 					</span>
 
-					<label style={{ display: 'block', marginBottom: 16 }}>
-						<Button variant="outlined" fullWidth disabled={isBusy}>
+					<div style={{ marginBottom: 16 }}>
+						{/* Programmatic click: a label can't activate its input when the
+						    click lands on an interactive element like a button */}
+						<Button
+							variant="outlined"
+							fullWidth
+							disabled={isBusy}
+							onClick={() => fileInputRef.current?.click()}
+						>
 							{selectedFile ? selectedFile.name : 'Choose File'}
 						</Button>
 						<input
+							ref={fileInputRef}
 							type="file"
 							hidden
 							onChange={handleFileChange}
 							accept={filterByType === 'image' ? IMAGE_MIME_TYPES.join(',') : undefined}
 							disabled={isBusy}
 						/>
-					</label>
+					</div>
 
 					{selectedFile && (
 						<div style={{ backgroundColor: '#f5f5f5', padding: 16, borderRadius: 4 }}>

@@ -21,10 +21,11 @@ export default function DocumentPreviewDialog({ onClose, document }: DocumentPre
 	const canPreview = isImage || isPdf || mimeType === 'text/plain';
 
 	const handleDownload = () => {
-		// Trigger download by opening in new tab with download disposition
+		// download=1 makes the server's signed URL carry an attachment
+		// disposition. The anchor `download` attribute alone can't force a
+		// download here - it is ignored for cross-origin redirect targets.
 		const link = window.document.createElement('a');
-		link.href = previewUrl;
-		link.download = document.filename;
+		link.href = `${previewUrl}&download=1`;
 		window.document.body.appendChild(link);
 		link.click();
 		window.document.body.removeChild(link);
