@@ -131,12 +131,12 @@ export default function RecoveryMetricsChart({
 							: `Recovery Metrics - Q${quarters.currentQuarter} ${quarters.currentYear}`}
 					</span>
 					{isBreakdown ? (
-						<span style={{ fontSize: 14, color: '#d9d9d9' }}>
+						<span style={{ fontSize: 14, color: 'var(--text-muted)' }}>
 							vs Q{quarters.lastQuarter} {quarters.lastYear}
 						</span>
 					) : (
 						<div>
-							<span style={{ fontSize: 13, color: '#d9d9d9', marginRight: '15px' }}>
+							<span style={{ fontSize: 13, color: 'var(--text-muted)', marginRight: '15px' }}>
 								vs Q{quarters.lastQuarter} {quarters.lastYear}
 							</span>
 							<Tooltip content="Open in Inspector">

@@ -130,7 +130,7 @@ export default function MyQueue() {
 									<Link
 										href="/my-claims"
 										style={{
-											fontSize: 12,
+											fontSize: 'var(--text-xs)',
 											color: 'var(--text-accent)',
 											textDecoration: 'none',
 											cursor: 'pointer',

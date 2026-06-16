@@ -128,10 +128,10 @@ export function CSVImportWizard({ onClose, fields, validateRow, onSubmit, submit
 								display: 'flex',
 								alignItems: 'center',
 								justifyContent: 'center',
-								fontSize: 12,
+								fontSize: 'var(--text-xs)',
 								fontWeight: 600,
 								backgroundColor: index <= activeStep ? 'var(--text-accent)' : 'var(--bg-tertiary)',
-								color: index <= activeStep ? 'white' : 'var(--text-muted)',
+								color: index <= activeStep ? 'var(--text-on-accent)' : 'var(--text-muted)',
 							}}
 						>
 							{index + 1}

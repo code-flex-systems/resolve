@@ -113,14 +113,14 @@ export default function CommentDialog() {
 				}}
 			>
 				{!!existingComment && (
-					<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+					<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
 						{formatMDY(existingComment.created_at)}
 					</span>
 				)}
 				{!existingComment && (
 					<span
 						style={{
-							fontSize: 12,
+							fontSize: 'var(--text-xs)',
 							color: comment.length === config.MAX_COMMENT_SIZE ? 'error' : undefined,
 						}}
 					>

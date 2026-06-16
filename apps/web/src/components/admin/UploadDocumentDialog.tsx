@@ -141,7 +141,7 @@ export default function UploadDocumentDialog({
 						accept={fileAccept || getAllowedExtensions().join(',')}
 					/>
 					{selectedFile && (
-						<span style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 8 }}>
+						<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: 8 }}>
 							Size: {(selectedFile.size / 1024).toFixed(1)} KB
 						</span>
 					)}

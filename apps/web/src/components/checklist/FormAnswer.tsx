@@ -476,7 +476,7 @@ export default function FormAnswer() {
 												<label
 													style={{
 														display: 'block',
-														fontSize: 12,
+														fontSize: 'var(--text-xs)',
 														marginBottom: 4,
 														color: 'var(--text-secondary)',
 													}}
@@ -528,7 +528,7 @@ export default function FormAnswer() {
 												<label
 													style={{
 														display: 'block',
-														fontSize: 12,
+														fontSize: 'var(--text-xs)',
 														marginBottom: 4,
 														color: 'var(--text-secondary)',
 													}}
@@ -637,7 +637,7 @@ export default function FormAnswer() {
 														<label
 															style={{
 																display: 'block',
-																fontSize: 12,
+																fontSize: 'var(--text-xs)',
 																marginBottom: 4,
 																color: 'var(--text-secondary)',
 															}}
@@ -678,7 +678,7 @@ export default function FormAnswer() {
 															))}
 														</div>
 														{selectedExtensions.length === 0 && (
-															<em style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+															<em style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
 																All file types allowed
 															</em>
 														)}
@@ -790,7 +790,7 @@ export default function FormAnswer() {
 												padding: '6px 12px',
 											}}
 										>
-											<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+											<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
 												{attachedDoc.title || attachedDoc.alias}
 											</span>
 											{attachedDoc.mime_type?.startsWith('image/') ? (

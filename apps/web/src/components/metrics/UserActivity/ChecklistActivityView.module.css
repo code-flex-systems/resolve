@@ -21,8 +21,8 @@
 }
 
 .cardTitle {
-	font-size: 18px;
-	font-weight: 600;
+	font-size: var(--text-xl);
+	font-weight: var(--font-semibold);
 	color: var(--text-primary);
 }
 
@@ -33,7 +33,7 @@
 }
 
 .cardCount {
-	font-size: 13px;
+	font-size: var(--text-sm);
 	color: var(--text-muted);
 	white-space: nowrap;
 }

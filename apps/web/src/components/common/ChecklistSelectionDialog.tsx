@@ -101,8 +101,10 @@ export default function ChecklistSelectionDialog({
 												className={css.pageBadge}
 												style={{ backgroundColor: 'var(--status-info-bg)' }}
 											>
-												<IconFileDescription size={14} style={{ color: 'white' }} />
-												<span style={{ fontSize: 12, fontWeight: 600, color: 'white' }}>
+												<IconFileDescription size={14} style={{ color: 'var(--text-on-accent)' }} />
+												<span
+													style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-on-accent)' }}
+												>
 													{pageCount} {pageCount === 1 ? 'page' : 'pages'}
 												</span>
 											</div>

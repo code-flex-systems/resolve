@@ -36,7 +36,7 @@ export default function ChecklistChangeLog() {
 					padding: '5px 10px',
 				}}
 			>
-				<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Change Log</span>
+				<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>Change Log</span>
 				<SearchInput
 					value={searchTerm}
 					onChange={(value) => {

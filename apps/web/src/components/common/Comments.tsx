@@ -131,7 +131,7 @@ export default function Comments({
 											>
 												<span
 													style={{
-														fontSize: 12,
+														fontSize: 'var(--text-xs)',
 														lineHeight: '15px',
 														color: 'var(--text-muted)',
 														minWidth: 'fit-content',
@@ -143,7 +143,7 @@ export default function Comments({
 												<div style={dividerStyle} />
 												<span
 													style={{
-														fontSize: 12,
+														fontSize: 'var(--text-xs)',
 														lineHeight: '15px',
 														color: 'var(--text-muted)',
 														minWidth: 'fit-content',
@@ -157,7 +157,7 @@ export default function Comments({
 														<div style={dividerStyle} />
 														<span
 															style={{
-																fontSize: 12,
+																fontSize: 'var(--text-xs)',
 																lineHeight: '15px',
 																color: 'var(--text-accent)',
 																textOverflow: 'ellipsis',
@@ -192,7 +192,7 @@ const dividerStyle: React.CSSProperties = {
 	width: 5,
 	height: 5,
 	borderRadius: 10,
-	backgroundColor: '#d9d9d9',
+	backgroundColor: 'var(--bg-tertiary)',
 	margin: '0px 10px',
 };
 

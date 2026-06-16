@@ -158,7 +158,7 @@ export default function RecoveryEventsTable({
 			>
 				<span style={{ fontSize: 18, fontWeight: 600 }}>Recovery Events</span>
 				<div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-					<span style={{ fontSize: 12, color: 'text.secondary' }}>
+					<span style={{ fontSize: 'var(--text-xs)', color: 'text.secondary' }}>
 						{(data?.count ?? 0).toLocaleString()} event{(data?.count ?? 0) !== 1 ? 's' : ''}
 					</span>
 					<ExportButton

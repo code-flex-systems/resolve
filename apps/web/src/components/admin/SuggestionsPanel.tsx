@@ -201,7 +201,7 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 						marginBottom: 16,
 					}}
 				>
-					<span style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)' }}>
+					<span style={{ fontSize: 'var(--text-lg)', fontWeight: 600, color: 'var(--text-primary)' }}>
 						Suggested Actions
 					</span>
 					<Chip size="sm">0 recommendations</Chip>
@@ -257,7 +257,7 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 				}}
 			>
 				<div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-					<span style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)' }}>
+					<span style={{ fontSize: 'var(--text-lg)', fontWeight: 600, color: 'var(--text-primary)' }}>
 						Suggested Actions
 					</span>
 					{!data ? (
@@ -318,16 +318,34 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 							Last analysis: {new Date(data.generatedAt).toLocaleString()}
 						</span>
 						<div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-							<Chip size="sm" style={{ backgroundColor: '#dcfce7', color: '#15803d' }}>
+							<Chip
+								size="sm"
+								style={{
+									backgroundColor: 'var(--status-success-bg)',
+									color: 'var(--status-success)',
+								}}
+							>
 								{data.breachesFullyResolved} fully resolved
 							</Chip>
-							<Chip size="sm" style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>
+							<Chip
+								size="sm"
+								style={{
+									backgroundColor: 'var(--status-warning-bg)',
+									color: 'var(--status-warning)',
+								}}
+							>
 								{data.breachesPartiallyResolved} partially resolved
 							</Chip>
-							<Chip size="sm" style={{ backgroundColor: '#fee2e2', color: '#991b1b' }}>
+							<Chip
+								size="sm"
+								style={{ backgroundColor: 'var(--status-error-bg)', color: 'var(--status-error)' }}
+							>
 								{data.summary.totalUnresolved} unresolved
 							</Chip>
-							<Chip size="sm" style={{ backgroundColor: '#e0f2fe', color: '#075985' }}>
+							<Chip
+								size="sm"
+								style={{ backgroundColor: 'var(--status-info-bg)', color: 'var(--status-info)' }}
+							>
 								{data.summary.totalAssignments} total assignment
 								{data.summary.totalAssignments !== 1 ? 's' : ''}
 							</Chip>
@@ -378,9 +396,9 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 											bottom: 12,
 											right: 12,
 											zIndex: 1,
-											backgroundColor: '#f1f5f9',
+											backgroundColor: 'var(--bg-secondary)',
 											color: 'var(--text-secondary)',
-											fontSize: 10,
+											fontSize: 'var(--text-xs)',
 											fontWeight: 700,
 											height: 20,
 										}}
@@ -442,14 +460,14 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 							style={{
 								fontSize: 13,
 								fontWeight: 600,
-								color: '#b45309',
+								color: 'var(--status-warning)',
 								display: 'block',
 								marginBottom: 4,
 							}}
 						>
 							Team Capacity Strain
 						</span>
-						<span style={{ fontSize: 13, color: '#92400e' }}>
+						<span style={{ fontSize: 13, color: 'var(--status-warning)' }}>
 							{data.summary.totalUnresolved} breach{data.summary.totalUnresolved !== 1 ? 'es' : ''}{' '}
 							could not be fully resolved due to limited team availability. Consider adjusting
 							workload or capacity thresholds.
@@ -498,14 +516,21 @@ export default function SuggestionsPanel({ data, isFetching, refetch }: Suggesti
 							<span style={{ fontSize: 13, fontWeight: 500, display: 'block' }}>
 								{res.breach.deskLocationTypeName} - {res.breach.deskLocationName}
 							</span>
-							<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+							<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
 								{res.assignments.length} user{res.assignments.length !== 1 ? 's' : ''} reassigned
 							</span>
 						</div>
 					))}
 				</div>
 				{visibleResolutions.some((r) => r.status === SuggestionStatus.IGNORED) && (
-					<p style={{ fontSize: 13, color: '#92400e', marginTop: 12, fontStyle: 'italic' }}>
+					<p
+						style={{
+							fontSize: 13,
+							color: 'var(--status-warning)',
+							marginTop: 12,
+							fontStyle: 'italic',
+						}}
+					>
 						Ignored suggestions will not be executed.
 					</p>
 				)}

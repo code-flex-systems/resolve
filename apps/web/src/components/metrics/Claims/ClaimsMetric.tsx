@@ -162,7 +162,7 @@ export default function ClaimsMetric({
 								</span>
 								<span
 									style={{
-										fontSize: 12,
+										fontSize: 'var(--text-xs)',
 										fontWeight: 500,
 										color: 'var(--text-secondary)',
 										marginTop: 2,

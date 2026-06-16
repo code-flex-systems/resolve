@@ -202,15 +202,15 @@ export default function WorkflowManagementOverview() {
 										>
 											{item.claimNumber}
 										</span>
-										<span style={{ fontSize: 12, color: 'var(--text-muted)', flex: 1 }}>
+										<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', flex: 1 }}>
 											{item.deskLocationName}
 										</span>
-										<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+										<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
 											{item.adjusterName || '—'}
 										</span>
 										<span
 											style={{
-												fontSize: 12,
+												fontSize: 'var(--text-xs)',
 												fontWeight: 600,
 												color:
 													item.hoursRemaining <= 0

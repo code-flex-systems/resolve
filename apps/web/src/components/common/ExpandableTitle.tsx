@@ -7,7 +7,7 @@ export default function ExpandableTitle({
 	title,
 	icon,
 	color = 'var(--text-accent)',
-	bgcolor = '#F0F3F7',
+	bgcolor = 'var(--bg-secondary)',
 	padding,
 	size = 30,
 }: {

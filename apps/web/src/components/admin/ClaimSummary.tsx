@@ -409,7 +409,7 @@ export default function ClaimSummary({
 								{claimDetail.feed_name && (
 									<>
 										<Divider />
-										<span style={{ fontSize: 12, color: 'var(--text-muted)', fontStyle: 'italic' }}>
+										<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', fontStyle: 'italic' }}>
 											Ingested from <div style={{ fontWeight: 600 }}>{claimDetail.feed_name}</div>
 										</span>
 									</>

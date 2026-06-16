@@ -184,14 +184,14 @@ export default function SettlementTimeline({
 												{dayjs(item.date).format('MMM D')}
 											</span>
 											{isSettlement ? (
-												<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+												<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
 													{settlement.party_name}
 													{settlement.loss_type && (
 														<> · {formatCoverageType(settlement.loss_type)}</>
 													)}
 												</span>
 											) : (
-												<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+												<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
 													{recovery.recovery_source || 'No source'}
 													{relatedSettlement && (
 														<>
@@ -278,7 +278,7 @@ function DetailField({ label, children }: { label: string; children: React.React
 function SettlementDetails({ settlement }: { settlement: any }) {
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-			<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Settlement Details</span>
+			<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>Settlement Details</span>
 			<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
 				<DetailField label="Party">
 					<Highlight>{settlement.party_name}</Highlight>
@@ -348,7 +348,7 @@ function RecoveryDetails({
 }) {
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-			<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Recovery Details</span>
+			<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>Recovery Details</span>
 			<div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
 				<DetailField label="Amount">
 					<span style={{ fontWeight: 600, color: 'var(--status-success)' }}>

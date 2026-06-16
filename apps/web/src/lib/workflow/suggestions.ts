@@ -640,9 +640,10 @@ export function getSeverityLabel(severity: number): 'Low' | 'Medium' | 'High' {
  */
 export function getSeverityColor(severity: number): { bg: string; color: string } {
 	const label = getSeverityLabel(severity);
-	if (label === 'Low') return { bg: '#fef3c7', color: '#92400e' }; // yellow
-	if (label === 'Medium') return { bg: '#fed7aa', color: '#9a3412' }; // orange
-	return { bg: '#fee2e2', color: '#991b1b' }; // red
+	if (label === 'Low') return { bg: 'var(--status-info-bg)', color: 'var(--status-info)' };
+	if (label === 'Medium')
+		return { bg: 'var(--status-warning-bg)', color: 'var(--status-warning)' };
+	return { bg: 'var(--status-error-bg)', color: 'var(--status-error)' };
 }
 
 // ============================================================================

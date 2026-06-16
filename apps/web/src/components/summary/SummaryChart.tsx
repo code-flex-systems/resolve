@@ -127,7 +127,7 @@ export default function SummaryChart() {
 						display: 'flex',
 						justifyContent: 'space-between',
 						marginTop: 6,
-						fontSize: 12,
+						fontSize: 'var(--text-xs)',
 						color: 'var(--text-secondary)',
 					}}
 				>

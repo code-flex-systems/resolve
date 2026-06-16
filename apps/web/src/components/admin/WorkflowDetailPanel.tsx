@@ -306,17 +306,17 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 
 							<div style={{ display: 'flex', gap: 16, marginTop: 8, flexWrap: 'wrap' }}>
 								{(workflow as any).creator_first_name && (
-									<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+									<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
 										{(workflow as any).creator_first_name} {(workflow as any).creator_last_name}
 									</span>
 								)}
-								<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+								<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
 									Created:{' '}
 									{workflow.created_at
 										? formatMDY(new Date(workflow.created_at).toISOString())
 										: 'N/A'}
 								</span>
-								<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+								<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
 									Updated:{' '}
 									{workflow.updated_at
 										? formatMDY(new Date(workflow.updated_at).toISOString())
@@ -375,7 +375,7 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 												style={{
 													textAlign: 'left',
 													fontWeight: 600,
-													fontSize: 12,
+													fontSize: 'var(--text-xs)',
 													color: 'var(--text-secondary)',
 													textTransform: 'uppercase',
 													letterSpacing: '0.04em',
@@ -389,7 +389,7 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 												style={{
 													textAlign: 'left',
 													fontWeight: 600,
-													fontSize: 12,
+													fontSize: 'var(--text-xs)',
 													color: 'var(--text-secondary)',
 													textTransform: 'uppercase',
 													letterSpacing: '0.04em',
@@ -403,7 +403,7 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 												style={{
 													textAlign: 'left',
 													fontWeight: 600,
-													fontSize: 12,
+													fontSize: 'var(--text-xs)',
 													color: 'var(--text-secondary)',
 													textTransform: 'uppercase',
 													letterSpacing: '0.04em',
@@ -417,7 +417,7 @@ export default function WorkflowDetailPanel({ workflowId }: WorkflowDetailPanelP
 												style={{
 													textAlign: 'left',
 													fontWeight: 600,
-													fontSize: 12,
+													fontSize: 'var(--text-xs)',
 													color: 'var(--text-secondary)',
 													textTransform: 'uppercase',
 													letterSpacing: '0.04em',

@@ -231,11 +231,11 @@ function Section({ title, editLabel, onEdit, children }: SectionProps) {
 					marginBottom: 8,
 				}}
 			>
-				<span style={{ fontSize: 12, fontWeight: 600 }}>{title}</span>
+				<span style={{ fontSize: 'var(--text-xs)', fontWeight: 600 }}>{title}</span>
 				{editLabel && onEdit && (
 					<span
 						onClick={onEdit}
-						style={{ fontSize: 12, color: 'var(--text-accent)', cursor: 'pointer' }}
+						style={{ fontSize: 'var(--text-xs)', color: 'var(--text-accent)', cursor: 'pointer' }}
 					>
 						{editLabel}
 					</span>

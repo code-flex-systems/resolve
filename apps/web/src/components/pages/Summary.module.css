@@ -9,8 +9,8 @@
 }
 
 .checklistName {
-	font-size: 18px;
-	font-weight: 600;
+	font-size: var(--text-xl);
+	font-weight: var(--font-semibold);
 	margin: 0 0 0 4px;
 	margin-right: 8px;
 }

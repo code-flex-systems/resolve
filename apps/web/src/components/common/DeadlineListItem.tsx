@@ -127,7 +127,10 @@ export default function DeadlineListItem({
 					</div>
 
 					{deadline.description && (
-						<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+						<span
+							className="truncate"
+							style={{ fontSize: 12, display: 'block', color: 'var(--text-secondary)' }}
+						>
 							{deadline.description}
 						</span>
 					)}

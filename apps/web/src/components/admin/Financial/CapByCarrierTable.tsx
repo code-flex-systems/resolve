@@ -17,7 +17,7 @@ const cellStyle: React.CSSProperties = {
 const headerStyle: React.CSSProperties = {
 	...cellStyle,
 	fontWeight: 600,
-	fontSize: 12,
+	fontSize: 'var(--text-xs)',
 	textTransform: 'uppercase',
 	letterSpacing: '0.04em',
 	color: 'var(--color-text-secondary)',
@@ -55,7 +55,7 @@ export default function CapByCarrierTable({ data }: Props) {
 										style={{
 											...cellStyle,
 											textAlign: 'right',
-											color: warn ? '#e57373' : undefined,
+											color: warn ? 'var(--status-error)' : undefined,
 											fontWeight: warn ? 600 : undefined,
 										}}
 									>

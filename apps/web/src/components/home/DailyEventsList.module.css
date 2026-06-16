@@ -14,8 +14,8 @@
 }
 
 .title {
-	font-size: 14px;
-	font-weight: 600;
+	font-size: var(--text-base);
+	font-weight: var(--font-semibold);
 	margin: 0 0 12px;
 }
 
@@ -58,7 +58,7 @@
 }
 
 .emptyText {
-	font-size: 14px;
+	font-size: var(--text-base);
 	color: var(--text-secondary);
 	text-align: center;
 }

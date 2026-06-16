@@ -48,10 +48,10 @@ export default function WaterfallChart({ data }: WaterfallChartProps) {
 					padding: '0 4px',
 				}}
 			>
-				<span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary, #999)' }}>
+				<span style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-secondary, #999)' }}>
 					Unrecovered Amount by Status
 				</span>
-				<span style={{ fontSize: 14, fontWeight: 600, color: '#e57373' }}>
+				<span style={{ fontSize: 14, fontWeight: 600, color: 'var(--status-error)' }}>
 					{formatCurrency(totalVariance)} total
 				</span>
 			</div>

@@ -215,7 +215,7 @@ export default function DocumentSelectorDialog({
 						>
 							<div style={{ textAlign: 'left', marginLeft: 16 }}>
 								<span style={{ fontWeight: 600, fontSize: 14 }}>Choose from library</span>
-								<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+								<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
 									Select an existing {filterByType === 'image' ? 'image' : 'document'}
 								</span>
 							</div>
@@ -230,7 +230,7 @@ export default function DocumentSelectorDialog({
 						>
 							<div style={{ textAlign: 'left', marginLeft: 16 }}>
 								<span style={{ fontWeight: 600, fontSize: 14 }}>Browse this device</span>
-								<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+								<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
 									Upload a new {filterByType === 'image' ? 'image' : 'file'}
 								</span>
 							</div>
@@ -288,11 +288,11 @@ export default function DocumentSelectorDialog({
 					</div>
 
 					{selectedFile && (
-						<div style={{ backgroundColor: '#f5f5f5', padding: 16, borderRadius: 4 }}>
-							<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+						<div style={{ backgroundColor: 'var(--bg-secondary)', padding: 16, borderRadius: 4 }}>
+							<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
 								<strong>Size:</strong> {(selectedFile.size / 1024).toFixed(1)} KB
 							</span>
-							<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+							<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
 								<strong>Type:</strong> {selectedFile.type}
 							</span>
 						</div>

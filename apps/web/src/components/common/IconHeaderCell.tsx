@@ -40,7 +40,7 @@ export default function IconHeaderCell(props: IconHeaderCellProps & Record<strin
 			{sizedIcon ?? null}
 			<span
 				style={{
-					fontSize: 12,
+					fontSize: 'var(--text-xs)',
 					fontWeight: 600,
 					color: 'var(--text-secondary)',
 					whiteSpace: 'nowrap',

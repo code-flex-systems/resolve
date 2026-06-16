@@ -70,7 +70,7 @@ export default function ProfileAvatar() {
 										overflow: 'hidden' as const,
 										textOverflow: 'ellipsis',
 									},
-									fontSize: 17,
+									fontSize: 'var(--text-lg)',
 									fontWeight: 'bold',
 								}}
 							>

@@ -71,7 +71,7 @@ export default function ClaimListItem({
 							fontWeight: variant === 'menuItem' ? 600 : 400,
 							color: variant === 'listRow' ? 'var(--text-accent)' : undefined,
 						}}
-						className={variant === 'listRow' ? css.claimLink : undefined}
+						className={`truncate${variant === 'listRow' ? ` ${css.claimLink}` : ''}`}
 					>
 						{claim?.claim_number ?? 'N/A'}
 					</span>
@@ -87,8 +87,8 @@ export default function ClaimListItem({
 					{/* Claim Amount Badge */}
 					{showAmount && claimAmount !== null && (
 						<div className={css.amountBadge} style={{ backgroundColor: 'var(--status-info-bg)' }}>
-							<IconCurrencyDollar size={14} style={{ color: 'white' }} />
-							<span style={{ fontSize: 12, fontWeight: 600, color: 'white' }}>
+							<IconCurrencyDollar size={14} style={{ color: 'var(--text-on-accent)' }} />
+							<span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-on-accent)' }}>
 								{formatCurrencyExact(claimAmount)}
 							</span>
 						</div>
@@ -159,7 +159,7 @@ export default function ClaimListItem({
 		<div
 			onClick={onClick}
 			className={css.listRow}
-			style={{ backgroundColor: index % 2 === 0 ? 'white' : '#FAFAFA' }}
+			style={{ backgroundColor: index % 2 === 0 ? 'var(--bg-white)' : 'var(--bg-secondary)' }}
 		>
 			{content}
 		</div>

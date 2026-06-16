@@ -14,7 +14,7 @@
 	padding: 30px 40px;
 	border-radius: var(--radius-xl);
 	margin: 15px auto;
-	background: linear-gradient(135deg, rgba(50, 174, 153, 0.06) 0%, rgba(255, 255, 255, 1) 100%);
+	background: linear-gradient(135deg, color-mix(in srgb, var(--text-accent) 6%, transparent) 0%, var(--bg-white) 100%);
 	border: 1px solid var(--border-strong);
 }
 
@@ -33,20 +33,20 @@
 
 .heroTitle {
 	font-size: 48px;
-	font-weight: 700;
+	font-weight: var(--font-bold);
 	color: var(--text-accent);
 	margin: 0 0 16px;
 }
 
 .heroSubtitle {
 	font-size: 24px;
-	font-weight: 500;
+	font-weight: var(--font-medium);
 	color: var(--text-secondary);
 	margin: 0 0 8px;
 }
 
 .heroDescription {
-	font-size: 16px;
+	font-size: var(--text-lg);
 	color: var(--text-secondary);
 	margin-top: 16px;
 }
@@ -58,6 +58,6 @@
 
 .helperText {
 	text-align: center;
-	font-size: 14px;
+	font-size: var(--text-base);
 	color: var(--text-muted);
 }

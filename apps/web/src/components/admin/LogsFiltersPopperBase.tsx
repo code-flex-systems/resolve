@@ -45,7 +45,7 @@ export default function LogsFiltersPopperBase({
 				<span style={{ fontSize: 14, fontWeight: 600 }}>{title}</span>
 				<div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
 					<div>
-						<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
+						<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginBottom: 4 }}>
 							Date Range
 						</span>
 						<BasicDateRangePicker
@@ -58,13 +58,13 @@ export default function LogsFiltersPopperBase({
 						/>
 					</div>
 					<div>
-						<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
+						<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginBottom: 4 }}>
 							Entity
 						</span>
 						<AdminLogsEntityFilter value={draftEntity} onChange={setDraftEntity} height={32} />
 					</div>
 					<div>
-						<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>User</span>
+						<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginBottom: 4 }}>User</span>
 						<UserFilter
 							users={draftUsers}
 							setUsers={setDraftUsers}

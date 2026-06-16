@@ -14,7 +14,7 @@
 }
 
 .text {
-	font-size: 15px;
+	font-size: var(--text-md);
 	color: var(--text-muted);
 	padding-left: 10px;
 }

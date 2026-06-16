@@ -325,7 +325,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 				</div>
 
 				{(claimParty.coverages || []).length === 0 && (
-					<span style={{ fontSize: 12, color: 'var(--text-secondary)', fontStyle: 'italic' }}>
+					<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
 						No coverages added yet
 					</span>
 				)}
@@ -459,7 +459,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 					</span>
 					<div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
 						<div style={{ display: 'flex', flexDirection: 'column' as const }}>
-							<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
+							<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginBottom: 4 }}>
 								Total Coverage Amount
 							</span>
 							<span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
@@ -470,7 +470,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 							</span>
 						</div>
 						<div style={{ display: 'flex', flexDirection: 'column' as const }}>
-							<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
+							<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginBottom: 4 }}>
 								Total Amount Reserved
 							</span>
 							<span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>
@@ -481,7 +481,7 @@ export default function ClaimantsCoverageTab({ claimId }: ClaimantsCoverageTabPr
 							</span>
 						</div>
 						<div style={{ display: 'flex', flexDirection: 'column' as const }}>
-							<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
+							<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginBottom: 4 }}>
 								Linked Entities
 							</span>
 							<span style={{ fontSize: 11, color: 'var(--text-secondary)' }}>

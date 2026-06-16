@@ -132,7 +132,7 @@ export default function ActionsMetric() {
 											</span>
 											<span
 												style={{
-													fontSize: 12,
+													fontSize: 'var(--text-xs)',
 													whiteSpace: 'nowrap',
 													overflow: 'hidden',
 													textOverflow: 'ellipsis',

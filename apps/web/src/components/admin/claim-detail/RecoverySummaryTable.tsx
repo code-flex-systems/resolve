@@ -60,7 +60,7 @@ export default function RecoverySummaryTable({
 		return (
 			<span
 				style={{
-					fontSize: 12,
+					fontSize: 'var(--text-xs)',
 					color: 'var(--text-secondary)',
 					fontStyle: 'italic',
 					textAlign: 'center',
@@ -82,7 +82,7 @@ export default function RecoverySummaryTable({
 							style={{
 								textAlign: 'left',
 								fontWeight: 600,
-								fontSize: 12,
+								fontSize: 'var(--text-xs)',
 								color: 'var(--text-secondary)',
 								textTransform: 'uppercase',
 								letterSpacing: '0.04em',
@@ -96,7 +96,7 @@ export default function RecoverySummaryTable({
 							style={{
 								textAlign: 'right',
 								fontWeight: 600,
-								fontSize: 12,
+								fontSize: 'var(--text-xs)',
 								color: 'var(--text-secondary)',
 								textTransform: 'uppercase',
 								letterSpacing: '0.04em',
@@ -110,7 +110,7 @@ export default function RecoverySummaryTable({
 							style={{
 								textAlign: 'right',
 								fontWeight: 600,
-								fontSize: 12,
+								fontSize: 'var(--text-xs)',
 								color: 'var(--text-secondary)',
 								textTransform: 'uppercase',
 								letterSpacing: '0.04em',
@@ -126,7 +126,7 @@ export default function RecoverySummaryTable({
 							style={{
 								textAlign: 'right',
 								fontWeight: 600,
-								fontSize: 12,
+								fontSize: 'var(--text-xs)',
 								color: 'var(--text-secondary)',
 								textTransform: 'uppercase',
 								letterSpacing: '0.04em',
@@ -142,7 +142,7 @@ export default function RecoverySummaryTable({
 							style={{
 								textAlign: 'right',
 								fontWeight: 600,
-								fontSize: 12,
+								fontSize: 'var(--text-xs)',
 								color: 'var(--text-secondary)',
 								textTransform: 'uppercase',
 								letterSpacing: '0.04em',
@@ -158,7 +158,7 @@ export default function RecoverySummaryTable({
 							style={{
 								textAlign: 'right',
 								fontWeight: 600,
-								fontSize: 12,
+								fontSize: 'var(--text-xs)',
 								color: 'var(--text-secondary)',
 								textTransform: 'uppercase',
 								letterSpacing: '0.04em',

@@ -229,7 +229,7 @@ export default function Checklist() {
 									alignItems: 'center',
 									gap: 4,
 									color: 'var(--text-secondary)',
-									fontSize: 12,
+									fontSize: 'var(--text-xs)',
 									fontFamily: 'var(--font-sans)',
 									padding: 0,
 								}}

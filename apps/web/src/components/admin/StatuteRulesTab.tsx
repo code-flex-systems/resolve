@@ -42,10 +42,12 @@ function renderTortCell(rules: StatuteRules | undefined, tortType: string): Reac
 				content={
 					<div>
 						{config.default_years !== null && (
-							<span style={{ color: 'white' }}>Default: {config.default_years} years</span>
+							<span style={{ color: 'var(--text-on-accent)' }}>
+								Default: {config.default_years} years
+							</span>
 						)}
 						{config.rules.map((rule, idx) => (
-							<span key={idx} style={{ color: 'white' }}>
+							<span key={idx} style={{ color: 'var(--text-on-accent)' }}>
 								{rule.lob && `LOB: ${rule.lob}`}
 								{rule.date_from && ` From: ${rule.date_from}`}
 								{rule.date_to && ` To: ${rule.date_to}`}

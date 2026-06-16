@@ -170,8 +170,10 @@ export default function SuggestionDetailDialog({
 					<Chip
 						size="sm"
 						style={{
-							backgroundColor: isFullyResolved ? '#dcfce7' : '#fef3c7',
-							color: isFullyResolved ? '#15803d' : '#92400e',
+							backgroundColor: isFullyResolved
+								? 'var(--status-success-bg)'
+								: 'var(--status-warning-bg)',
+							color: isFullyResolved ? 'var(--status-success)' : 'var(--status-warning)',
 						}}
 					>
 						{isFullyResolved ? 'Fully Resolvable' : 'Partially Resolvable'}
@@ -216,7 +218,7 @@ export default function SuggestionDetailDialog({
 											padding: '2px 8px',
 											borderRadius: 10,
 											backgroundColor: 'var(--text-accent)',
-											color: 'white',
+											color: 'var(--text-on-accent)',
 										}}
 									>
 										Priority {assignment.newPriority}
@@ -224,7 +226,7 @@ export default function SuggestionDetailDialog({
 								</div>
 								<span
 									style={{
-										fontSize: 12,
+										fontSize: 'var(--text-xs)',
 										color: 'var(--text-secondary)',
 										marginTop: 4,
 										display: 'block',
@@ -261,8 +263,8 @@ export default function SuggestionDetailDialog({
 								style={{
 									padding: '12px 16px',
 									borderRadius: 4,
-									backgroundColor: '#fef3c7',
-									border: '1px solid #fde68a',
+									backgroundColor: 'var(--status-warning-bg)',
+									border: '1px solid color-mix(in srgb, var(--status-warning) 35%, transparent)',
 								}}
 							>
 								<span
@@ -275,7 +277,14 @@ export default function SuggestionDetailDialog({
 								>
 									{change.userName} - {change.deskLocationName}
 								</span>
-								<span style={{ fontSize: 12, color: '#92400e', marginTop: 4, display: 'block' }}>
+								<span
+									style={{
+										fontSize: 'var(--text-xs)',
+										color: 'var(--status-warning)',
+										marginTop: 4,
+										display: 'block',
+									}}
+								>
 									{change.newPriority !== null
 										? `P${change.previousPriority} → P${change.newPriority} (shifted down)`
 										: `P${change.previousPriority} → Removed (pushed past P5)`}
@@ -307,8 +316,8 @@ export default function SuggestionDetailDialog({
 								style={{
 									padding: '12px 16px',
 									borderRadius: 4,
-									backgroundColor: '#fee2e2',
-									border: '1px solid #fecaca',
+									backgroundColor: 'var(--status-error-bg)',
+									border: '1px solid color-mix(in srgb, var(--status-error) 35%, transparent)',
 								}}
 							>
 								<span
@@ -321,7 +330,14 @@ export default function SuggestionDetailDialog({
 								>
 									{user.userName}
 								</span>
-								<span style={{ fontSize: 12, color: '#991b1b', marginTop: 4, display: 'block' }}>
+								<span
+									style={{
+										fontSize: 'var(--text-xs)',
+										color: 'var(--status-error)',
+										marginTop: 4,
+										display: 'block',
+									}}
+								>
 									{user.reason === 'PRIORITY_EXHAUSTION'
 										? 'All priority slots (P1-P5) occupied by other locations'
 										: user.reason}
@@ -338,15 +354,15 @@ export default function SuggestionDetailDialog({
 					style={{
 						padding: 16,
 						borderRadius: 8,
-						backgroundColor: '#fef3c7',
-						border: '1px solid #fde68a',
+						backgroundColor: 'var(--status-warning-bg)',
+						border: '1px solid color-mix(in srgb, var(--status-warning) 35%, transparent)',
 						display: 'flex',
 						alignItems: 'center',
 						gap: 12,
 					}}
 				>
-					<IconAlertTriangle size={20} style={{ color: '#92400e' }} />
-					<span style={{ fontSize: 13, color: '#92400e' }}>
+					<IconAlertTriangle size={20} style={{ color: 'var(--status-warning)' }} />
+					<span style={{ fontSize: 13, color: 'var(--status-warning)' }}>
 						{shortfall} additional user{shortfall !== 1 ? 's' : ''} needed for full resolution
 					</span>
 				</div>

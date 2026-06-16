@@ -125,7 +125,7 @@ export default function WorkflowHealthCard({
 				<Link
 					href="/admin/workflow-management/overview"
 					style={{
-						fontSize: 12,
+						fontSize: 'var(--text-xs)',
 						color: 'var(--text-accent)',
 						textDecoration: 'none',
 						display: 'flex',
@@ -160,7 +160,7 @@ export default function WorkflowHealthCard({
 							value={counts.slaBreaches}
 							label="SLA Breaches"
 							icon={<IconAlertTriangle size={16} />}
-							iconColor={counts.slaBreaches > 0 ? '#fff' : 'var(--text-secondary)'}
+							iconColor={counts.slaBreaches > 0 ? 'var(--text-on-accent)' : 'var(--text-secondary)'}
 							iconBgColor={counts.slaBreaches > 0 ? 'var(--status-error)' : 'var(--bg-tertiary)'}
 							subtitleColor={counts.slaBreaches > 0 ? 'negative' : 'default'}
 						/>
@@ -169,7 +169,7 @@ export default function WorkflowHealthCard({
 							value={counts.slaWarnings}
 							label="SLA Warnings"
 							icon={<IconClock size={16} />}
-							iconColor={counts.slaWarnings > 0 ? '#fff' : 'var(--text-secondary)'}
+							iconColor={counts.slaWarnings > 0 ? 'var(--text-on-accent)' : 'var(--text-secondary)'}
 							iconBgColor={counts.slaWarnings > 0 ? 'var(--status-warning)' : 'var(--bg-tertiary)'}
 						/>
 						<KpiCard
@@ -177,7 +177,7 @@ export default function WorkflowHealthCard({
 							value={counts.pendingSuggestions}
 							label="Pending Suggestions"
 							icon={<IconBulb size={16} />}
-							iconColor="#fff"
+							iconColor="var(--text-on-accent)"
 							iconBgColor="var(--text-accent)"
 						/>
 						<KpiCard
@@ -185,7 +185,7 @@ export default function WorkflowHealthCard({
 							value={counts.pendingApprovals}
 							label="Pending Approvals"
 							icon={<IconChecks size={16} />}
-							iconColor="#fff"
+							iconColor="var(--text-on-accent)"
 							iconBgColor="var(--text-accent)"
 						/>
 					</>
@@ -216,7 +216,7 @@ export default function WorkflowHealthCard({
 				<div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
 					<span
 						style={{
-							fontSize: 12,
+							fontSize: 'var(--text-xs)',
 							fontWeight: 600,
 							color: 'var(--text-secondary)',
 							marginBottom: 4,

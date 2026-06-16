@@ -557,7 +557,7 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 							style={{
 								display: 'flex',
 								flexDirection: 'column' as const,
-								backgroundColor: '#fff8e1',
+								backgroundColor: 'var(--status-warning-bg)',
 								padding: 16,
 								borderRadius: 4,
 								marginBottom: 16,
@@ -566,7 +566,7 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 							<span style={{ fontSize: 13, fontWeight: 600 }}>
 								{archivingSettlement.party_name}
 							</span>
-							<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+							<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
 								{formatCoverageType(archivingSettlement.loss_type)} ·{' '}
 								{formatCurrencyExact(parseFloat(archivingSettlement.demand_amount.toString()))}
 							</span>
@@ -574,7 +574,7 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 						{(recoveryCounts.get(archivingSettlement.id) ?? 0) > 0 && (
 							<div
 								style={{
-									backgroundColor: '#fff3e0',
+									backgroundColor: 'var(--status-warning-bg)',
 									padding: 16,
 									borderRadius: 4,
 									marginBottom: 16,
@@ -595,7 +595,7 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 								</div>
 							</div>
 						)}
-						<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+						<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
 							The settlement will be archived and hidden from view, but the record will be preserved
 							for historical purposes.
 						</span>
@@ -624,7 +624,7 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 							style={{
 								display: 'flex',
 								flexDirection: 'column' as const,
-								backgroundColor: '#e8f5e9',
+								backgroundColor: 'var(--status-success-bg)',
 								padding: 16,
 								borderRadius: 4,
 								marginBottom: 16,
@@ -633,12 +633,12 @@ export default function SettlementRecoveryTab({ claimId }: RecoveryTabProps) {
 							<span style={{ fontSize: 13, fontWeight: 600, color: 'var(--status-success)' }}>
 								{formatCurrencyExact(parseFloat(archivingRecovery.recovery_amount.toString()))}
 							</span>
-							<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+							<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
 								{dayjs(archivingRecovery.recovery_date).format('MMM D, YYYY')}
 								{archivingRecovery.recovery_source && ` · ${archivingRecovery.recovery_source}`}
 							</span>
 						</div>
-						<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+						<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
 							The recovery event will be archived and hidden from view, but the record will be
 							preserved for historical purposes.
 						</span>

@@ -34,7 +34,7 @@
 
 .navItem {
 	display: block;
-	padding: 5px;
+	padding: var(--space-1);
 }
 
 .navItemSelected {
@@ -82,8 +82,8 @@
 
 .navLabel {
 	white-space: nowrap;
-	font-size: 14px;
-	font-weight: 500;
+	font-size: var(--text-base);
+	font-weight: var(--font-medium);
 	color: inherit;
 	transition: opacity 0.2s ease;
 	overflow: hidden;

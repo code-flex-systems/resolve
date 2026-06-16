@@ -222,7 +222,7 @@ export default function ChecklistClaims({
 				>
 					<span style={{ fontSize: 18, fontWeight: 600 }}>Assigned Claims</span>
 					<div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-						<span style={{ fontSize: 12, color: 'text.secondary', marginRight: '20px' }}>
+						<span style={{ fontSize: 'var(--text-xs)', color: 'text.secondary', marginRight: '20px' }}>
 							{(data?.count ?? 0).toLocaleString()} claim{(data?.count ?? 0) !== 1 ? 's' : ''}
 						</span>
 						<ExportButton

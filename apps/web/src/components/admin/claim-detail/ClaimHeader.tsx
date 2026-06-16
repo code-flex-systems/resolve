@@ -72,25 +72,25 @@ export default function ClaimHeader({ claimId, onEdit }: { claimId: string; onEd
 				{/* Right: Key Metrics */}
 				<div style={{ display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}>
 					<div style={{ display: 'flex', flexDirection: 'column' as const }}>
-						<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Claim Amount</span>
+						<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>Claim Amount</span>
 						<span style={{ fontSize: 18 }}>
 							{formatCurrencyExact(Number(claimDetail.claim_amount) || 0)}
 						</span>
 					</div>
 					<div style={{ display: 'flex', flexDirection: 'column' as const }}>
-						<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Total Incurred</span>
+						<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>Total Incurred</span>
 						<span style={{ fontSize: 18 }}>
 							{formatCurrencyExact(Number(claimDetail.total_incurred) || 0)}
 						</span>
 					</div>
 					<div style={{ display: 'flex', flexDirection: 'column' as const }}>
-						<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Expected Recovery</span>
+						<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>Expected Recovery</span>
 						<span style={{ fontSize: 18 }}>
 							{formatCurrencyExact(Number(claimDetail.expected_recovery) || 0)}
 						</span>
 					</div>
 					<div style={{ display: 'flex', flexDirection: 'column' as const }}>
-						<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Actual Recovery</span>
+						<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>Actual Recovery</span>
 						<span style={{ fontSize: 18 }}>
 							{formatCurrencyExact(Number(claimDetail.actual_recovery) || 0)}
 						</span>

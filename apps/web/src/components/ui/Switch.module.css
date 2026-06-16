@@ -64,7 +64,7 @@
 	top: 2px;
 	left: 2px;
 	border-radius: 50%;
-	background: #ffffff;
+	background: var(--text-on-accent);
 	transition: transform var(--transition-normal);
 }
 

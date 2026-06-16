@@ -274,7 +274,7 @@ export default function ExecutionHistoryTable({
 										color: 'var(--status-error)',
 										marginTop: 4,
 										padding: 12,
-										backgroundColor: '#fef2f2',
+										backgroundColor: 'var(--status-error-bg)',
 										borderRadius: 4,
 										fontFamily: 'monospace',
 										whiteSpace: 'pre-wrap',
@@ -293,7 +293,7 @@ export default function ExecutionHistoryTable({
 									style={{
 										marginTop: 4,
 										padding: 12,
-										backgroundColor: 'grey.50',
+										backgroundColor: 'var(--bg-secondary)',
 										borderRadius: 4,
 										overflow: 'auto',
 										maxHeight: 300,
@@ -302,7 +302,7 @@ export default function ExecutionHistoryTable({
 									<pre
 										style={{
 											margin: 0,
-											fontSize: 12,
+											fontSize: 'var(--text-xs)',
 											whiteSpace: 'pre-wrap',
 											wordBreak: 'break-word',
 										}}

@@ -41,7 +41,7 @@ export default function QuestionStatItem(props: {
 								style={{
 									...styles.dot,
 									backgroundColor:
-										selectedAnswerId === a.answer_id ? 'var(--text-accent)' : '#EBEBEB',
+										selectedAnswerId === a.answer_id ? 'var(--text-accent)' : 'var(--bg-tertiary)',
 									transition: 'background-color 300ms ease',
 									display: 'flex',
 									justifyContent: 'center',
@@ -50,8 +50,8 @@ export default function QuestionStatItem(props: {
 							>
 								<span
 									style={{
-										fontSize: 12,
-										color: selectedAnswerId === a.answer_id ? 'white' : undefined,
+										fontSize: 'var(--text-xs)',
+										color: selectedAnswerId === a.answer_id ? 'var(--text-on-accent)' : undefined,
 									}}
 								>
 									{a.answer_count.toLocaleString()}

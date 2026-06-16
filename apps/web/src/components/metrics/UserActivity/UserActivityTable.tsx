@@ -193,7 +193,7 @@ function DescriptionCell({ row, compact }: { row: any; value?: any } & { compact
 					<span
 						style={{
 							...{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
-							fontSize: 12,
+							fontSize: 'var(--text-xs)',
 							lineHeight: '17px',
 							color: 'var(--text-muted)',
 						}}
@@ -204,7 +204,7 @@ function DescriptionCell({ row, compact }: { row: any; value?: any } & { compact
 					<span
 						style={{
 							...{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
-							fontSize: 12,
+							fontSize: 'var(--text-xs)',
 							lineHeight: '17px',
 							color: 'primary',
 						}}
@@ -217,7 +217,7 @@ function DescriptionCell({ row, compact }: { row: any; value?: any } & { compact
 					<span
 						style={{
 							...{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
-							fontSize: 12,
+							fontSize: 'var(--text-xs)',
 							lineHeight: '17px',
 							color: 'var(--text-muted)',
 						}}
@@ -344,7 +344,7 @@ const styles = {
 		size: 5,
 		height: 5,
 		borderRadius: 5,
-		backgroundColor: '#d9d9d9',
+		backgroundColor: 'var(--bg-tertiary)',
 		margin: '0px 10px',
 	},
 	tableOverrides: {

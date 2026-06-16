@@ -31,8 +31,8 @@ export default function RuleExecutionSummaryDialog({
 	const stats = [
 		{ label: 'Rules Evaluated', value: summary.rulesEvaluated, color: 'var(--text-primary)' },
 		{ label: 'Claims Matched', value: summary.claimsMatched, color: 'var(--text-primary)' },
-		{ label: 'Actions Executed', value: summary.actionsExecuted, color: '#15803d' },
-		{ label: 'Actions Suggested', value: summary.actionsSuggested, color: '#1d4ed8' },
+		{ label: 'Actions Executed', value: summary.actionsExecuted, color: 'var(--status-success)' },
+		{ label: 'Actions Suggested', value: summary.actionsSuggested, color: 'var(--status-info)' },
 	];
 
 	return (
@@ -64,7 +64,7 @@ export default function RuleExecutionSummaryDialog({
 						}}
 					>
 						<span style={{ fontSize: 24, fontWeight: 700, color: stat.color }}>{stat.value}</span>
-						<span style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
+						<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: 4 }}>
 							{stat.label}
 						</span>
 					</div>
@@ -92,8 +92,8 @@ export default function RuleExecutionSummaryDialog({
 								paddingBlock: 12,
 								marginBottom: 8,
 								borderRadius: 4,
-								backgroundColor: '#fee2e2',
-								border: '1px solid #fecaca',
+								backgroundColor: 'var(--status-error-bg)',
+								border: '1px solid color-mix(in srgb, var(--status-error) 35%, transparent)',
 							}}
 						>
 							<span style={{ fontSize: 14, fontWeight: 500, color: 'var(--text-primary)' }}>
@@ -104,7 +104,9 @@ export default function RuleExecutionSummaryDialog({
 									</span>
 								)}
 							</span>
-							<span style={{ fontSize: 12, color: '#991b1b', marginTop: 4 }}>{err.error}</span>
+							<span style={{ fontSize: 'var(--text-xs)', color: 'var(--status-error)', marginTop: 4 }}>
+								{err.error}
+							</span>
 						</div>
 					))}
 				</div>

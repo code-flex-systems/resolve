@@ -242,7 +242,7 @@ export default function ClaimAssignmentDialog() {
 							alignItems: 'center',
 						}}
 					>
-						<div style={{ backgroundColor: 'white', margin: 8, borderRadius: 4 }}>
+						<div style={{ backgroundColor: 'var(--bg-white)', margin: 8, borderRadius: 4 }}>
 							<UserSearch
 								selectedUser={user}
 								setSelectedUser={setUser}

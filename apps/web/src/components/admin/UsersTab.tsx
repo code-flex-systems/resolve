@@ -71,7 +71,7 @@ const getColumns = (isManageMode: boolean): ColumnDef<any, any>[] => [
 				<div style={{ display: 'flex', flexDirection: 'column' }}>
 					<span style={{ fontSize: 14 }}>{statusText}</span>
 					{statusDate && (
-						<span style={{ color: 'var(--text-muted)', fontSize: 12 }}>{statusDate}</span>
+						<span style={{ color: 'var(--text-muted)', fontSize: 'var(--text-xs)' }}>{statusDate}</span>
 					)}
 				</div>
 			);

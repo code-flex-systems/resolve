@@ -85,7 +85,7 @@ export default function ChecklistAnswerFileUpload(props: ChecklistAnswerFileUplo
 				</Button>
 				{attachedDoc && (
 					<div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 8 }}>
-						<span style={{ fontSize: 12, color: 'text.secondary' }}>
+						<span style={{ fontSize: 'var(--text-xs)', color: 'text.secondary' }}>
 							{attachedDoc.title || attachedDoc.alias}
 						</span>
 						<Button variant="icon" size="sm" onClick={handleRemoveDoc} disabled={disabled}>
@@ -93,7 +93,7 @@ export default function ChecklistAnswerFileUpload(props: ChecklistAnswerFileUplo
 						</Button>
 					</div>
 				)}
-				{!attachedDoc && <span style={{ fontSize: 12, color: 'error.main' }}>Required</span>}
+				{!attachedDoc && <span style={{ fontSize: 'var(--text-xs)', color: 'error.main' }}>Required</span>}
 			</div>
 
 			{showDocSelector && (

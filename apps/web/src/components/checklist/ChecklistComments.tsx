@@ -177,7 +177,7 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 					>
 						<span
 							style={{
-								fontSize: 12,
+								fontSize: 'var(--text-xs)',
 								color:
 									newComment.length === config.MAX_COMMENT_SIZE ? 'var(--status-error)' : undefined,
 							}}
@@ -237,43 +237,25 @@ export default function ChecklistComments({ tree }: { tree: TreeNode[] }) {
 					display: 'flex',
 					justifyContent: 'center',
 					alignItems: 'center',
-					padding: '5px 10px',
+					padding: 'var(--space-1) var(--space-2-5)',
 				}}
 			>
-				<button
+				<Button
+					variant="icon"
+					size="sm"
 					onClick={() => updatePage(-1)}
 					disabled={isFetching || (page === 0 && commentOffset === 0)}
-					style={{
-						background: 'none',
-						border: 'none',
-						cursor: 'pointer',
-						padding: 8,
-						borderRadius: '50%',
-						display: 'flex',
-						alignItems: 'center',
-						justifyContent: 'center',
-						opacity: isFetching || (page === 0 && commentOffset === 0) ? 0.4 : 1,
-					}}
 				>
 					<IconChevronLeft size={20} />
-				</button>
-				<button
+				</Button>
+				<Button
+					variant="icon"
+					size="sm"
 					onClick={() => updatePage(1)}
 					disabled={isFetching || commentOffset + page + pageSize >= data.count}
-					style={{
-						background: 'none',
-						border: 'none',
-						cursor: 'pointer',
-						padding: 8,
-						borderRadius: '50%',
-						display: 'flex',
-						alignItems: 'center',
-						justifyContent: 'center',
-						opacity: isFetching || commentOffset + page + pageSize >= data.count ? 0.4 : 1,
-					}}
 				>
 					<IconChevronRight size={20} />
-				</button>
+				</Button>
 			</div>
 		</Card>
 	);

@@ -113,7 +113,7 @@ export default function DeskAssignmentTab() {
 									{assignments.map((a) => (
 										<span
 											key={a.id}
-											style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.4 }}
+											style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', lineHeight: 1.4 }}
 										>
 											{a.desk_location_type_name ?? 'Unknown type'} —{' '}
 											{a.desk_location_name ?? 'Unknown location'}

@@ -430,7 +430,7 @@ const reviewStyles = {
 		gap: 2,
 	},
 	label: {
-		fontSize: 12,
+		fontSize: 'var(--text-xs)',
 		color: 'var(--text-secondary)',
 	},
 	value: {

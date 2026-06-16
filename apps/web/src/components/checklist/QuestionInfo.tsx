@@ -57,7 +57,7 @@ export default function QuestionInfo(props: {
 								boxShadow: 'var(--shadow-md)',
 							}}
 						>
-							<span style={{ fontSize: 17, fontWeight: 'bold' }}>{description}</span>
+							<span style={{ fontSize: 'var(--text-lg)', fontWeight: 'bold' }}>{description}</span>
 						</div>
 					</BasicPopper>
 				</>

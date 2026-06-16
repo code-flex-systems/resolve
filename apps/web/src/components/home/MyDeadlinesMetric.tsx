@@ -148,10 +148,13 @@ export default function MyDeadlinesMetric() {
 										height: 40,
 									}}
 								>
-									<IconAlertTriangle size={20} style={{ color: 'white', fontSize: 22 }} />
+									<IconAlertTriangle
+										size={20}
+										style={{ color: 'var(--text-on-accent)', fontSize: 22 }}
+									/>
 								</div>
 								<div style={{ display: 'flex', flexDirection: 'column' as const }}>
-									<span style={{ fontSize: 24, fontWeight: 700, color: 'error' }}>
+									<span style={{ fontSize: 24, fontWeight: 700, color: 'var(--status-error)' }}>
 										{overdueCount}
 									</span>
 									<span style={{ fontSize: 11 }}>Overdue</span>
@@ -169,13 +172,13 @@ export default function MyDeadlinesMetric() {
 										height: 40,
 									}}
 								>
-									<IconClock size={20} style={{ color: 'white', fontSize: 22 }} />
+									<IconClock size={20} style={{ color: 'var(--text-on-accent)', fontSize: 22 }} />
 								</div>
 								<div style={{ display: 'flex', flexDirection: 'column' as const }}>
-									<span style={{ fontSize: 24, fontWeight: 700, color: 'warning.main' }}>
+									<span style={{ fontSize: 24, fontWeight: 700, color: 'var(--status-warning)' }}>
 										{upcomingCount}
 									</span>
-									<span style={{ color: 'text.secondary', fontSize: 11 }}>Next 7 Days</span>
+									<span style={{ color: 'var(--text-secondary)', fontSize: 11 }}>Next 7 Days</span>
 								</div>
 							</div>
 						</Card>
@@ -229,7 +232,7 @@ const styles = {
 		justifyContent: 'center',
 		alignItems: 'center',
 		padding: 1.5,
-		background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.03) 0%, rgba(255, 255, 255, 1) 100%)',
+		background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.03) 0%, var(--bg-white) 100%)',
 		borderRadius: 1,
 		marginBottom: 1,
 	},

@@ -1,7 +1,7 @@
 .dot {
 	margin: 4px;
 	border-radius: 25px;
-	border: 1px solid #1976d2;
+	border: 1px solid var(--text-accent);
 	transition:
 		background-color 300ms ease,
 		width 300ms ease,
@@ -9,11 +9,11 @@
 }
 
 .active {
-	background-color: #1976d2;
+	background-color: var(--text-accent);
 }
 
 .inactive {
-	background-color: #ffffff;
+	background-color: var(--bg-white);
 }
 
 .clickable {

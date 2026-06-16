@@ -91,12 +91,12 @@ export default function RuleCard({
 					typeof rule.conditions === 'object' &&
 					(rule.conditions as any).conditions && (
 						<div>
-							<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+							<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
 								Conditions ({(rule.conditions as any).logic}):
 							</span>
 							<div style={{ display: 'flex', flexDirection: 'column', gap: 4, paddingLeft: 8 }}>
 								{((rule.conditions as any).conditions || []).map((cond: any, idx: number) => (
-									<span key={idx} style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+									<span key={idx} style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
 										• {formatCondition(cond)}
 									</span>
 								))}

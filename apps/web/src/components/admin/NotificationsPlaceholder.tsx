@@ -23,7 +23,7 @@ export default function NotificationsPlaceholder() {
 					<span style={{ fontSize: 14, color: 'var(--text-secondary)' }}>No notifications yet</span>
 					<span
 						style={{
-							fontSize: 12,
+							fontSize: 'var(--text-xs)',
 							color: 'var(--text-muted)',
 							textAlign: 'center',
 							maxWidth: 400,

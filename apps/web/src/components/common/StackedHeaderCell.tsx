@@ -16,10 +16,20 @@ export default function StackedHeaderCell({
 				flexDirection: 'column',
 				justifyContent: 'center',
 				alignItems: 'flex-start',
+				minWidth: 0,
+				overflow: 'hidden',
 			}}
 		>
-			<span style={{ fontSize: 15, lineHeight: '17px', paddingBottom: 2 }}>{primary}</span>
-			<span style={{ fontSize: 13, lineHeight: '15px', color: 'var(--text-muted)' }}>
+			<span
+				className="truncate"
+				style={{ fontSize: 15, lineHeight: '17px', paddingBottom: 2, maxWidth: '100%' }}
+			>
+				{primary}
+			</span>
+			<span
+				className="truncate"
+				style={{ fontSize: 13, lineHeight: '15px', color: 'var(--text-muted)', maxWidth: '100%' }}
+			>
 				{secondary}
 			</span>
 		</div>

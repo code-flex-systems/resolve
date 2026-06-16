@@ -79,7 +79,7 @@ export function CSVStep1({ fields, onParsed }: Props) {
 					padding: 32,
 					textAlign: 'center',
 					width: '100%',
-					backgroundColor: '#f7f7f7',
+					backgroundColor: 'var(--bg-secondary)',
 					cursor: 'pointer',
 					borderRadius: 'var(--radius-lg)',
 					border: '1px solid var(--border)',

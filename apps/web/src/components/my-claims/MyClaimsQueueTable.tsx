@@ -231,9 +231,9 @@ export default function MyClaimsQueueTable({
 			cell: (info: any) => {
 				const params = { row: info.row.original, value: info.getValue() };
 				return (
-					<div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+					<div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, overflow: 'hidden' }}>
 						{getActivityIndicator(params.value)}
-						{formatMDYAbv(params.value)}
+						<span className="truncate">{formatMDYAbv(params.value)}</span>
 					</div>
 				);
 			},

@@ -430,7 +430,7 @@ export default function Claims() {
 									<span style={{ fontSize: 13 }}>Only Manual Claims</span>
 								</div>
 								<div>
-									<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
+									<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginBottom: 4 }}>
 										Line of Business
 									</span>
 									<Controller
@@ -446,7 +446,7 @@ export default function Claims() {
 									/>
 								</div>
 								<div>
-									<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
+									<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginBottom: 4 }}>
 										Recovery Status
 									</span>
 									<Controller
@@ -463,7 +463,7 @@ export default function Claims() {
 									/>
 								</div>
 								<div>
-									<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
+									<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginBottom: 4 }}>
 										Substatus
 									</span>
 									<Controller
@@ -480,7 +480,7 @@ export default function Claims() {
 									/>
 								</div>
 								<div>
-									<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
+									<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginBottom: 4 }}>
 										Insured
 									</span>
 									<Controller
@@ -505,7 +505,7 @@ export default function Claims() {
 									/>
 								</div>
 								<div>
-									<span style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 4 }}>
+									<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginBottom: 4 }}>
 										Client
 									</span>
 									<Controller

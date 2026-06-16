@@ -188,12 +188,12 @@ export default function PartyCard({
 							{(claimParty.party?.email || claimParty.party?.phone) && (
 								<div style={{ display: 'flex', gap: 16, marginBottom: 4 }}>
 									{claimParty.party?.email && (
-										<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+										<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
 											✉️ {claimParty.party.email}
 										</span>
 									)}
 									{claimParty.party?.phone && (
-										<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+										<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
 											📞 {claimParty.party.phone}
 										</span>
 									)}
@@ -212,7 +212,7 @@ export default function PartyCard({
 										{(claimParty.representative.email || claimParty.representative.phone) && (
 											<>
 												{' '}
-												<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+												<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
 													(
 													{claimParty.representative.email && (
 														<>✉️ {claimParty.representative.email}</>
@@ -244,7 +244,7 @@ export default function PartyCard({
 							{claimParty.address && (
 								<span
 									style={{
-										fontSize: 12,
+										fontSize: 'var(--text-xs)',
 										color: 'var(--text-secondary)',
 										marginBottom: 4,
 										display: 'block',
@@ -297,7 +297,7 @@ export default function PartyCard({
 											{facilitators.length === 0 && (
 												<span
 													style={{
-														fontSize: 12,
+														fontSize: 'var(--text-xs)',
 														color: 'var(--text-secondary)',
 														fontStyle: 'italic',
 														margin: '8px 0',
@@ -360,7 +360,7 @@ export default function PartyCard({
 
 							{/* Metadata */}
 							<span
-								style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 8, display: 'block' }}
+								style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginTop: 8, display: 'block' }}
 							>
 								Linked {dayjs(claimParty.created_at).format('MMM D, YYYY')} (
 								{dayjs(claimParty.created_at).fromNow()})

@@ -217,6 +217,13 @@ body {
 	font-style: italic;
 }
 
+.truncate {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
 /* =========================================================================
    UTILITY CLASSES — Row highlights
    ========================================================================= */
@@ -238,32 +245,8 @@ body {
 }
 
 /* =========================================================================
-   VENDOR OVERRIDES — MUI notched outline fix
+   VENDOR OVERRIDES
    ========================================================================= */
-
-.MuiFormControl-root:not(:has(> .MuiInputLabel-root)) .MuiOutlinedInput-notchedOutline legend,
-.MuiFormControl-root:not(:has(> .MuiFormLabel-root)) .MuiOutlinedInput-notchedOutline legend {
-	padding: 0 !important;
-	max-width: 0 !important;
-	width: 0 !important;
-	overflow: hidden !important;
-}
-
-.MuiTextField-root:not(:has(.MuiInputLabel-root:not(:empty)))
-	.MuiOutlinedInput-notchedOutline
-	legend {
-	padding: 0 !important;
-	max-width: 0 !important;
-	width: 0 !important;
-	overflow: hidden !important;
-}
-
-.MuiOutlinedInput-root:not(.MuiInputBase-formControl) .MuiOutlinedInput-notchedOutline legend {
-	padding: 0 !important;
-	max-width: 0 !important;
-	width: 0 !important;
-	overflow: hidden !important;
-}
 
 /* react-day-picker overrides */
 .rdp-root {

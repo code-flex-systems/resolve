@@ -1,7 +1,7 @@
 .button {
 	border-radius: 10px;
 	box-shadow: none;
-	font-family: 'Inter', sans-serif;
+	font-family: var(--font-sans);
 }
 
 .iconButton {

@@ -15,9 +15,9 @@ interface RecentAdminActivityProps {
 }
 
 const ACTION_COLORS: Record<string, { bg: string; color: string }> = {
-	CREATE: { bg: 'var(--status-success)', color: '#fff' },
-	UPDATE: { bg: 'var(--text-accent)', color: '#fff' },
-	DELETE: { bg: 'var(--status-error)', color: '#fff' },
+	CREATE: { bg: 'var(--status-success)', color: 'var(--text-on-accent)' },
+	UPDATE: { bg: 'var(--text-accent)', color: 'var(--text-on-accent)' },
+	DELETE: { bg: 'var(--status-error)', color: 'var(--text-on-accent)' },
 };
 
 function getActionStyle(action: string) {
@@ -84,7 +84,7 @@ export default function RecentAdminActivity({ userId }: RecentAdminActivityProps
 								>
 									<span
 										style={{
-											fontSize: 10,
+											fontSize: 'var(--text-xs)',
 											fontWeight: 600,
 											padding: '2px 8px',
 											borderRadius: 4,
@@ -132,7 +132,7 @@ export default function RecentAdminActivity({ userId }: RecentAdminActivityProps
 							display: 'flex',
 							alignItems: 'center',
 							gap: 4,
-							fontSize: 12,
+							fontSize: 'var(--text-xs)',
 							color: 'var(--text-accent)',
 							textDecoration: 'none',
 							alignSelf: 'flex-start',

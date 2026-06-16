@@ -53,7 +53,7 @@ export default function SuggestionCard({
 					width: 44,
 					height: 44,
 					borderRadius: '10px',
-					backgroundColor: '#f1f5f9',
+					backgroundColor: 'var(--bg-secondary)',
 					display: 'flex',
 					alignItems: 'center',
 					justifyContent: 'center',

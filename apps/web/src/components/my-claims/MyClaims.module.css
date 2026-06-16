@@ -35,8 +35,8 @@
 }
 
 .title {
-	font-size: 18px;
-	font-weight: 600;
+	font-size: var(--text-xl);
+	font-weight: var(--font-semibold);
 	margin: 0;
 }
 
@@ -56,8 +56,8 @@
 }
 
 .legendTitle {
-	font-size: 11px;
-	font-weight: 600;
+	font-size: var(--text-xs);
+	font-weight: var(--font-semibold);
 	color: var(--text-secondary);
 	margin-bottom: 4px;
 }
@@ -76,5 +76,5 @@
 }
 
 .legendText {
-	font-size: 12px;
+	font-size: var(--text-xs);
 }

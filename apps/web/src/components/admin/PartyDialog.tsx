@@ -793,7 +793,7 @@ const fieldStyles = {
 		gap: 2,
 	},
 	reviewLabel: {
-		fontSize: 12,
+		fontSize: 'var(--text-xs)',
 		color: 'var(--text-secondary)',
 	},
 	reviewValue: {

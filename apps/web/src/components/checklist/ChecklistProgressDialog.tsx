@@ -158,7 +158,7 @@ export default function ChecklistProgressDialog() {
 							/>
 						}
 						title={isFetchingProgress ? 'Evaluating...' : (checklistClaim?.status ?? '')}
-						color="white"
+						color="var(--bg-white)"
 					/>
 				)
 			}

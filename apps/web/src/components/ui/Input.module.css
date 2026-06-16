@@ -39,15 +39,15 @@
 }
 
 .size-sm {
-	height: 32px;
+	height: var(--control-height-sm);
 }
 
 .size-md {
-	height: 36px;
+	height: var(--control-height-md);
 }
 
 .size-lg {
-	height: 42px;
+	height: var(--control-height-lg);
 }
 
 .inputWrapper:focus-within {

@@ -530,7 +530,7 @@ const pageStyles = {
 		gap: 8,
 	},
 	actionGroupTitle: {
-		fontSize: 12,
+		fontSize: 'var(--text-xs)',
 		fontWeight: 500,
 		color: 'var(--text-secondary)',
 		textTransform: 'uppercase' as const,

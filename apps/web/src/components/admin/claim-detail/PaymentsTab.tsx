@@ -240,7 +240,7 @@ export default function PaymentsTab({ claimId }: PaymentsTabProps) {
 					const params = { row: info.row.original, value: info.getValue() };
 					const amount = parseFloat(params.row.payment_amount?.toString() || '0');
 					return (
-						<div style={{ display: 'flex', gap: 4 }}>
+						<div style={{ display: 'flex', gap: 4, minWidth: 0, overflow: 'hidden' }}>
 							{amount < 0 && (
 								<Chip size="sm" color="error" variant="outlined">
 									Credit

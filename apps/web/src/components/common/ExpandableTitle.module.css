@@ -36,7 +36,7 @@
 }
 
 .titleText {
-	font-size: 17px;
+	font-size: var(--text-lg);
 	margin-left: 5px;
 	white-space: nowrap;
 	overflow: hidden;

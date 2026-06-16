@@ -110,10 +110,17 @@ export default function SettlementTable({
 				cell: (info: any) => {
 					const params = { row: info.row.original, value: info.getValue() };
 					if (params.row.type === 'settlement') {
-						return <span style={{ fontSize: 13 }}>{params.row.party_name}</span>;
+						return (
+							<span className="truncate" style={{ fontSize: 13, display: 'block' }}>
+								{params.row.party_name}
+							</span>
+						);
 					}
 					return (
-						<span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
+						<span
+							className="truncate"
+							style={{ fontSize: 13, display: 'block', color: 'var(--text-secondary)' }}
+						>
 							{params.row.recovery_source || 'No source'}
 						</span>
 					);

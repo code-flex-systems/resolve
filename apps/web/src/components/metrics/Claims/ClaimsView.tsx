@@ -219,7 +219,9 @@ export default function ClaimsView() {
 												style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
 											>
 												<div style={{ padding: 8 }}>
-													<span style={{ color: '#d9d9d9', fontSize: 15 }}>Actual Recovery</span>
+													<span style={{ color: 'var(--text-muted)', fontSize: 15 }}>
+														Actual Recovery
+													</span>
 													<span style={{ fontSize: 18 }}>
 														{formatAmount(claim.actual_recovery ?? 0, true)}
 													</span>
@@ -347,7 +349,7 @@ const styles = {
 		width: 5,
 		height: 5,
 		borderRadius: 10,
-		backgroundColor: '#d9d9d9',
+		backgroundColor: 'var(--bg-tertiary)',
 		margin: '0px 5px',
 	},
 	paper: {
@@ -360,6 +362,6 @@ const styles = {
 	table: {
 		width: '49.5%',
 		height: 'calc(100vh - 290px)',
-		border: '1px solid #E0E0E0',
+		border: '1px solid var(--border)',
 	},
 };

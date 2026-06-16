@@ -27,7 +27,7 @@ function CustomTooltip({ active, payload }: any) {
 				border: '1px solid var(--border-primary, #333)',
 				borderRadius: 8,
 				padding: '8px 12px',
-				fontSize: 12,
+				fontSize: 'var(--text-xs)',
 				color: 'var(--text-primary, #e0e0e0)',
 			}}
 		>

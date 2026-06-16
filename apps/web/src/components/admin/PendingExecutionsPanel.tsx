@@ -31,7 +31,7 @@ function CountBadge({ value }: { value: number }) {
 				borderRadius: 11,
 				backgroundColor: 'color-mix(in srgb, var(--text-accent) 12%, transparent)',
 				color: 'var(--text-accent)',
-				fontSize: 12,
+				fontSize: 'var(--text-xs)',
 				fontWeight: 600,
 				lineHeight: 1,
 				fontVariantNumeric: 'tabular-nums',
@@ -178,7 +178,7 @@ export default function PendingExecutionsPanel() {
 										<span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
 											Claim {execution.claim_number}
 										</span>
-										<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+										<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
 											{formatRelativeTime(execution.created_at)}
 										</span>
 									</div>

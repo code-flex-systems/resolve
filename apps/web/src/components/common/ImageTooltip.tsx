@@ -43,7 +43,7 @@ export default function ImageTooltip({
 				<div style={{ padding: 8 }}>
 					{!imageLoaded && (
 						<div style={{ padding: 16, textAlign: 'center' }}>
-							<span style={{ fontSize: 12, color: 'rgba(255,255,255,0.9)' }}>Loading image...</span>
+							<span style={{ fontSize: 'var(--text-xs)', color: 'rgba(255,255,255,0.9)' }}>Loading image...</span>
 						</div>
 					)}
 					<img
@@ -65,7 +65,7 @@ export default function ImageTooltip({
 						}}
 					/>
 					{description && imageLoaded && (
-						<div style={{ marginTop: 8, fontSize: 12, color: 'rgba(255,255,255,0.9)' }}>
+						<div style={{ marginTop: 8, fontSize: 'var(--text-xs)', color: 'rgba(255,255,255,0.9)' }}>
 							{description}
 						</div>
 					)}

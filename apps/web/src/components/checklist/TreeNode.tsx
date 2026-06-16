@@ -136,11 +136,11 @@ export default function TreeNode(props: TreeNode & { level: number }) {
 							style={{
 								background: 'none',
 								border: 'none',
-								padding: '2px',
+								padding: 'var(--space-0-5)',
 								cursor: 'pointer',
 								display: 'flex',
 								alignItems: 'center',
-								marginRight: 4,
+								marginRight: 'var(--space-1)',
 							}}
 							onClick={(e) => {
 								setExpanded((prev) => !prev);

@@ -943,7 +943,7 @@ export default function PartyLinkingDialog({
 					<div>
 						<span
 							style={{
-								fontSize: 12,
+								fontSize: 'var(--text-xs)',
 								color: 'var(--text-muted)',
 								textTransform: 'uppercase' as const,
 								letterSpacing: '0.04em',
@@ -958,7 +958,7 @@ export default function PartyLinkingDialog({
 					<div>
 						<span
 							style={{
-								fontSize: 12,
+								fontSize: 'var(--text-xs)',
 								color: 'var(--text-muted)',
 								textTransform: 'uppercase' as const,
 								letterSpacing: '0.04em',
@@ -981,7 +981,7 @@ export default function PartyLinkingDialog({
 						<div>
 							<span
 								style={{
-									fontSize: 12,
+									fontSize: 'var(--text-xs)',
 									color: 'var(--text-muted)',
 									textTransform: 'uppercase' as const,
 									letterSpacing: '0.04em',
@@ -997,7 +997,7 @@ export default function PartyLinkingDialog({
 							<div>
 								<span
 									style={{
-										fontSize: 12,
+										fontSize: 'var(--text-xs)',
 										color: 'var(--text-muted)',
 										textTransform: 'uppercase' as const,
 										letterSpacing: '0.04em',
@@ -1010,7 +1010,7 @@ export default function PartyLinkingDialog({
 							<div>
 								<span
 									style={{
-										fontSize: 12,
+										fontSize: 'var(--text-xs)',
 										color: 'var(--text-muted)',
 										textTransform: 'uppercase' as const,
 										letterSpacing: '0.04em',
@@ -1030,7 +1030,7 @@ export default function PartyLinkingDialog({
 						<div>
 							<span
 								style={{
-									fontSize: 12,
+									fontSize: 'var(--text-xs)',
 									color: 'var(--text-muted)',
 									textTransform: 'uppercase' as const,
 									letterSpacing: '0.04em',
@@ -1045,7 +1045,7 @@ export default function PartyLinkingDialog({
 						<div>
 							<span
 								style={{
-									fontSize: 12,
+									fontSize: 'var(--text-xs)',
 									color: 'var(--text-muted)',
 									textTransform: 'uppercase' as const,
 									letterSpacing: '0.04em',

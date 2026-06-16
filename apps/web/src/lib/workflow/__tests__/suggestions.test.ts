@@ -310,22 +310,22 @@ describe('getSeverityLabel', () => {
 // ============================================================================
 
 describe('getSeverityColor', () => {
-	it('returns yellow for Low severity', () => {
+	it('returns info tokens for Low severity', () => {
 		const result = getSeverityColor(0.1);
-		expect(result.bg).toBe('#fef3c7');
-		expect(result.color).toBe('#92400e');
+		expect(result.bg).toBe('var(--status-info-bg)');
+		expect(result.color).toBe('var(--status-info)');
 	});
 
-	it('returns orange for Medium severity', () => {
+	it('returns warning tokens for Medium severity', () => {
 		const result = getSeverityColor(0.5);
-		expect(result.bg).toBe('#fed7aa');
-		expect(result.color).toBe('#9a3412');
+		expect(result.bg).toBe('var(--status-warning-bg)');
+		expect(result.color).toBe('var(--status-warning)');
 	});
 
-	it('returns red for High severity', () => {
+	it('returns error tokens for High severity', () => {
 		const result = getSeverityColor(0.8);
-		expect(result.bg).toBe('#fee2e2');
-		expect(result.color).toBe('#991b1b');
+		expect(result.bg).toBe('var(--status-error-bg)');
+		expect(result.color).toBe('var(--status-error)');
 	});
 });
 

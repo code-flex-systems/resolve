@@ -514,7 +514,7 @@ export default function FormQuestion() {
 												padding: '6px 12px',
 											}}
 										>
-											<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+											<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>
 												{attachedDoc.title || attachedDoc.alias}
 											</span>
 											{attachedDoc.mime_type?.startsWith('image/') ? (

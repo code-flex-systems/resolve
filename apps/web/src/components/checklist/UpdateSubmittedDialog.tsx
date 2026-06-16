@@ -46,7 +46,6 @@ export default function UpdateSubmittedDialog() {
 const styles = {
 	paper: {
 		borderRadius: 4,
-		bgcolor: '#F7F8FA',
 		padding: '20px',
 		height: 80,
 		minHeight: 80,

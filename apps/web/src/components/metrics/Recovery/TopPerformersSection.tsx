@@ -121,7 +121,7 @@ export default function TopPerformersSection({
 						Top Claims by Recovery Amount
 					</span>
 					{topClaims.length === 0 ? (
-						<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>No data available</span>
+						<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>No data available</span>
 					) : (
 						topClaims.map((claim, index) => (
 							<div
@@ -156,7 +156,7 @@ export default function TopPerformersSection({
 						Top Sources by Recovery Amount
 					</span>
 					{topSources.length === 0 ? (
-						<span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>No data available</span>
+						<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)' }}>No data available</span>
 					) : (
 						topSources.map((source, index) => (
 							<div

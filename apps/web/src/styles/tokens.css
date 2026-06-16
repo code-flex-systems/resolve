@@ -29,6 +29,7 @@
 	--text-secondary: #6b6860;
 	--text-muted: #9c9a92;
 	--text-accent: #2d6be4;
+	--text-accent-rgb: 45, 107, 228;
 	--text-on-accent: #ffffff;
 
 	/* Borders */
@@ -74,6 +75,7 @@
 	--text-secondary: #9c9a92;
 	--text-muted: #6b6860;
 	--text-accent: #5b9cf6;
+	--text-accent-rgb: 91, 156, 246;
 	--text-on-accent: #ffffff;
 
 	/* Borders */
@@ -121,6 +123,18 @@
 	--space-8: 32px;
 	--space-10: 40px;
 	--space-12: 48px;
+}
+
+/* =========================================================================
+   CONTROL SIZING
+   Shared heights for interactive controls (buttons, inputs, selects)
+   so mixed toolbars/forms align without per-screen tweaks.
+   ========================================================================= */
+
+:root {
+	--control-height-sm: 28px;
+	--control-height-md: 32px;
+	--control-height-lg: 38px;
 }
 
 /* =========================================================================

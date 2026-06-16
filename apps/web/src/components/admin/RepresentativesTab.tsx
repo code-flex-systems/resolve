@@ -32,13 +32,13 @@ const getColumns = (isAdminContext: boolean, isManageMode: boolean): ColumnDef<a
 		header: 'Party',
 		accessorKey: 'party_name',
 		cell: ({ row: { original: row } }) => (
-			<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+			<div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
 				{row.party_deleted_at && (
 					<Tooltip content="Party is archived" position="right">
 						<IconAlertTriangle size={16} style={{ color: 'var(--status-warning)' }} />
 					</Tooltip>
 				)}
-				<span>{row.party_name}</span>
+				<span className="truncate">{row.party_name}</span>
 			</div>
 		),
 		minSize: 150,
@@ -83,13 +83,13 @@ const getColumns = (isAdminContext: boolean, isManageMode: boolean): ColumnDef<a
 				country: row.address_country,
 			});
 			return (
-				<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+				<div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
 					{row.address_deleted_at && (
 						<Tooltip content="Address is archived" position="right">
 							<IconAlertTriangle size={16} style={{ color: 'var(--status-info)' }} />
 						</Tooltip>
 					)}
-					<span>{formattedAddress || '—'}</span>
+					<span className="truncate">{formattedAddress || '—'}</span>
 				</div>
 			);
 		},

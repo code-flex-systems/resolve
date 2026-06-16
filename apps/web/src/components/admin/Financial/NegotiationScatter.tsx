@@ -55,7 +55,7 @@ export default function NegotiationScatter({ data }: NegotiationScatterProps) {
 										border: '1px solid var(--border-primary, #333)',
 										borderRadius: 8,
 										padding: '8px 12px',
-										fontSize: 12,
+										fontSize: 'var(--text-xs)',
 										color: 'var(--text-primary, #e0e0e0)',
 									}}
 								>
@@ -83,7 +83,7 @@ export default function NegotiationScatter({ data }: NegotiationScatterProps) {
 				</ScatterChart>
 			</ResponsiveContainer>
 			<div
-				style={{ display: 'flex', gap: 16, justifyContent: 'center', marginTop: 8, fontSize: 12 }}
+				style={{ display: 'flex', gap: 16, justifyContent: 'center', marginTop: 8, fontSize: 'var(--text-xs)' }}
 			>
 				<span>
 					<span

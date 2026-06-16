@@ -167,15 +167,15 @@ export default function MyClaims() {
 							</span>
 							<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
 								<div style={{ ...myClaimsStyles.indicator }} />
-								<span style={{ fontSize: 12 }}>Today</span>
+								<span style={{ fontSize: 'var(--text-xs)' }}>Today</span>
 							</div>
 							<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
 								<div style={{ ...myClaimsStyles.indicator }} />
-								<span style={{ fontSize: 12 }}>Within 7 days</span>
+								<span style={{ fontSize: 'var(--text-xs)' }}>Within 7 days</span>
 							</div>
 							<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
 								<div style={{ ...myClaimsStyles.indicator }} />
-								<span style={{ fontSize: 12 }}>Over 7 days</span>
+								<span style={{ fontSize: 'var(--text-xs)' }}>Over 7 days</span>
 							</div>
 						</div>
 					</div>

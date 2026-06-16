@@ -273,8 +273,8 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 										display: 'flex',
 										alignItems: 'center',
 										padding: '2px 8px',
-										border: '1px solid #85D2FF',
-										backgroundColor: 'white',
+										border: '1px solid color-mix(in srgb, var(--status-info) 45%, transparent)',
+										backgroundColor: 'var(--bg-white)',
 										borderRadius: 12,
 									}}
 								>
@@ -363,7 +363,7 @@ export default function OverviewTab({ claimId }: OverviewTabProps) {
 											{log.action.toLowerCase()}d{' '}
 											<Highlight>{log.entity_name.toLowerCase().replace('_', ' ')}</Highlight>
 										</span>
-										<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+										<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
 											{dayjs(log.created_at).format('MMM D, YYYY [at] h:mm A')} (
 											{dayjs(log.created_at).fromNow()})
 										</span>

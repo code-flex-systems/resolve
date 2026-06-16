@@ -173,7 +173,7 @@ export default function PageNavigation() {
 				<Toolbar
 					left={
 						<span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-							<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+							<span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)' }}>
 								{mode === ChecklistMode.EDIT
 									? 'Edit'
 									: mode === ChecklistMode.VIEW
